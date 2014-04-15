@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/qml">
+        <file>main.qml</file>
+        <file>ShoeView.qml</file>
+        <file>ViewManager.qml</file>
+        <file>ViewManagerLogic.js</file>
+    </qresource>
+</RCC>
