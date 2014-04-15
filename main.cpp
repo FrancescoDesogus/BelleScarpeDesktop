@@ -4,12 +4,17 @@
 
 #include <serialreaderthread.h>
 #include <windowmanager.h>
+#include <shoedatabase.h>
 
 //Ciao sono un commento, tipo
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
 
+    ShoeDatabase db;
+    db.open();
+    db.getAllShoes();
+    db.close();
 
     WindowManager *view = new WindowManager();
 

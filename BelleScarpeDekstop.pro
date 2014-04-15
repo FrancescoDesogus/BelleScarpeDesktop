@@ -3,38 +3,24 @@
 TEMPLATE = app
 TARGET = BelleScarpeDesktop
 
-QT = core gui serialport quick declarative qml
+QT = core gui serialport quick declarative qml sql
+
+QTPLUGIN += QSQLMYSQL
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
-
-#SOURCES += \
-#    main.cpp \
-#    firstwindow.cpp \
-#    mythread.cpp
-
-#RESOURCES += \
-#    resources.qrc
-
-#OTHER_FILES += \
-#    Cell.qml \
-#    ViewManager.qml \
-#    main.qml \
-#    ViewManagerLogic.js \
-#    SecondScreen.qml \
-#    FirstScreen.qml
-
-#HEADERS += \
-#    firstwindow.h \
-#    mythread.h
 
 SOURCES += \
     main.cpp \
     serialreaderthread.cpp \
-    windowmanager.cpp
+    windowmanager.cpp \
+    shoe.cpp \
+    shoedatabase.cpp
 
 HEADERS += \
     serialreaderthread.h \
-    windowmanager.h
+    windowmanager.h \
+    shoe.h \
+    shoedatabase.h
 
 RESOURCES += \
     resources.qrc
