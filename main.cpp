@@ -5,7 +5,7 @@
 #include <serialreaderthread.h>
 #include <windowmanager.h>
 
-
+//Ciao sono un commento, tipo
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
