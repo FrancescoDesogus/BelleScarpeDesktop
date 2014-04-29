@@ -1,6 +1,7 @@
 #include "arduino.h"
 #include <QSerialPort>
 #include <QSerialPortInfo>
+#include <QDebug>
 
 
 //Costanti che definiscono la porta e i setaggi da usare
@@ -21,11 +22,14 @@ const QString Arduino::TURN_OFF_LIGHTS_CODE = Arduino::SINGLE_LIGHTS_PREFIX + "o
 
 
 /**
- * @brief Arduino::Arduino costruttore della classe; setta la porta seriale da usare
+ * @brief Arduino::Arduino costruttore della classe; setta la porta seriale da usare e scrive nel prompt dei comandi le impostazioni da usare
+ *        usare per la porta; senza queste informazioni non funzionerebbe corettamente
  */
 Arduino::Arduino()
 {
     serialPort.setPort(QSerialPortInfo(Arduino::PORT_NAME));
+
+    system("mode com6: BAUD=9600 PARITY=n DATA=8 STOP=1 to=off dtr=off rts=off");
 }
 
 
@@ -52,36 +56,24 @@ bool Arduino::turnOnLights(QString data)
         //Inserisco i setaggi da usare per la porta
         this->setPortSettings();
 
+        //Aggiungo all'inizio del messagggio da inviare il prefisso da usare per far si che si accendano le luci singolarmente
+        data.prepend(Arduino::SINGLE_LIGHTS_PREFIX);
 
         int numBytesWritten = 0;
-        char *command;
+        char *command;       
 
-
-        //Prima di inviare il messaggio, ne invio un altro per spegnere tutte le eventuali luci già accese. Per farlo, dato che la porta seriale
-        //si aspetta una stringa formata da char*, trasformo il messaggio da QString a char*
+        //Prima di inviare il messaggio, dato che la porta seriale si aspetta una stringa formata da char*, trasformo
+        //il messaggio da QString a char*
         QByteArray byteArray;
-        byteArray = Arduino::TURN_OFF_LIGHTS_CODE.toLatin1();
+        byteArray = data.toLatin1();
         command = byteArray.data();
-
 
         //Scrivo nella porta il comando, passando la sua lunghezza per indicare il numero di byte che deve scrivere
         numBytesWritten  = serialPort.write(command, strlen(command));
 
-        //Se il numero di byte scritto è > 0 vuol dire che è andato tutto bene, quindi procedo con l'invio del messaggio vero e proprio
+        //Se il numero di byte scrito è maggiore di 0, savo nel booleano che  andato tutto bene
         if(numBytesWritten > 0)
-        {
-            //Aggiungo all'inizio del messagggio da inviare il prefisso da usare per far si che si accendano le luci singolarmente
-            data.prepend(Arduino::SINGLE_LIGHTS_PREFIX);
-
-            byteArray = data.toLatin1();
-            command = byteArray.data();
-
-            numBytesWritten  = serialPort.write(command, strlen(command));
-
-            //Se il numero di byte scrito è maggiore di 0, savo nel booleano che  andato tutto bene
-            if(numBytesWritten > 0)
-                result = true;
-        }
+            result = true;
 
         //A prescindere dall'esito dell'invio, chiudo la porta seriale
         serialPort.close();
