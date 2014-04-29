@@ -17,14 +17,16 @@ SOURCES += \
     windowmanager.cpp \
     shoe.cpp \
     shoedatabase.cpp \
-    arduino.cpp
+    arduino.cpp \
+    dataobject.cpp
 
 HEADERS += \
     serialreaderthread.h \
     windowmanager.h \
     shoe.h \
     shoedatabase.h \
-    arduino.h
+    arduino.h \
+    dataobject.h
 
 RESOURCES += \
     resources.qrc

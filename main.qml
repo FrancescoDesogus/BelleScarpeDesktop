@@ -1,4 +1,5 @@
 import QtQuick 2.0
+import QtQuick.XmlListModel 2.0
 
 Rectangle {
     id: mainWindow
@@ -14,21 +15,8 @@ Rectangle {
 
         Rectangle {
             id: view1
-            color: "black"
-            gradient: Gradient {
-                GradientStop {
-                    position: 0.00;
-                    color: "#000000";
-                }
-                GradientStop {
-                    position: 0.61;
-                    color: "#ffffff";
-                }
-                GradientStop {
-                    position: 0.64;
-                    color: "#ffffff";
-                }
-            }
+//            color: "#FEFCFF"
+            color: "grey"
             width:  parent.width
             height: parent.height
 
@@ -42,52 +30,106 @@ Rectangle {
                 anchors.centerIn: parent
             }
 
-            Rectangle {
-                id: backButton
-                x: 30
-                y: 30
-                width: 200 * scaleX
-                height: 100 * scaleY
-                border.width: 3
-                radius: 5
-                color: "green";
 
-                Text {
-                    text: "back"
-                    color: "black"
-                    anchors.centerIn: parent
+
+            Item {
+                id: listContainer
+                anchors.verticalCenter: view1.verticalCenter
+                height: listView.height
+                visible: true;
+                width: listView.width
+
+                ListView {
+                    id: listView
+                    width: 200 * scaleX
+                    height: 1080 * scaleY
+                    orientation: "Vertical"
+
+                    anchors {
+                        fill: parent
+                        left: view1.left
+                        leftMargin: 10 * scaleX
+                    }
+
+                    model: myModel
+                    delegate: Component {
+                        Image {
+                            source: "file:///" + model.modelData.source
+                            width: 150 * scaleX
+                            height: 140 * scaleY
+                            MouseArea {
+                                anchors.fill: parent
+    //                            onClicked: webView.url = link + "/lightbox"
+                            }
+                        }
+                    }
+
+                    focus: true
+                    spacing: 5
+                    visible: true
                 }
-
-                MouseArea {
-                     anchors.fill: parent
-                     onClicked: {
-                         myViewManager.goBack();
-                     }
-                 }
             }
 
-            Rectangle {
-                anchors.left: backButton.right
-                anchors.verticalCenter: backButton.verticalCenter
-                width: 200 * scaleX
-                height: 100 * scaleY
-                border.width: 3
-                radius: 5
-                color: "lightgreen";
+            Image {
+                id: mainImage
+                width: 600 * scaleX
+                height: 900  * scaleY
+                clip: true
+                visible: true
+//                fillMode: Image.PreserveAspectFit
+                smooth: true
+                source: "file:///" + imagesPath
 
-                Text {
-                    text: "next"
-                    color: "black"
-                    anchors.centerIn: parent
-                }
-
-                MouseArea {
-                     anchors.fill: parent
-                     onClicked: {
-                         mainWindow.addView();
-                     }
-                 }
+                anchors.verticalCenter: view1.verticalCenter
+                anchors.left: listContainer.right
             }
+
+//            Rectangle {
+//                id: backButton
+//                x: 30
+//                y: 30
+//                width: 200 * scaleX
+//                height: 100 * scaleY
+//                border.width: 3
+//                radius: 5
+//                color: "green";
+
+//                Text {
+//                    text: "back"
+//                    color: "black"
+//                    anchors.centerIn: parent
+//                }
+
+//                MouseArea {
+//                     anchors.fill: parent
+//                     onClicked: {
+//                         myViewManager.goBack();
+//                     }
+//                 }
+//            }
+
+//            Rectangle {
+//                anchors.left: backButton.right
+//                anchors.verticalCenter: backButton.verticalCenter
+//                width: 200 * scaleX
+//                height: 100 * scaleY
+//                border.width: 3
+//                radius: 5
+//                color: "lightgreen";
+
+//                Text {
+//                    text: "next"
+//                    color: "black"
+//                    anchors.centerIn: parent
+//                }
+
+//                MouseArea {
+//                     anchors.fill: parent
+////                     onClicked: {
+////                         mainWindow.addView();
+////                     }
+//                 }
+//            }
         }
 
     }
