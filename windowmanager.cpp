@@ -65,7 +65,7 @@ void WindowManager::setupScreen()
 /* Slot chiamato dal secondo thread non appena è letto un nuovo codice. Questo metodo dovrebbe teoricamente
  * prendere i dati della scarpa dal db grazie al codice ricevuto, preparare i dati da mostrare nella view qml,
  * e avvertire la parte qml che deve creare una nuova view del tipo indicato (che dovrà mostrare i dati recuperati) */
-void WindowManager::getCode(char* code)
+void WindowManager::getCode(QString code)
 {
     qDebug() << "code received: " << code;
 

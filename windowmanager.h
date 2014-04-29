@@ -13,7 +13,7 @@ public:
     void setupScreen();
 
 public slots:
-    void getCode(char* code);
+    void getCode(QString code);
 
 };
 
