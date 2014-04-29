@@ -7,7 +7,7 @@
 #include <stdlib.h>
 
 //Costanti che definiscono la porta e i setaggi da usare
-const QString SerialReaderThread::PORT_NAME = "COM6";
+const QString SerialReaderThread::PORT_NAME = "COM5";
 const int SerialReaderThread::BAUD_RATE = (int) QSerialPort::Baud9600;
 const int SerialReaderThread::DATA_BITS = (int) QSerialPort::Data8;
 const int SerialReaderThread::PARITY = (int) QSerialPort::NoParity;
