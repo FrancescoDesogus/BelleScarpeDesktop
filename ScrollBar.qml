@@ -6,13 +6,13 @@ Item {
     visible: (flickable.visibleArea.heightRatio < 1.0);
     anchors {
         top: flickable.top;
-        right: flickable.right;
+        left: flickable.parent.left;
         bottom: flickable.bottom;
-        margins: 1;
+        margins: 0;
     }
 
     property Flickable flickable               : null;
-    property int       handleSize              : 20;
+    property int       handleSize              : 12;
 
     function scrollDown () {
         flickable.contentY = Math.min (flickable.contentY + (flickable.height / 4), flickable.contentHeight - flickable.height);
@@ -37,10 +37,10 @@ Item {
         id: backScrollbar;
         radius: 2;
         antialiasing: true;
-        color: Qt.rgba(0.5, 0.5, 0.5, 0.85);
+        color: "#FAF2F2";
         border {
-            width: 1;
-            color: "darkgray";
+            width: 0.5;
+            color: "#FAF2F2";
         }
         anchors { fill: parent; }
 
@@ -61,9 +61,10 @@ Item {
         onClicked: { scrollUp (); }
 
         Text {
-            text: "V";
-            color: (btnUp.pressed ? "white" : "white");
-            rotation: -180;
+            text: "<";
+            antialiasing: true
+            color: (btnUp.pressed ? "black" : "gray");
+            rotation: 90;
             anchors.centerIn: parent;
         }
     }
@@ -79,8 +80,10 @@ Item {
         onClicked: { scrollDown (); }
 
         Text {
-            text: "V";
-            color: (btnDown.pressed ? "white" : "white");
+            antialiasing: true
+            text: "<";
+            rotation: -90
+            color: (btnDown.pressed ? "black" : "gray");
             anchors.centerIn: parent;
         }
     }
@@ -116,7 +119,7 @@ Item {
 
             Rectangle {
                 id: backHandle;
-                color: (clicker.pressed ? "white" : "white");
+                color: (clicker.pressed ? "gray" : "black");
                 opacity: (flickable.moving ? 0.65 : 0.35);
                 anchors { fill: parent; }
 

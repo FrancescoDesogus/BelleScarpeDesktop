@@ -23,35 +23,19 @@ int main(int argc, char *argv[])
     // Retrieve the path to the app's working directory
     QString imagesPath = QDir::currentPath() + "/debug/shoes_media/1/skyscape2.jpg";
 
-    QList<QObject*> dataList;
-    dataList.append(new DataObject(imagesPath));
-    dataList.append(new DataObject(imagesPath));
-    dataList.append(new DataObject(imagesPath));
-    dataList.append(new DataObject(imagesPath));
-    dataList.append(new DataObject(imagesPath));
-    dataList.append(new DataObject(imagesPath));
-    dataList.append(new DataObject(imagesPath));
-    dataList.append(new DataObject(imagesPath));
-    dataList.append(new DataObject(imagesPath));
-    dataList.append(new DataObject(imagesPath));
-    dataList.append(new DataObject(imagesPath));
-    dataList.append(new DataObject(imagesPath));
-    dataList.append(new DataObject(imagesPath));
-    dataList.append(new DataObject(imagesPath));
-    dataList.append(new DataObject(imagesPath));
-    dataList.append(new DataObject(imagesPath));
-    dataList.append(new DataObject(imagesPath));
-    dataList.append(new DataObject(imagesPath));
-    dataList.append(new DataObject(imagesPath));
-    dataList.append(new DataObject(imagesPath));
-    dataList.append(new DataObject(imagesPath));
-    dataList.append(new DataObject(imagesPath));
-    dataList.append(new DataObject(imagesPath));
-    dataList.append(new DataObject(imagesPath));
-    dataList.append(new DataObject(imagesPath));
-    dataList.append(new DataObject(imagesPath));
+    QDir path = QDir::currentPath() + "/debug/shoes_media/1/";
 
-//    qDebug() << imagesPath;
+    QList<QObject*> dataList;
+    //    dataList.append(new DataObject(imagesPath));
+
+    QStringList nameFilter;
+    nameFilter << "*.png" << "*.jpg" << "*.gif";
+
+    foreach (QFileInfo fInfo, path.entryInfoList(nameFilter, QDir::Files, QDir::Name)) {
+//        qDebug() << fInfo.absoluteFilePath();
+         dataList.append(new DataObject(fInfo.absoluteFilePath()));
+    }
+
     view->rootContext()->setContextProperty("imagesPath", imagesPath);
     view->rootContext()->setContextProperty("myModel", QVariant::fromValue(dataList));
     view->setupScreen();
