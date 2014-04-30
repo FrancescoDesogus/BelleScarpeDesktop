@@ -8,6 +8,16 @@
 class Shoe : public QObject
 {
     Q_OBJECT
+    Q_PROPERTY(int id READ getId)
+    Q_PROPERTY(QString brand READ getBrand)
+    Q_PROPERTY(QString model READ getModel)
+    Q_PROPERTY(QString color READ getColor)
+    Q_PROPERTY(QString sex READ getSex)
+    Q_PROPERTY(float price READ getPrice)
+    Q_PROPERTY(QString category READ getCategory)
+//    Q_PROPERTY(QString sizes READ getBrand)
+
+
 public:
     explicit Shoe(int id, const QString& brand, const QString& model, const QString& color, const QString& sex, float price, const QString& category, const std::map<float, int>& sizesAndQuantities, const QString& mediaPath);
 

@@ -21,6 +21,10 @@
 #include <QQuickItem>
 
 
+#include <shoedatabase.h>
+#include <shoe.h>
+
+
 WindowManager::WindowManager(QQuickView *parent) :
     QQuickView(parent)
 {
@@ -38,6 +42,18 @@ void WindowManager::setupScreen()
      * che si chiameranno sarà nota la proprietà "firstWindow", e si potranno chiamare i metodi definiti Q_INVOKABLE nell'header
      * della classe, oltre che i membri definiti con Q_PROPERTY (in questo caso però di questi non ce ne sono) */
     this->rootContext()->setContextProperty("firstWindow", this);
+
+
+    ShoeDatabase db;
+
+    db.open();
+
+    Shoe *shoe = db.getShoeFromId(1);
+
+    this->rootContext()->setContextProperty("shoe", shoe);
+
+
+
 
     /* Definisco nel contesto dell'engine qml altre due proprietà, che sono i valori per cui bisogna moltiplicare ogni coordinata di larghezza
      * e altezza presente nei file qml in modo tale che le posizioni e le grandezze degli oggetti scalino bene su tutti i monitor.
