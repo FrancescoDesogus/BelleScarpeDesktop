@@ -56,7 +56,7 @@ void Shoe::setBrand(QString brand)
     this->brand = brand;
 }
 
-void Shoe::setModel(const QString& model)
+void Shoe::setModel( QString model)
 {
     this->model = model;
 }
