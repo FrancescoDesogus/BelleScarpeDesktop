@@ -7,20 +7,47 @@ using namespace std;
 
 
 /**
- * @brief Shoe::Shoe
- * @param id
- * @param brand
- * @param model
- * @param color
- * @param sex
- * @param price
- * @param category
- * @param sizesAndQuantities
- * @param mediaPath
+ * @brief Shoe::Shoe costruttore. Tutti gli oggetti vengono passati come "const Object&" ìn modo tale che venga passato il riferimento all'oggetto
+ *        al costruttore. In pratica, per evitare che passare ogni oggetto al costruttore equivalga a fare una copia dello stesso (inefficiente),
+ *        viene passato il suo riferimento, tipo un puntatore. La differenza con un puntatore è che l'oggeto si utilizza sempre con il . invece
+ *        che con ->, ed è così che generalmente si fa per passare oggetti a membri di una classe.
+ *        Lo stesso viene fatto per ogni setter e getter della classe, in modo da evitare il più possibile di fare copie di oggetti
+ *
+
+  Esempio 1:
+
+  QString s = "asd";
+  QString& sRef = s;
+
+  sRef = "ciao";  //Dopo questa istruzione s == "ciao"
+
+  ****************
+
+  Esempio 2:
+
+  QString s = "asd";
+  QString& sRef = s;
+
+  QString tmp = "asdasd";
+
+  sRef = tmp  //Dopo questa istruzione s == "asdasd". sRef non "punta" a tmp, continua SEMPRE a puntare a s
+
+  ****************
+
+  Esempio 3:
+
+  QString s = "asd";
+  const QString& sRef = s;
+
+  QString tmp = "asdasd";
+
+  sRef = tmp  //Errore di compilazione: dato che sRef è const, non si può fare l'assegnamento; in questo modo è un po' come usare un puntatore
+              //solo che il riferimento è sempre uguale, non c'è rischio che cambi l'oggetto puntato
+
  *
  *
  */
-Shoe::Shoe(int id, QString brand, const QString& model, QString color, QString sex, float price, QString category, std::map<float, int> sizesAndQuantities, QString mediaPath)
+Shoe::Shoe(int id, const QString& brand, const QString& model, const QString& color, const QString& sex, float price, const QString& category, const map<float, int>& sizesAndQuantities, const QString& mediaPath)
 {
     this->setId(id);
     this->setBrand(brand);
@@ -31,17 +58,6 @@ Shoe::Shoe(int id, QString brand, const QString& model, QString color, QString s
     this->setCategory(category);
     this->setSizesAndQuantities(sizesAndQuantities);
     this->setMediaPath(mediaPath);
-
-
-    QString s = "Cacca";
-    const QString& sRef = s;
-
-    QString tmp = "pupù";
-
-//    sRef = tmp;
-
-    const QString *ref = &sRef;
-
 }
 
 
@@ -51,22 +67,22 @@ void Shoe::setId(int id)
     this->id = id;
 }
 
-void Shoe::setBrand(QString brand)
+void Shoe::setBrand(const QString& brand)
 {
     this->brand = brand;
 }
 
-void Shoe::setModel( QString model)
+void Shoe::setModel(const QString& model)
 {
     this->model = model;
 }
 
-void Shoe::setColor(QString color)
+void Shoe::setColor(const QString& color)
 {
     this->color = color;
 }
 
-void Shoe::setSex(QString sex)
+void Shoe::setSex(const QString &sex)
 {
 //    if(sex == "m")
 //        this->sex = "Uomo";
@@ -80,17 +96,17 @@ void Shoe::setPrice(float price)
     this->price = price;
 }
 
-void Shoe::setCategory(QString category)
+void Shoe::setCategory(const QString& category)
 {
     this->category = category;
 }
 
-void Shoe::setSizesAndQuantities(map<float, int> sizes)
+void Shoe::setSizesAndQuantities(const map<float, int>& sizes)
 {
     this->sizesAndQuantities = sizes;
 }
 
-void Shoe::setMediaPath(QString mediaPath)
+void Shoe::setMediaPath(const QString& mediaPath)
 {
     this->mediaPath = mediaPath;
 }
@@ -103,22 +119,22 @@ int Shoe::getId()
     return this->id;
 }
 
-QString Shoe::getBrand()
+const QString& Shoe::getBrand()
 {
     return this->brand;
 }
 
-QString Shoe::getModel()
+const QString& Shoe::getModel()
 {
     return this->model;
 }
 
-QString Shoe::getColor()
+const QString& Shoe::getColor()
 {
     return this->color;
 }
 
-QString Shoe::getSex()
+const QString& Shoe::getSex()
 {
     return this->sex;
 }
@@ -128,7 +144,7 @@ float Shoe::getPrice()
     return this->price;
 }
 
-QString Shoe::getCategory()
+const QString& Shoe::getCategory()
 {
     return this->category;
 }
@@ -138,7 +154,7 @@ const map<float, int>& Shoe::getSizesAndQuantities()
     return this->sizesAndQuantities;
 }
 
-QString Shoe::getMediaPath()
+const QString &Shoe::getMediaPath()
 {
     return this->mediaPath;
 }

@@ -9,28 +9,28 @@ class Shoe : public QObject
 {
     Q_OBJECT
 public:
-    explicit Shoe(int id, QString brand, const QString& model, QString color, QString sex, float price, QString category, std::map<float, int> sizesAndQuantities, QString mediaPath);
+    explicit Shoe(int id, const QString& brand, const QString& model, const QString& color, const QString& sex, float price, const QString& category, const std::map<float, int>& sizesAndQuantities, const QString& mediaPath);
 
 
     void setId(int id);
-    void setBrand(QString brand);
-    void setModel(QString model);
-    void setColor(QString color);
-    void setSex(QString sex);
+    void setBrand(const QString& brand);
+    void setModel(const QString& model);
+    void setColor(const QString& color);
+    void setSex(const QString& sex);
     void setPrice(float price);
-    void setCategory(QString category);
-    void setSizesAndQuantities(std::map<float, int> sizesAndQuantities);
-    void setMediaPath(QString mediaPath);
+    void setCategory(const QString& category);
+    void setSizesAndQuantities(const std::map<float, int>& sizesAndQuantities);
+    void setMediaPath(const QString& mediaPath);
 
     int getId();
-    QString getBrand();
-    QString getModel();
-    QString getColor();
-    QString getSex();
+    const QString& getBrand();
+    const QString& getModel();
+    const QString& getColor();
+    const QString& getSex();
     float getPrice();
-    QString getCategory();
+    const QString& getCategory();
     const std::map<float, int>& getSizesAndQuantities();
-    QString getMediaPath();
+    const QString& getMediaPath();
 
     void toString();
 

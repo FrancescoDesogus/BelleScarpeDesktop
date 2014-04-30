@@ -211,9 +211,7 @@ vector<Shoe*> ShoeDatabase::getSimiliarShoes(int shoeId, QString sex, QString ca
     {
         qDebug() << query.lastError();
 
-        // ?
-        vector<Shoe*> shoeList;
-
+        //Restituisco l'array vuoto
         return shoeList;
     }
 }
