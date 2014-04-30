@@ -9,9 +9,7 @@ class Shoe : public QObject
 {
     Q_OBJECT
 public:
-//    explicit Shoe(int id, QString brand, QString model, QString color, QString sex, float price, QString category, std::vector<float> sizes, QString mediaPath, QObject *parent = 0);
-    explicit Shoe(int id, QString brand, QString model, QString color, QString sex, float price, QString category, std::map<float, int> sizesAndQuantities, QString mediaPath);
-    explicit Shoe(QObject *parent = 0);
+    explicit Shoe(int id, QString brand, const QString& model, QString color, QString sex, float price, QString category, std::map<float, int> sizesAndQuantities, QString mediaPath);
 
 
     void setId(int id);

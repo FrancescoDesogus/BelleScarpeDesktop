@@ -5,21 +5,22 @@
 
 using namespace std;
 
-//Shoe::Shoe(int id, QString brand, QString model, QString color, QString sex, float price, QString category, std::vector<float> sizes, QString mediaPath, QObject *parent) :
-//    QObject(parent)
-//{
-//    this->setId(id);
-//    this->setBrand(brand);
-//    this->setModel(model);
-//    this->setColor(color);
-//    this->setSex(sex);
-//    this->setPrice(price);
-//    this->setCategory(category);
-//    this->setSizes(sizes);
-//    this->setMediaPath(mediaPath);
-//}
 
-Shoe::Shoe(int id, QString brand, QString model, QString color, QString sex, float price, QString category, std::map<float, int> sizesAndQuantities, QString mediaPath)
+/**
+ * @brief Shoe::Shoe
+ * @param id
+ * @param brand
+ * @param model
+ * @param color
+ * @param sex
+ * @param price
+ * @param category
+ * @param sizesAndQuantities
+ * @param mediaPath
+ *
+ *
+ */
+Shoe::Shoe(int id, QString brand, const QString& model, QString color, QString sex, float price, QString category, std::map<float, int> sizesAndQuantities, QString mediaPath)
 {
     this->setId(id);
     this->setBrand(brand);
@@ -30,13 +31,19 @@ Shoe::Shoe(int id, QString brand, QString model, QString color, QString sex, flo
     this->setCategory(category);
     this->setSizesAndQuantities(sizesAndQuantities);
     this->setMediaPath(mediaPath);
+
+
+    QString s = "Cacca";
+    const QString& sRef = s;
+
+    QString tmp = "pupù";
+
+//    sRef = tmp;
+
+    const QString *ref = &sRef;
+
 }
 
-Shoe::Shoe(QObject *parent) :
-    QObject(parent)
-{
-
-}
 
 
 void Shoe::setId(int id)
@@ -49,7 +56,7 @@ void Shoe::setBrand(QString brand)
     this->brand = brand;
 }
 
-void Shoe::setModel(QString model)
+void Shoe::setModel(const QString& model)
 {
     this->model = model;
 }
