@@ -37,3 +37,4 @@ OTHER_FILES += \
     ViewManager.qml \
     ViewManagerLogic.js \
     ShoeView.qml \
+    ScrollBar.qml
