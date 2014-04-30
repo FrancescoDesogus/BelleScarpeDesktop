@@ -16,7 +16,7 @@ Rectangle {
         Rectangle {
             id: view1
 //            color: "#FEFCFF"
-            color: "grey"
+            color: "#EEEEEE"
             width:  parent.width
             height: parent.height
 
@@ -31,42 +31,48 @@ Rectangle {
             }
 
 
-
-            Item {
-                id: listContainer
+            Rectangle {
+                id: listBackground
                 anchors.verticalCenter: view1.verticalCenter
-                height: listView.height
                 visible: true;
-                width: listView.width
+                width: 200 * scaleX
+                height: 1080 * scaleY
+                color: "#FEFEFE"
 
-                ListView {
-                    id: listView
-                    width: 200 * scaleX
-                    height: 1080 * scaleY
-                    orientation: "Vertical"
+                Item {
+                    id: listContainer
+                    anchors.fill: parent
+                    ListView {
+                        id: listView
+                        height: listBackground.height
+                        width: listBackground.width
+//                        width: 200 * scaleX
+//                        height: 1080 * scaleY
+                        orientation: "Vertical"
 
-                    anchors {
-                        fill: parent
-                        left: view1.left
-                        leftMargin: 10 * scaleX
-                    }
+                        anchors {
+                            fill: parent
+                            left: view1.left
+                            leftMargin: 10 * scaleX
+                        }
 
-                    model: myModel
-                    delegate: Component {
-                        Image {
-                            source: "file:///" + model.modelData.source
-                            width: 150 * scaleX
-                            height: 140 * scaleY
-                            MouseArea {
-                                anchors.fill: parent
-    //                            onClicked: webView.url = link + "/lightbox"
+                        model: myModel
+                        delegate: Component {
+                            Image {
+                                source: "file:///" + model.modelData.source
+                                width: 150 * scaleX
+                                height: 140 * scaleY
+                                MouseArea {
+                                    anchors.fill: parent
+        //                            onClicked: webView.url = link + "/lightbox"
+                                }
                             }
                         }
-                    }
 
-                    focus: true
-                    spacing: 5
-                    visible: true
+                        focus: true
+                        spacing: 5
+                        visible: true
+                    }
                 }
             }
 
@@ -81,7 +87,7 @@ Rectangle {
                 source: "file:///" + imagesPath
 
                 anchors.verticalCenter: view1.verticalCenter
-                anchors.left: listContainer.right
+                anchors.left: listBackground.right
             }
 
 //            Rectangle {
