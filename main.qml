@@ -35,9 +35,9 @@ Rectangle {
                 id: listBackground
                 anchors.verticalCenter: view1.verticalCenter
                 visible: true;
-                width: 200 * scaleX
+                width: 170 * scaleX
                 height: 1080 * scaleY
-                color: "#FEFEFE"
+                color: "#DDDDDD"
 
                 Item {
                     id: listContainer
@@ -60,7 +60,7 @@ Rectangle {
                         delegate: Component {
                             Image {
                                 source: "file:///" + model.modelData.source
-                                width: 150 * scaleX
+                                width: 140 * scaleX
                                 height: 140 * scaleY
                                 MouseArea {
                                     anchors.fill: parent
@@ -73,6 +73,12 @@ Rectangle {
                         spacing: 5
                         visible: true
                     }
+
+                    ScrollBar {
+                            id: verticalScrollBar
+                            flickable: listView
+//                            clip: true
+                        }
                 }
             }
 

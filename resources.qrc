@@ -4,5 +4,6 @@
         <file>ShoeView.qml</file>
         <file>ViewManager.qml</file>
         <file>ViewManagerLogic.js</file>
+        <file>ScrollBar.qml</file>
     </qresource>
 </RCC>
