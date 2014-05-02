@@ -2,23 +2,19 @@ import QtQuick 2.0
 
 
 Rectangle {
-    property int thumbnailWidth: 140
-    property int thumbnailHeight: 140
+    property int thumbnailWidth: 140 * scaleX
+    property int thumbnailHeight: 140 * scaleY
     property int thumbnailHalvedHeight: thumbnailHeight / 2
 
 
     id: superContainer
-//    property Rectangle view1               : null;
 //    width: 600 * scaleX
-//    anchors.verticalCenter: parent.verticalCenter
     height: parent.height
-//    width: parent.width
     width: 800 * scaleX //Deve essere somma della larghezza della tuhmbnail list e dell'immagine della (bella) scarpa
 
 
     Rectangle {
         id: listBackground
-//        anchors.verticalCenter: view1.verticalCenter
         anchors.verticalCenter: superContainer.verticalCenter
         visible: true;
         width: 170 * scaleX
@@ -30,27 +26,16 @@ Rectangle {
         Item {
             id: listContainer
             anchors.fill: parent
-//            y: calculateListPosition()
 
-
-//            Rectangle {
-//                id: prova
-////                height: (500 / listView.count) * scaleY
-////                height: (superContainer.height/2 - 70*listView.count)
-//                height: calculateListPosition()
-//                width: parent.width
-//                visible: false
-//                z: -1
-//            }
 
             ListView {
                 id: listView
-                height: listBackground.height
-//                height: thumbnailHeight * listView.count //Con questo non si attiva la scrollbar
+//                height: listBackground.height
+                height: thumbnailHeight * listView.count //Con questo non si attiva la scrollbar
                 width: listBackground.width
                 orientation: "Vertical"
                 y: calculateListPosition()
-//                clip: true
+                clip: true
 
 
                 anchors {
@@ -67,12 +52,12 @@ Rectangle {
                     Image {
                         id: thumbnail
                         source: "file:///" + model.modelData.source
-                        width: thumbnailHeight * scaleX
-                        height: thumbnailWidth * scaleY
+                        width: thumbnailHeight
+                        height: thumbnailWidth
 
                         MouseArea {
                             anchors.fill: parent
-                            onClicked: console.log(listView.visibleArea.heightRatio)
+                            onClicked: console.log(listView.y)
 //                            onClicked: mainImage.source = thumbnail.source
                         }
                     }
@@ -113,6 +98,7 @@ Rectangle {
             return 0
         else
             return (superContainer.height/2 - listHalvedHeigth)
+
     }
 
 }
