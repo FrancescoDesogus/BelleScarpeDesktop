@@ -31,7 +31,8 @@ Rectangle {
             ListView {
                 id: listView
 //                height: listBackground.height
-                height: thumbnailHeight * listView.count //Con questo non si attiva la scrollbar
+//                height: thumbnailHeight * listView.count //Con questo non si attiva la scrollbar
+                height: calculateHeight()
                 width: listBackground.width
                 orientation: "Vertical"
                 y: calculateListPosition()
@@ -43,7 +44,8 @@ Rectangle {
 //                    left: view1.left
 //                    left: superContainer.left
 //                    top: prova.bottom
-                    leftMargin: 20 * scaleX
+                    left: parent.left
+                    leftMargin: 25 * scaleX
                 }
 
                 model: myModel
@@ -57,7 +59,7 @@ Rectangle {
 
                         MouseArea {
                             anchors.fill: parent
-                            onClicked: console.log(listView.y)
+                            onClicked: console.log(listView.visibleArea.heightRatio)
 //                            onClicked: mainImage.source = thumbnail.source
                         }
                     }
@@ -87,6 +89,19 @@ Rectangle {
 
         anchors.verticalCenter: parent.verticalCenter
         anchors.left: listBackground.right
+    }
+
+    function calculateHeight()
+    {
+        var thumbnailsSize = listView.count;
+
+        var thumbnailListHeight = (thumbnailHeight + 5*(thumbnailsSize - 1)) * thumbnailsSize;
+
+        if(thumbnailListHeight < listBackground.height)
+            return thumbnailListHeight;
+        else
+            return listBackground.height;
+
     }
 
 

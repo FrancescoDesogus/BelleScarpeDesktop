@@ -3,7 +3,9 @@ import QtQuick 2.0;
 Item {
     id: scrollbar;
     width: (handleSize + 2 * (backScrollbar.border.width +1));
-    visible: (flickable.visibleArea.heightRatio < 1.0);
+//    visible: (flickable.visibleArea.heightRatio < 1.0);
+    visible: (flickable.height >= parent.height);
+
     anchors {
         top: flickable.top;
         left: flickable.parent.left;
