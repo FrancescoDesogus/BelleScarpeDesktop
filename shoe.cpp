@@ -47,7 +47,7 @@ using namespace std;
  *
  *
  */
-Shoe::Shoe(int id, const QString& brand, const QString& model, const QString& color, const QString& sex, float price, const QString& category, const map<float, int>& sizesAndQuantities, const QString& mediaPath)
+Shoe::Shoe(int id, const QString& brand, const QString& model, const QString& color, const QString& sex, float price, const QString& category, const QVariantMap& sizesAndQuantities, const QString& mediaPath)
 {
     this->setId(id);
     this->setBrand(brand);
@@ -101,7 +101,7 @@ void Shoe::setCategory(const QString& category)
     this->category = category;
 }
 
-void Shoe::setSizesAndQuantities(const map<float, int>& sizes)
+void Shoe::setSizesAndQuantities(const QVariantMap &sizes)
 {
     this->sizesAndQuantities = sizes;
 }
@@ -149,7 +149,7 @@ const QString& Shoe::getCategory()
     return this->category;
 }
 
-const map<float, int>& Shoe::getSizesAndQuantities()
+const QVariantMap& Shoe::getSizesAndQuantities()
 {
     return this->sizesAndQuantities;
 }
@@ -167,12 +167,12 @@ void Shoe::toString()
 
     QString sizes;
 
-    map<float, int>::iterator ii = this->sizesAndQuantities.begin();
+//    map<float, int>::iterator ii = this->sizesAndQuantities.begin();
 
-    while (ii != this->sizesAndQuantities.end())
-    {
-        qDebug() << "    size: " << (*ii).first << "; quantity: " << (*ii).second;
+//    while (ii != this->sizesAndQuantities.end())
+//    {
+//        qDebug() << "    size: " << (*ii).first << "; quantity: " << (*ii).second;
 
-        ii++;
-    }
+//        ii++;
+//    }
 }

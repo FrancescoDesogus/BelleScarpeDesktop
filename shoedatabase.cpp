@@ -132,7 +132,7 @@ Shoe* ShoeDatabase::getShoeFromId(int shoeId)
         queryForSizes.exec("SELECT * FROM " + ShoeDatabase::SIZE_TABLE_NAME + " WHERE " + ShoeDatabase::SIZE_ID_COLUMN + " = " + QString::number(shoeId));
 
 
-        map<float, int> sizesAndQuantities;
+        QVariantMap sizesAndQuantities;
 
         //Se non ci sono stati errori procedo
         if(queryForSizes.lastError().number() == -1)
@@ -140,11 +140,11 @@ Shoe* ShoeDatabase::getShoeFromId(int shoeId)
             //Scorro tutti i risultati, fino a quando non ce ne sono più
             while(queryForSizes.next())
             {
-                float size = queryForSizes.value(ShoeDatabase::SIZE_SIZE_COLUMN_POSITION).toFloat();
+                QString size = queryForSizes.value(ShoeDatabase::SIZE_SIZE_COLUMN_POSITION).toString();
                 int quantity = queryForSizes.value(ShoeDatabase::SIZE_QUANTITY_COLUMN_POSITION).toInt();
 
-                //Inserisco nell'array associativo la taglia e la relativa quantità disponibile
-                sizesAndQuantities[size] = quantity;
+                //Inserisco nell'array associativo la taglia ed il booleano che segnala se è disponibile o meno
+                sizesAndQuantities[size] = quantity > 0;
             }
         }
 
@@ -200,7 +200,7 @@ vector<Shoe*> ShoeDatabase::getSimiliarShoes(int shoeId, QString sex, QString ca
             QString mediaPath = query.value(ShoeDatabase::SHOE_MEDIA_COLUMN_POSITION).toString();
 
             //Array vuoto da inserire nel costruttore (?)
-            map<float, int> sizesAndQuantities;
+            QVariantMap sizesAndQuantities;
 
             shoeList.push_back(new Shoe(id, brand, model, color, sex, price, category, sizesAndQuantities, mediaPath));
         }

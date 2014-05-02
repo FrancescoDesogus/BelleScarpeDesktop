@@ -10,6 +10,7 @@ class ShoeDatabase
 {
 public:
     ShoeDatabase();
+
     bool open();
     void close();
     void getAllShoes();

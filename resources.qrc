@@ -5,5 +5,7 @@
         <file>ViewManager.qml</file>
         <file>ViewManagerLogic.js</file>
         <file>ScrollBar.qml</file>
+        <file>ShoeImagesList.qml</file>
+        <file>ShoeDetail.qml</file>
     </qresource>
 </RCC>

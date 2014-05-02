@@ -4,22 +4,23 @@
 #include <QObject>
 #include <QString>
 #include <vector>
+#include <QVariantMap>
 
 class Shoe : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(int id READ getId)
-    Q_PROPERTY(QString brand READ getBrand)
-    Q_PROPERTY(QString model READ getModel)
-    Q_PROPERTY(QString color READ getColor)
-    Q_PROPERTY(QString sex READ getSex)
-    Q_PROPERTY(float price READ getPrice)
-    Q_PROPERTY(QString category READ getCategory)
-//    Q_PROPERTY(QString sizes READ getBrand)
+    Q_PROPERTY(int id READ getId CONSTANT )
+    Q_PROPERTY(QString brand READ getBrand CONSTANT)
+    Q_PROPERTY(QString model READ getModel CONSTANT)
+    Q_PROPERTY(QString color READ getColor CONSTANT)
+    Q_PROPERTY(QString sex READ getSex CONSTANT)
+    Q_PROPERTY(float price READ getPrice CONSTANT)
+    Q_PROPERTY(QString category READ getCategory CONSTANT)
+    Q_PROPERTY(QVariantMap sizes READ getSizesAndQuantities)
 
 
 public:
-    explicit Shoe(int id, const QString& brand, const QString& model, const QString& color, const QString& sex, float price, const QString& category, const std::map<float, int>& sizesAndQuantities, const QString& mediaPath);
+    explicit Shoe(int id, const QString& brand, const QString& model, const QString& color, const QString& sex, float price, const QString& category, const QVariantMap& sizesAndQuantities, const QString& mediaPath);
 
 
     void setId(int id);
@@ -29,7 +30,7 @@ public:
     void setSex(const QString& sex);
     void setPrice(float price);
     void setCategory(const QString& category);
-    void setSizesAndQuantities(const std::map<float, int>& sizesAndQuantities);
+    void setSizesAndQuantities(const QVariantMap& sizesAndQuantities);
     void setMediaPath(const QString& mediaPath);
 
     int getId();
@@ -39,7 +40,7 @@ public:
     const QString& getSex();
     float getPrice();
     const QString& getCategory();
-    const std::map<float, int>& getSizesAndQuantities();
+    const QVariantMap& getSizesAndQuantities();
     const QString& getMediaPath();
 
     void toString();
@@ -52,7 +53,7 @@ private:
     QString sex;
     float price;
     QString category;
-    std::map<float, int> sizesAndQuantities;
+    QVariantMap sizesAndQuantities;
     QString mediaPath;
 
 signals:
