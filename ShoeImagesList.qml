@@ -18,7 +18,7 @@ Rectangle {
     property real thumbnailHalvedHeight: thumbnailHeight / 2
 
     //Larghezza totale della lista (tiene conto della larghezza della scrollbar)
-    property real thumbnailListContainerWidth: (thumbnailWidth + 30) * scaleX
+    property real thumbnailListContainerWidth: (thumbnailWidth + 30 * scaleX)
 
     //Dimensioni dell'immagine/video corrispondente alla thumbnail selezionata
     property real mainImageWidth: 600 * scaleX
@@ -60,7 +60,27 @@ Rectangle {
                 orientation: "Vertical"
                 y: calculateListPosition() //Posizione y di partenza per la lista
                 clip: true //Il clipping fa scomparire gli elementi della lista quando attraversano i bordi della stessa
-
+                highlight: Rectangle
+                {
+                    id: highlight
+                    width: listView.currentItem.width + (3 * scaleX)
+                    height: listView.currentItem.height + (3 * scaleY)
+                    color: "#22000000"
+                    radius: 3
+                    border.color: "red"
+                    border.width: 2
+                    smooth: true
+                    y: listView.currentItem.y
+                    x: listView.currentItem.x
+                    z: listView.currentItem.z + 1
+                    Behavior on y {
+                        NumberAnimation {
+                            duration: 300
+                            easing.type: Easing.OutCirc
+                        }
+                    }
+                }
+                highlightFollowsCurrentItem: false
 
                 //La lista è ancorata al genitore sulla sinistra in modo da fissarla al bordo sinistro dello schermo, definendo
                 //un margine per lasciare spazio alla scrollbar
@@ -68,6 +88,7 @@ Rectangle {
                     left: parent.left
                     leftMargin: 25 * scaleX
                 }
+
 
                 //Modello della lista; contiene le informazioni da visualizzare ed è creato in C++
                 model: myModel
@@ -86,7 +107,10 @@ Rectangle {
                         //MouseArea per intercettare gli eventi touch in modo da cambiare immagine
                         MouseArea {
                             anchors.fill: parent
-                            onClicked: mainImage.source = thumbnail.source
+                            onClicked: {
+                                listView.currentIndex = index
+                                mainImage.source = thumbnail.source
+                            }
                         }
                     }
                 }
@@ -94,6 +118,11 @@ Rectangle {
                 focus: true
                 spacing: 5 //Spazio tra ogni componente della lista
             }
+
+            Keys.onDownPressed: {
+                   console.log("Down key pressed ")
+                   listView.incrementCurrentIndex();
+               }
 
             //La scrollbar è definita in un file a parte e compare solo se l'altezza della lista supera l'altezza dello schermo
             ScrollBar {

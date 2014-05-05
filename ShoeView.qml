@@ -145,6 +145,7 @@ Rectangle {
         clip: true
         fillMode: Image.PreserveAspectFit //Questa impostazione mantiene l'aspect ratio dell'immagine a prescindere dalla sua grandezza
         smooth: true
+        height: parent.height
 
         //Ancoro l'immagine a sinistra della lista delle thumbnail e al centro dell'altezza del padre (il superContainer)
         anchors {
