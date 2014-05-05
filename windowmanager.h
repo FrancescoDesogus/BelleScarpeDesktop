@@ -12,6 +12,10 @@ public:
 
     void setupScreen();
 
+private:
+    static const int TARGET_RESOLUTION_WIDTH;
+    static const int TARGET_RESOLUTION_HEIGHT;
+
 public slots:
     void getCode(QString code);
 

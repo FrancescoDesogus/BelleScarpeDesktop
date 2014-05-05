@@ -25,6 +25,10 @@
 #include <shoe.h>
 
 
+const int WindowManager::TARGET_RESOLUTION_WIDTH = 1920;
+const int WindowManager::TARGET_RESOLUTION_HEIGHT = 1080;
+
+
 WindowManager::WindowManager(QQuickView *parent) :
     QQuickView(parent)
 {
@@ -44,6 +48,10 @@ void WindowManager::setupScreen()
     this->rootContext()->setContextProperty("firstWindow", this);
 
 
+
+    this->rootContext()->setContextProperty("TARGET_RESOLUTION_WIDTH", TARGET_RESOLUTION_WIDTH);
+    this->rootContext()->setContextProperty("TARGET_RESOLUTION_HEIGHT", TARGET_RESOLUTION_HEIGHT);
+
     ////////Prova del db; prende informazioni sulla scarpa e le mette nel contesto QML in modo che siano visibili
     ShoeDatabase db;
     db.open();
@@ -56,8 +64,8 @@ void WindowManager::setupScreen()
     /* Definisco nel contesto dell'engine qml altre due proprietà, che sono i valori per cui bisogna moltiplicare ogni coordinata di larghezza
      * e altezza presente nei file qml in modo tale che le posizioni e le grandezze degli oggetti scalino bene su tutti i monitor.
      * Come risoluzione target si usa 1920x1080 */
-    this->rootContext()->setContextProperty("scaleX", (qreal) mainScreenSize.width() / 1920);
-    this->rootContext()->setContextProperty("scaleY", (qreal) mainScreenSize.height() / 1080);
+    this->rootContext()->setContextProperty("scaleX", (qreal) mainScreenSize.width() / TARGET_RESOLUTION_WIDTH);
+    this->rootContext()->setContextProperty("scaleY", (qreal) mainScreenSize.height() / TARGET_RESOLUTION_HEIGHT);
 
 
 

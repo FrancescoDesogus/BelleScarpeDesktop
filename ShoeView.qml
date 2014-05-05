@@ -1,21 +1,36 @@
 import QtQuick 2.0
 
+//Contenitore principale della view
 Rectangle {
-    id: view1
+    id: container
     color: "#EEEEEE"
-    width: 1920 * scaleX
-    height: 1080 * scaleY
 
+    //Le dimensioni della view sono prese dal padre che usa questo Component, e sono grandi quanto tutto lo schermo
+    width: parent.width
+    height: parent.height
+
+
+    /**************************************************************
+     * Costanti usate per definire le grandezze dei vari elementi
+     **************************************************************/
+
+
+    //Component contenente la lista delle thumbnail delle immagini e l'immagine attualmente selezionata
     ShoeImagesList {
         id: imagesList
 
+        //Intercetto il signal dichiarato dentro ShoeImagesList; il signal coincide con un tap sulla main image, che deve implicare
+        //un focus sull'immagine. Il signal riceve come parametro "imageSource", il path del file dell'immagine
         onMainImageClicked: {
+            //Quando il signal scatta, cambio lo stato del rettangolo che oscura lo schermo, setto il path dell'immagine
+            //a quello ricevuto dal signal e rendo visibile l'immagine stessa
             mainImageFocusBackground.state = "visible";
             mainImage.source = imageSource;
             mainImage.state = "visible";
         }
     }
 
+    //Component contenente le informazioni sulla scarpa
     ShoeDetail {
         id: shoeDetail
         anchors.left: imagesList.right
@@ -139,24 +154,19 @@ Rectangle {
         }
     }
 
-    //Immagine di dettaglio della thumbnail attualmente selezionata
+    //Immagine di dettaglio quando si preme sull'immagine di una scarpa; di default è invisibile
     Image {
         id: mainImage
         clip: true
         fillMode: Image.PreserveAspectFit //Questa impostazione mantiene l'aspect ratio dell'immagine a prescindere dalla sua grandezza
         smooth: true
-        height: parent.height
 
-        //Ancoro l'immagine a sinistra della lista delle thumbnail e al centro dell'altezza del padre (il superContainer)
-        anchors {
-            horizontalCenter: parent.horizontalCenter
-//            verticalCenter: parent.verticalCenter
-        }
+        //Ancoro l'immagine orizzontalmente al centro del padre (cioè al centro dello schermo)
+        anchors.horizontalCenter: parent.horizontalCenter
 
+        //Inizialmente l'immagine non è visibile, quindi lo segno
         visible: false
-
-
-        state: "invisible" //Stabilisco che lo stato iniziale è invisible, definito più sotto
+        state: "invisible"
 
 
         //Aggiungo due state, uno per quando è visibile e uno per quando non lo è
@@ -193,23 +203,21 @@ Rectangle {
                 to: "visible"
 
 
+                //Per l'immagine si hanno 2 animazioni in contemporanea, quindi ci vuole una ParallelAnimation
                 ParallelAnimation {
 
-                    //Creo una NumberAnimation, usata per definire animazioni che cambiano proprietà con valori numerici
+                    //Animazione per l'opacità
                     NumberAnimation {
-                        //Definisco che il target dell'animazione è il background
                         target: mainImage
 
-                        //L'unica proprietà che verrà modificata sarà l'opacità
                         properties: "opacity";
                         duration: 250;
 
-                        //Con questa animazione l'opacità cambierà da 0 a 0.5
                         from: 0
                         to: 1
                     }
 
-                    //Creo una NumberAnimation, usata per definire animazioni che cambiano proprietà con valori numerici
+                    //Animazione per il movimento sull'asse y
                     NumberAnimation {
                         target: mainImage
 
@@ -249,42 +257,16 @@ Rectangle {
         ]
 
 
-
+        //La PinchArea permette lo zoom... però non fa a provarlo senza schermo touch
         PinchArea {
             anchors.fill: parent
-            pinch.target: photoFrame
+            pinch.target: mainImage
             pinch.minimumRotation: -360
             pinch.maximumRotation: 360
             pinch.minimumScale: 0.1
             pinch.maximumScale: 10
-            onPinchFinished: photoFrame.border.color = "black";
-            MouseArea {
-                id: dragArea
-                hoverEnabled: true
-                anchors.fill: parent
-                drag.target: photoFrame
-                onPressed: photoFrame.z = ++root.highestZ;
-                onEntered: photoFrame.border.color = "red";
-                onExited: photoFrame.border.color = "black";
-                onWheel: {
-                    if (wheel.modifiers & Qt.ControlModifier) {
-                        photoFrame.rotation += wheel.angleDelta.y / 120 * 5;
-                        if (Math.abs(photoFrame.rotation) < 4)
-                            photoFrame.rotation = 0;
-                    } else {
-                        photoFrame.rotation += wheel.angleDelta.x / 120;
-                        if (Math.abs(photoFrame.rotation) < 0.6)
-                            photoFrame.rotation = 0;
-                        var scaleBefore = image.scale;
-                        image.scale += image.scale * wheel.angleDelta.y / 120 / 10;
-                        photoFrame.x -= image.width * (image.scale - scaleBefore) / 2.0;
-                        photoFrame.y -= image.height * (image.scale - scaleBefore) / 2.0;
-                    }
-                }
-            }
+
+            onPinchFinished: console("finished")
         }
     }
-
-
-
 }

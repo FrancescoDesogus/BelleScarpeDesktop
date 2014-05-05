@@ -1,10 +1,14 @@
 import QtQuick 2.0
 import QtQuick.XmlListModel 2.0
 
+
+//Finestra principale di tutto l'applicativo
 Rectangle {
     id: mainWindow
-    width: 1920 * scaleX
-    height: 1080 * scaleY
+
+    //Le misure di larghezza, altezza e i valori di scalatura sono ricevuti da C++
+    width: TARGET_RESOLUTION_WIDTH * scaleX
+    height: TARGET_RESOLUTION_HEIGHT * scaleY
 
 
     //I figli del ViewManager sono gestiti dallo stesso. Uno solo dei figli può essere visibili in un dato momento
