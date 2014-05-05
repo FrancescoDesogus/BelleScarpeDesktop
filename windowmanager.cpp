@@ -33,9 +33,9 @@ WindowManager::WindowManager(QQuickView *parent) :
 
 void WindowManager::setupScreen()
 {
-    //Recupero informazioni sulla grandezza dello schermo, in modo da visualizzare la view fullscreen correttamente
+    //Recupero informazioni sulla grandezza dello schermo, in modo da visualizzare la view in fullscreen correttamente
     QDesktopWidget widget;
-    QRect mainScreenSize = widget.availableGeometry(widget.primaryScreen());
+    QRect mainScreenSize = widget.screenGeometry(widget.primaryScreen());
 
 
     /* Aggiungo al contesto dell'engile qml una proprietà che corrisponde all'istanza di questa classe. In questo modo nei file qml
@@ -44,12 +44,10 @@ void WindowManager::setupScreen()
     this->rootContext()->setContextProperty("firstWindow", this);
 
 
+    ////////Prova del db; prende informazioni sulla scarpa e le mette nel contesto QML in modo che siano visibili
     ShoeDatabase db;
-
     db.open();
-
     Shoe *shoe = db.getShoeFromId(1);
-
     this->rootContext()->setContextProperty("shoe", shoe);
 
 
@@ -60,6 +58,7 @@ void WindowManager::setupScreen()
      * Come risoluzione target si usa 1920x1080 */
     this->rootContext()->setContextProperty("scaleX", (qreal) mainScreenSize.width() / 1920);
     this->rootContext()->setContextProperty("scaleY", (qreal) mainScreenSize.height() / 1080);
+
 
 
     //Carico il file base

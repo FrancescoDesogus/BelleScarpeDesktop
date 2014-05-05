@@ -140,11 +140,13 @@ Shoe* ShoeDatabase::getShoeFromId(int shoeId)
             //Scorro tutti i risultati, fino a quando non ce ne sono più
             while(queryForSizes.next())
             {
-                QString size = queryForSizes.value(ShoeDatabase::SIZE_SIZE_COLUMN_POSITION).toString();
+                float size = queryForSizes.value(ShoeDatabase::SIZE_SIZE_COLUMN_POSITION).toFloat();
                 int quantity = queryForSizes.value(ShoeDatabase::SIZE_QUANTITY_COLUMN_POSITION).toInt();
 
+                QString sizeString = QString::number(size);
+
                 //Inserisco nell'array associativo la taglia ed il booleano che segnala se è disponibile o meno
-                sizesAndQuantities[size] = quantity > 0;
+                sizesAndQuantities[sizeString] = quantity > 0;
             }
         }
 
