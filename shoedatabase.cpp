@@ -129,8 +129,7 @@ Shoe* ShoeDatabase::getShoeFromId(int shoeId)
         QSqlQuery queryForSizes;
 
         //Eseguo la query sulla tabella delle taglie
-        queryForSizes.exec("SELECT * FROM " + ShoeDatabase::SIZE_TABLE_NAME + " WHERE " + ShoeDatabase::SIZE_ID_COLUMN + " = " + QString::number(shoeId));
-
+        queryForSizes.exec("SELECT * FROM " + ShoeDatabase::SIZE_TABLE_NAME + " WHERE " + ShoeDatabase::SIZE_ID_COLUMN + " = " + QString::number(shoeId) + " ORDER BY " + ShoeDatabase::SIZE_SIZE_COLUMN);
 
         QVariantMap sizesAndQuantities;
 
@@ -150,6 +149,7 @@ Shoe* ShoeDatabase::getShoeFromId(int shoeId)
             }
         }
 
+//        sizesAndQuantities["48"] = true;
         //Ora che ho tutti i dati, creo l'oggetto Shoe...
         Shoe* shoe = new Shoe(shoeId, brand, model, color, sex, price, category, sizesAndQuantities, mediaPath);
 
