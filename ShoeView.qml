@@ -25,8 +25,15 @@ Rectangle {
             //Quando il signal scatta, cambio lo stato del rettangolo che oscura lo schermo, setto il path dell'immagine
             //a quello ricevuto dal signal e rendo visibile l'immagine stessa
             mainImageFocusBackground.state = "visible";
-            mainImage.source = imageSource;
-            mainImage.state = "visible";
+//            mainImage.source = imageSource;
+//            mainImage.state = "visible";
+            imageList.state = "visible"
+
+//            imageList.currentItem = imageList.c
+            imageList.positionViewAtIndex(listIndex, ListView.Visible)
+            imageList.currentIndex = listIndex
+
+//            imageList.currentItem.source = imageSource
         }
     }
 
@@ -34,7 +41,6 @@ Rectangle {
     ShoeDetail {
         id: shoeDetail
         anchors.left: imagesList.right
-//        anchors.leftMargin: 200 * scaleX
     }
 
 
@@ -144,7 +150,6 @@ Rectangle {
             //Al click rimetto lo stato su "invisible"
             onClicked: {
                 mainImageFocusBackground.state = "invisible";
-                mainImage.state = "invisible";
             }
         }
 
@@ -155,76 +160,81 @@ Rectangle {
     }
 
 
-//    ListView {
-//        id: list
-//        anchors.fill: parent
+    ListView {
+        id: imageList
+        anchors.fill: parent
 
-//        model: myModel
-//        delegate: Component {
-//            Image {
-//                id: thumbnail
-//                source: "file:///" + model.modelData.source //Il path per l'immagine è preso dal modello, ricevuto da C++
-//                height: parent.height
-//                width: container.width
-//                fillMode: Image.PreserveAspectFit //Questa impostazione mantiene l'aspect ratio dell'immagine a prescindere dalla sua grandezza
-
-//                //MouseArea per intercettare gli eventi touch in modo da cambiare immagine
-//                MouseArea {
-//                    anchors.fill: parent
-
-////                    onReleased: {
-////                        list.visible = false
-////                    }
-
-//                    onClicked: {
-//                        listView.currentIndex = index
-//                        mainImage.source = thumbnail.source
-//                    }
-//                }
-
-//                MouseArea {
-//                    width: thumbnail.paintedWidth
-//                    height: parent.height
-
-//                    onReleased: {
-//                        list.visible = false
-//                    }
-//                }
-//            }
-//        }
-
-//        orientation: ListView.Horizontal
-//        snapMode: ListView.SnapOneItem
-////        currentIndex: 3
-//    }
-
-    //Immagine di dettaglio quando si preme sull'immagine di una scarpa; di default è invisibile
-    Image {
-        id: mainImage
-        height: parent.height
-        clip: true
-        fillMode: Image.PreserveAspectFit //Questa impostazione mantiene l'aspect ratio dell'immagine a prescindere dalla sua grandezza
-        smooth: true
-
-        //Ancoro l'immagine orizzontalmente al centro del padre (cioè al centro dello schermo)
-        anchors.horizontalCenter: parent.horizontalCenter
-
-        //Inizialmente l'immagine non è visibile, quindi lo segno
-        visible: false
         state: "invisible"
 
+        highlightFollowsCurrentItem: false
 
-        //Aggiungo due state, uno per quando è visibile e uno per quando non lo è
+        model: myModel
+        delegate: Component {
+            Image {
+                id: thumbnail
+                source: "file:///" + model.modelData.source
+                height: parent.height
+                width: container.width
+                fillMode: Image.PreserveAspectFit //Questa impostazione mantiene l'aspect ratio dell'immagine a prescindere dalla sua grandezza
+
+
+                MouseArea {
+                    width: (thumbnail.width - thumbnail.paintedWidth)/2
+                    height: parent.height
+
+                    onReleased: {
+                        imageList.state = "invisible"
+                        mainImageFocusBackground.state = "invisible";
+
+                    }
+                }
+
+                MouseArea {
+                    width: (thumbnail.width - thumbnail.paintedWidth)/2
+                    height: parent.height
+                    x: (thumbnail.width - thumbnail.paintedWidth)/2 + thumbnail.paintedWidth
+
+
+                    onReleased: {
+                        console.log(imageList.currentIndex)
+
+                        imageList.state = "invisible"
+                        mainImageFocusBackground.state = "invisible";
+                    }
+                }
+
+                //        //La PinchArea permette lo zoom... però non fa a provarlo senza schermo touch
+                //        PinchArea {
+                //            anchors.fill: parent
+                //            pinch.target: mainImage
+                //            pinch.minimumRotation: -360
+                //            pinch.maximumRotation: 360
+                //            pinch.minimumScale: 0.1
+                //            pinch.maximumScale: 10
+
+                //            onPinchFinished: console("finished")
+                //        }
+                //    }
+            }
+        }
+
+        orientation: ListView.Horizontal
+        snapMode: ListView.SnapOneItem
+
+
+        //Aggiungo due stati, uno per quando è visibile e uno per quando non lo è
         states: [
             //Stato per quando il rettangolo è visibile
             State {
                 name: "visible"
 
                 PropertyChanges {
-                    target: mainImage
+                    target: imageList
 
                     visible: true
                 }
+
+
             },
 
             //Stato per quando il rettangolo è invisibile
@@ -232,7 +242,7 @@ Rectangle {
                 name: "invisible"
 
                 PropertyChanges {
-                    target: mainImage
+                    target: imageList
 
                     visible: true
                 }
@@ -253,7 +263,7 @@ Rectangle {
 
                     //Animazione per l'opacità
                     NumberAnimation {
-                        target: mainImage
+                        target: imageList.currentItem
 
                         properties: "opacity"
                         duration: 250
@@ -264,7 +274,8 @@ Rectangle {
 
                     //Animazione per il movimento sull'asse y
                     NumberAnimation {
-                        target: mainImage
+                        target: imageList.currentItem
+
 
                         easing.type: Easing.OutCirc
 
@@ -284,7 +295,7 @@ Rectangle {
                 to: "invisible"
 
                 NumberAnimation {
-                    target: mainImage
+                    target: imageList.currentItem
 
                     properties: "opacity";
                     duration: 250;
@@ -294,22 +305,15 @@ Rectangle {
 
                 onRunningChanged: {
                     if (!running)
-                        mainImage.visible = false
+                        imageList.visible = false
                 }
             }
         ]
 
-
-        //La PinchArea permette lo zoom... però non fa a provarlo senza schermo touch
-        PinchArea {
-            anchors.fill: parent
-            pinch.target: mainImage
-            pinch.minimumRotation: -360
-            pinch.maximumRotation: 360
-            pinch.minimumScale: 0.1
-            pinch.maximumScale: 10
-
-            onPinchFinished: console("finished")
+        //Quando il component è stato caricato, setto la sua visibilità su false per non farlo vedere inizialmente
+        Component.onCompleted: {
+            imageList.visible = false
         }
-    }
+
+    }    
 }

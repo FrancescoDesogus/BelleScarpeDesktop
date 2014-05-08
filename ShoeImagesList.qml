@@ -31,7 +31,9 @@ Rectangle {
 
 
     //Signal che scatta quando si preme sulla mainImage; è usato da ShoeView per mostrare in focus l'immagine clickata
-    signal mainImageClicked (string imageSource)
+//    signal mainImageClicked (string imageSource)
+    signal mainImageClicked (int listIndex, string imageSource)
+
 
 
 
@@ -65,12 +67,12 @@ Rectangle {
                 //in questo caso viene mostrato come componente un rettanglo
                 highlight: Rectangle {
                     id: highlight
-                    width: thumbnailWidth + (3 * scaleX)
-                    height: thumbnailHeight + (3 * scaleY)
+                    width: thumbnailWidth
+                    height: thumbnailHeight
                     color: "#22000000" //Colore nero con opacità
-                    radius: 3
+//                    radius: 3
                     border.color: "red"
-                    border.width: 2 * scaleX
+                    border.width: 2.5 * scaleX
                     smooth: true
 
                     //Imposto che il rettangolo venga posizionato nelle stesse coordinate della thumbnail selezionata, ma con
@@ -127,13 +129,9 @@ Rectangle {
                 }
 
                 focus: true
-                spacing: 5 //Spazio tra ogni componente della lista
+                spacing: 5 * scaleY //Spazio tra ogni componente della lista
             }
 
-            Keys.onDownPressed: {
-                   console.log("Down key pressed ")
-                   listView.incrementCurrentIndex();
-               }
 
             //La scrollbar è definita in un file a parte e compare solo se l'altezza della lista supera l'altezza dello schermo
             ScrollBar {
@@ -161,7 +159,9 @@ Rectangle {
 
         MouseArea {
             anchors.fill: parent
-            onClicked: superContainer.mainImageClicked(mainImage.source)
+//            onClicked: superContainer.mainImageClicked(mainImage.source)
+            onClicked: superContainer.mainImageClicked(listView.currentIndex, mainImage.source)
+
         }
     }
 
@@ -175,11 +175,8 @@ Rectangle {
      */
     function calculateListViewHeight()
     {
-        //Numero di thumbnail presenti nella lista
-        var thumbnailsCount = listView.count;
-
         //Calcolo l'altezza della lista tenendo conto dell'altezza di ogni thumbnail e dello spacing tra ogni immagine
-        var thumbnailListHeight = (thumbnailHeight + listView.spacing * (thumbnailsCount - 1)) * thumbnailsCount;
+        var thumbnailListHeight = (thumbnailHeight * listView.count) + (listView.spacing * (listView.count - 1));
 
         //Se l'altezza totale calcolata è minore dell'altezza del background (che è pari all'altezza dello schermo), allora
         //viene restituita questa altezza
@@ -198,16 +195,18 @@ Rectangle {
      */
     function calculateListPosition()
     {
-        //Calcolo l'altezza dimezzata della lista, data dall'altezza dimezzata di ogni thumbnail per il loro numero
-        var listHalvedHeigth = thumbnailHalvedHeight * listView.count;
-
         //Se l'altezza totale della lista supera l'altezza totale del contenitore della lista (che è pari all'altezza dello schermo),
         //allora restituisco 0 in modo tale che la lista venga posizionata all'origine
-        if(listHalvedHeigth*2 > listBackground.height)
+        if(listView.height >= listBackground.height)
             return 0;
-        //Altrimenti restituisco la posizione vera e propria, che è data dall'altezza dello schermo a metà meno lo spazio
+
+        //Altrimenti calcolo l'altezza dimezzata della lista, data dall'altezza dimezzata di ogni thumbnail per il loro
+        //numero più lo spacing dimezzato che c'è tra ogni componente
+        var listHalvedHeigth = (thumbnailHalvedHeight) * listView.count + (listView.spacing/2 * (listView.count - 1));
+
+
+        //Restituisco quindi la posizione vera e propria, che è data dall'altezza dello schermo dimezzata meno lo spazio
         //occupato dall'altezza dimezzata della lista
-        else
-            return (listBackground.height/2 - listHalvedHeigth);
+        return (listBackground.height/2 - listHalvedHeigth);
     }
 }
