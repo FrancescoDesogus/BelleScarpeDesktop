@@ -40,6 +40,7 @@ int main(int argc, char *argv[])
     view->rootContext()->setContextProperty("myModel", QVariant::fromValue(dataList));
     view->setupScreen();
 
+
 //    SerialReaderThread thread;
 
 //    QObject::connect(&thread, SIGNAL(codeArrived(char*)), view, SLOT(getCode(char*)));

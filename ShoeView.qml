@@ -34,7 +34,7 @@ Rectangle {
     ShoeDetail {
         id: shoeDetail
         anchors.left: imagesList.right
-        anchors.leftMargin: 200 * scaleX
+//        anchors.leftMargin: 200 * scaleX
     }
 
 
@@ -154,9 +154,54 @@ Rectangle {
         }
     }
 
+
+//    ListView {
+//        id: list
+//        anchors.fill: parent
+
+//        model: myModel
+//        delegate: Component {
+//            Image {
+//                id: thumbnail
+//                source: "file:///" + model.modelData.source //Il path per l'immagine è preso dal modello, ricevuto da C++
+//                height: parent.height
+//                width: container.width
+//                fillMode: Image.PreserveAspectFit //Questa impostazione mantiene l'aspect ratio dell'immagine a prescindere dalla sua grandezza
+
+//                //MouseArea per intercettare gli eventi touch in modo da cambiare immagine
+//                MouseArea {
+//                    anchors.fill: parent
+
+////                    onReleased: {
+////                        list.visible = false
+////                    }
+
+//                    onClicked: {
+//                        listView.currentIndex = index
+//                        mainImage.source = thumbnail.source
+//                    }
+//                }
+
+//                MouseArea {
+//                    width: thumbnail.paintedWidth
+//                    height: parent.height
+
+//                    onReleased: {
+//                        list.visible = false
+//                    }
+//                }
+//            }
+//        }
+
+//        orientation: ListView.Horizontal
+//        snapMode: ListView.SnapOneItem
+////        currentIndex: 3
+//    }
+
     //Immagine di dettaglio quando si preme sull'immagine di una scarpa; di default è invisibile
     Image {
         id: mainImage
+        height: parent.height
         clip: true
         fillMode: Image.PreserveAspectFit //Questa impostazione mantiene l'aspect ratio dell'immagine a prescindere dalla sua grandezza
         smooth: true
@@ -210,8 +255,8 @@ Rectangle {
                     NumberAnimation {
                         target: mainImage
 
-                        properties: "opacity";
-                        duration: 250;
+                        properties: "opacity"
+                        duration: 250
 
                         from: 0
                         to: 1
@@ -221,13 +266,11 @@ Rectangle {
                     NumberAnimation {
                         target: mainImage
 
-                        easing.overshoot: 3
-                        easing.amplitude: 1.7
+                        easing.type: Easing.OutCirc
+
 
                         properties: "y";
                         duration: 500
-
-                        easing.type: Easing.OutBack
 
                         from: -150
                         to: 0

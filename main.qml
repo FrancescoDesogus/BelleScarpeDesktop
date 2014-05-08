@@ -20,7 +20,6 @@ Rectangle {
             id: showView
 
         }
-
     }
 
     /* Funzione per aggiungere una view al ViewManager dinamicamente (keyword da cercare su google: Dynamic QML Object Creation from JavaScript).
@@ -51,5 +50,4 @@ Rectangle {
         //spazio alla view appena aggiunta
         newView.visible = true;
     }
-
 }

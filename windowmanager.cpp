@@ -55,7 +55,7 @@ void WindowManager::setupScreen()
     ////////Prova del db; prende informazioni sulla scarpa e le mette nel contesto QML in modo che siano visibili
     ShoeDatabase db;
     db.open();
-    Shoe *shoe = db.getShoeFromId(1);
+    Shoe *shoe = db.getShoeFromId(2);
     this->rootContext()->setContextProperty("shoe", shoe);
 
 
@@ -76,9 +76,6 @@ void WindowManager::setupScreen()
     //Con questa chiamata l'elemento root del file QML otterrà la stessa grandezza della finestra in cui sta. Così facendo
     //posso mettere la finestra in fullscreen e la parte fatta in QML si adatterà automaticamente
     this->setResizeMode(QQuickView::SizeRootObjectToView);
-
-//    QObject *rootObject = (QObject *)this->rootObject();
-//    rootObject->setProperty("color", "red");
 
 
     this->showFullScreen();

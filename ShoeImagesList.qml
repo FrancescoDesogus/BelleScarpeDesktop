@@ -30,7 +30,7 @@ Rectangle {
     property real totalComponentHeight: parent.height
 
 
-
+    //Signal che scatta quando si preme sulla mainImage; è usato da ShoeView per mostrare in focus l'immagine clickata
     signal mainImageClicked (string imageSource)
 
 
@@ -60,19 +60,27 @@ Rectangle {
                 orientation: "Vertical"
                 y: calculateListPosition() //Posizione y di partenza per la lista
                 clip: true //Il clipping fa scomparire gli elementi della lista quando attraversano i bordi della stessa
-                highlight: Rectangle
-                {
+
+                //Per mostrare quale thumbnail è stata selezionata utilizzo la proprietà highlight, definendo cosa mostrare;
+                //in questo caso viene mostrato come componente un rettanglo
+                highlight: Rectangle {
                     id: highlight
-                    width: listView.currentItem.width + (3 * scaleX)
-                    height: listView.currentItem.height + (3 * scaleY)
-                    color: "#22000000"
+                    width: thumbnailWidth + (3 * scaleX)
+                    height: thumbnailHeight + (3 * scaleY)
+                    color: "#22000000" //Colore nero con opacità
                     radius: 3
                     border.color: "red"
-                    border.width: 2
+                    border.width: 2 * scaleX
                     smooth: true
+
+                    //Imposto che il rettangolo venga posizionato nelle stesse coordinate della thumbnail selezionata, ma con
+                    //coordinata z maggiore per mostrarlo davanti
                     y: listView.currentItem.y
                     x: listView.currentItem.x
                     z: listView.currentItem.z + 1
+
+                    //Definisco cosa fare quando varia la y; in questo caso viene fatta un'animazione per muovere il rettangolo
+                    //in modo che segua l'elemento attualmente selezionato
                     Behavior on y {
                         NumberAnimation {
                             duration: 300
@@ -80,6 +88,9 @@ Rectangle {
                         }
                     }
                 }
+
+                //Di default il rettangolo segue già l'elemento attualmente selezionato, ma l'animazione è troppo lenta... quindi
+                //disattivo l'opzione visto che l'ho fatta manualmente più sopra
                 highlightFollowsCurrentItem: false
 
                 //La lista è ancorata al genitore sulla sinistra in modo da fissarla al bordo sinistro dello schermo, definendo
