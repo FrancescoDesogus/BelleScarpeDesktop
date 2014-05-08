@@ -15,27 +15,19 @@ Rectangle {
     //String che rappresenta il nome dello stato del component quando la data taglia non è disponibile in negozio
     property string unavailable: "unavailable"
 
-    width: 45 * scaleX
-    height: 45 * scaleY
+    width: 75 * scaleX
+    height: 60 * scaleY
 
-    gradient: Gradient {
-        GradientStop {
-            id: stop1
-            position: 0.00;
-            color: "#a6a6a6";
-        }
-        GradientStop {
-            id: stop2
-            position: 1.00;
-            color: "#639ec2";
-        }
-    }
+    color: "#DEDEDE"
 
     radius: 5;
 
 
     Text {
         id: size
+        color: "#333333"
+        font.pixelSize: 17
+        font.weight: Font.Light
         text: "size not defined"
 
         anchors.centerIn: parent
@@ -46,9 +38,13 @@ Rectangle {
             name: unavailable
 
             PropertyChanges {
-                target: stop2
+                target: container
+                color: "#F7F7F7"
+            }
 
-                color: "a6a6a6"
+            PropertyChanges {
+                target: size
+                color: "#999999"
             }
         }
 }

@@ -21,9 +21,9 @@ int main(int argc, char *argv[])
     WindowManager *view = new WindowManager();
 
     // Retrieve the path to the app's working directory
-    QString imagesPath = QDir::currentPath() + "/debug/shoes_media/1/skyscape2.jpg";
+    QString imagesPath = QDir::currentPath() + "/debug/shoes_media/2/your_turn1.jpg";
 
-    QDir path = QDir::currentPath() + "/debug/shoes_media/1/";
+    QDir path = QDir::currentPath() + "/debug/shoes_media/2/";
 
     QList<QObject*> dataList;
     //    dataList.append(new DataObject(imagesPath));
