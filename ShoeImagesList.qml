@@ -31,8 +31,7 @@ Rectangle {
 
 
     //Signal che scatta quando si preme sulla mainImage; è usato da ShoeView per mostrare in focus l'immagine clickata
-//    signal mainImageClicked (string imageSource)
-    signal mainImageClicked (int listIndex, string imageSource)
+    signal mainImageClicked (int listIndex)
 
 
 
@@ -159,8 +158,7 @@ Rectangle {
 
         MouseArea {
             anchors.fill: parent
-//            onClicked: superContainer.mainImageClicked(mainImage.source)
-            onClicked: superContainer.mainImageClicked(listView.currentIndex, mainImage.source)
+            onClicked: superContainer.mainImageClicked(listView.currentIndex)
 
         }
     }

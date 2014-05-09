@@ -19,21 +19,17 @@ Rectangle {
     ShoeImagesList {
         id: imagesList
 
-        //Intercetto il signal dichiarato dentro ShoeImagesList; il signal coincide con un tap sulla main image, che deve implicare
-        //un focus sull'immagine. Il signal riceve come parametro "imageSource", il path del file dell'immagine
+        /* Intercetto il signal dichiarato dentro ShoeImagesList; il signal coincide con un tap sulla main image, che deve implicare
+         * un focus sull'immagine. Il signal riceve come parametro l'indice della lista di thumbnail che indica
+         * quale immagine della contenente le immagini ingrandite deve essere mostrata per prima */
         onMainImageClicked: {
-            //Quando il signal scatta, cambio lo stato del rettangolo che oscura lo schermo, setto il path dell'immagine
-            //a quello ricevuto dal signal e rendo visibile l'immagine stessa
+            //Quando il signal scatta, cambio lo stato del rettangolo che oscura lo schermo
             mainImageFocusBackground.state = "visible";
-//            mainImage.source = imageSource;
-//            mainImage.state = "visible";
-            imageList.state = "visible"
 
-//            imageList.currentItem = imageList.c
-            imageList.positionViewAtIndex(listIndex, ListView.Visible)
-            imageList.currentIndex = listIndex
-
-//            imageList.currentItem.source = imageSource
+            //Cambio l'indice della lista contenente le immagini ingrandite in base all'indice ricevuto dal signal; dopodichè
+            //rendo visibile la lista stessa
+            imageFocusList.currentIndex = listIndex
+            imageFocusList.state = "visible"
         }
     }
 
@@ -160,89 +156,122 @@ Rectangle {
     }
 
 
+    //Lista contenente le immagini delle scarpe ingrandite; di default è invisibile, si attiva solo quando si preme sull'immagine
+    //attualmente selezionata nella lista di thumbnail
     ListView {
-        id: imageList
+        id: imageFocusList
+
+        //La lista è grande quanto tutto lo schermo, quindi "filla" tutto il parent
         anchors.fill: parent
 
+        //Inizialmente lo stato è invisibile
         state: "invisible"
 
+        /* Segnalo che la lista non deve seguire automaticamente l'elemento attualmente selezionato; senza questo booleano
+         * la lista si sposterebbe da sola (moooolto lentamente) verso l'elemento da visualizzare quando la lista diventa
+         * inizialmente visibile */
         highlightFollowsCurrentItem: false
 
+        //Il modello della lista, contenente i path delle immagini da mostrare, è preso da C++ ed è uguale a quello della lista
+        //contenente le thumbnail
         model: myModel
+
+        //Il delegate corrisponde ad una singola immagine per ogni item della lista
         delegate: Component {
             Image {
-                id: thumbnail
+                id: focusedImage
                 source: "file:///" + model.modelData.source
                 height: parent.height
+
+                //L'immagine deve essere larga quanto tutto lo schermo in modo che nella lsita si veda una sola immagine alla volta
                 width: container.width
-                fillMode: Image.PreserveAspectFit //Questa impostazione mantiene l'aspect ratio dell'immagine a prescindere dalla sua grandezza
 
+                //Questa impostazione mantiene l'aspect ratio dell'immagine; in questo modo nonostante l'immagine sia grande
+                //quanto lo schermo, si vede come come dovrebbe apparire normalmente
+                fillMode: Image.PreserveAspectFit
 
+                //Per far si che si nasconda la lista quando si preme al di fuori dell'immagine creo due MouseArea da posizionare
+                //in modo che siano una a sinistra dell'immagine e una alla sua destra; inizio con la MouseArea di sinistra
                 MouseArea {
-                    width: (thumbnail.width - thumbnail.paintedWidth)/2
+                    /* L'altezza deve essere grande tanto quanto lo schermo, mentre la larghezza + data dalla grandezza totale
+                     * occupata dall'immagine (tutto lo schermo) meno la grandezza effettivamente disegnata (quella reale
+                     * dell'immagine), il tutto diviso per due in quanto il centro dell'immagine è proprio al centro dello schermo */
                     height: parent.height
+                    width: (focusedImage.width - focusedImage.paintedWidth)/2
 
+                    //Per evitare che si chiuda la lista mentre si preme per scorrerla, l'evento per chiuderla scatta solo
+                    //quando si preme e si rilascia subito la MouseArea
                     onReleased: {
-                        imageList.state = "invisible"
-                        mainImageFocusBackground.state = "invisible";
+                        /* Dato che scorrendo la lista l'indice non cambia (in quanto si sta solo scorrendo, non si sta selezionando
+                         * alcun elemento), e dato che l'animazione di svanimeto dell'immagine viene fatta solo sull'oggetto
+                         * correntemente selezionato, cambio l'indice della lista con quello dell'immagine attualmente visualizzata
+                         * al momento dello svanimento della lista, in modo che l'immagine scompaia con l'animazione */
+                        imageFocusList.currentIndex = index
 
+                        //Cambiato l'indice, rendo invisibile sia la lista che lo sfondo scuro; le animazioni saranno eseguite
+                        //come transizioni tra stati di questi componenti
+                        imageFocusList.state = "invisible"
+                        mainImageFocusBackground.state = "invisible";
                     }
                 }
 
+                //MouseArea per la parte destra dell'immagine
                 MouseArea {
-                    width: (thumbnail.width - thumbnail.paintedWidth)/2
+                    //Le dimensioni sono uguali a quelle della prima MouseArea...
                     height: parent.height
-                    x: (thumbnail.width - thumbnail.paintedWidth)/2 + thumbnail.paintedWidth
+                    width: (focusedImage.width - focusedImage.paintedWidth)/2
 
+                    //...quello che cambia è che la MouseArea deve partire con una x che sia tale da far si che copra solo
+                    //la parte a destra dell'immagine
+                    x: (focusedImage.width - focusedImage.paintedWidth)/2 + focusedImage.paintedWidth
 
                     onReleased: {
-                        console.log(imageList.currentIndex)
+                        imageFocusList.currentIndex = index
 
-                        imageList.state = "invisible"
+                        imageFocusList.state = "invisible"
                         mainImageFocusBackground.state = "invisible";
                     }
                 }
 
-                //        //La PinchArea permette lo zoom... però non fa a provarlo senza schermo touch
-                //        PinchArea {
-                //            anchors.fill: parent
-                //            pinch.target: mainImage
-                //            pinch.minimumRotation: -360
-                //            pinch.maximumRotation: 360
-                //            pinch.minimumScale: 0.1
-                //            pinch.maximumScale: 10
+//                //La PinchArea permette lo zoom... però non fa a provarlo senza schermo touch
+//                PinchArea {
+//                    anchors.fill: parent
+//                    pinch.target: mainImage
+//                    pinch.minimumRotation: -360
+//                    pinch.maximumRotation: 360
+//                    pinch.minimumScale: 0.1
+//                    pinch.maximumScale: 10
+//                }
 
-                //            onPinchFinished: console("finished")
-                //        }
-                //    }
             }
         }
 
         orientation: ListView.Horizontal
+
+        //Lo snapMode messo in questo modo fa si che si possa scorrere un solo elemento della lista per volta
         snapMode: ListView.SnapOneItem
 
 
-        //Aggiungo due stati, uno per quando è visibile e uno per quando non lo è
+        //Aggiungo due stati, uno per quando la lista è visibile e uno per quando non lo è; il funzionamento è identico
+        //a quanto fatto per il rettangolo mainImageFocusBackground
         states: [
-            //Stato per quando il rettangolo è visibile
+            //Stato per quando è visibile
             State {
                 name: "visible"
 
                 PropertyChanges {
-                    target: imageList
+                    target: imageFocusList
 
                     visible: true
                 }
-
-
             },
 
-            //Stato per quando il rettangolo è invisibile
+            //Stato per quando la lista è invisibile
             State {
                 name: "invisible"
 
                 PropertyChanges {
-                    target: imageList
+                    target: imageFocusList
 
                     visible: true
                 }
@@ -253,7 +282,6 @@ Rectangle {
         transitions: [
             //Transizione per quando si passa dallo stato invisible allo stato visible
             Transition {
-                //Inserisco qua il nome dello stato di partenza coinvolto nella transizione e lo stato da raggiungere
                 from: "invisible"
                 to: "visible"
 
@@ -263,7 +291,10 @@ Rectangle {
 
                     //Animazione per l'opacità
                     NumberAnimation {
-                        target: imageList.currentItem
+                        /* Il target dell'animazione è il currentItem; per questo è importante che prima del cambiamento di stato
+                         * sia settato correttamente il currentIndex con quello dell'immagine da mostrare, in modo che il
+                         * currentItem sia effettivamente aggiornato */
+                        target: imageFocusList.currentItem
 
                         properties: "opacity"
                         duration: 250
@@ -274,7 +305,7 @@ Rectangle {
 
                     //Animazione per il movimento sull'asse y
                     NumberAnimation {
-                        target: imageList.currentItem
+                        target: imageFocusList.currentItem
 
 
                         easing.type: Easing.OutCirc
@@ -295,7 +326,7 @@ Rectangle {
                 to: "invisible"
 
                 NumberAnimation {
-                    target: imageList.currentItem
+                    target: imageFocusList.currentItem
 
                     properties: "opacity";
                     duration: 250;
@@ -304,16 +335,27 @@ Rectangle {
                 }
 
                 onRunningChanged: {
-                    if (!running)
-                        imageList.visible = false
+                    if(!running)
+                    {
+                        imageFocusList.visible = false
+
+                        //Quando l'animazione termina, oltre a rendere invisible la lista rimetto l'opacità a 1 all'elemento
+                        //correntemente selezionato nella lista, in quanto con l'animazione era svanito
+                        imageFocusList.currentItem.opacity = 1
+                    }
                 }
             }
         ]
 
         //Quando il component è stato caricato, setto la sua visibilità su false per non farlo vedere inizialmente
         Component.onCompleted: {
-            imageList.visible = false
+            imageFocusList.visible = false
         }
 
+
+        /* Faccio si che quando cambi l'indice della lista, la lista visualizzi l'elemento attualmente selezionato.
+         * Nota: se highlightFollowsCurrentItem fosse stato true la chiamata a positionViewAtIndex avrebbe provocato
+         * un'animazione di transizione (mooolto lenta); messo su false, lo spostamento è istantaneo */
+        onCurrentIndexChanged: imageFocusList.positionViewAtIndex(currentIndex, ListView.Contain)
     }    
 }
