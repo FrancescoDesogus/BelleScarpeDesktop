@@ -20,7 +20,7 @@ Item
     **/
 
     property int numberOfSizesPerLine: 8
-    property int numberOfSizeLines: Math.ceil(Object.keys(shoe.sizes).length / numberOfSizesPerLine)
+    property int numeroDiLineeTaglia: Math.ceil(Object.keys(shoe.sizes).length / numberOfSizesPerLine)
 
     Text {
         id: brand
@@ -30,7 +30,7 @@ Item
         font.weight: Font.Normal
         font.letterSpacing: 1.2
         color: "#9FB7BF"
-        height: 50 * scaleY
+//        height: 50 * scaleY
         anchors.left: parent.left
         anchors.top: parent.top
         anchors.topMargin: 20 * scaleY
@@ -42,15 +42,17 @@ Item
         height: 1 * scaleY
         color: "#9FB7BF"
         anchors.top: brand.bottom
+        anchors.topMargin: 10 * scaleY
     }
 
     DetailRectangle {
         id: brandMini
         general: "Marca"
         testo: shoe.brand
-        numberOfSizeLines: numberOfSizeLines
+        numberOfSizeLines: numeroDiLineeTaglia
         isEven: false
         anchors.top:  separator.bottom
+        anchors.topMargin: 10 * scaleY
     }
 
 
@@ -58,7 +60,7 @@ Item
         id: model
         general: "Modello"
         testo: shoe.model
-        numberOfSizeLines: numberOfSizeLines
+        numberOfSizeLines: numeroDiLineeTaglia
         isEven: true
         anchors.top:  brandMini.bottom
     }
@@ -67,7 +69,7 @@ Item
         id: color
         general: "Colore"
         testo: shoe.color
-        numberOfSizeLines: numberOfSizeLines
+        numberOfSizeLines: numeroDiLineeTaglia
         isEven: false
         anchors.top:  model.bottom
     }
@@ -76,7 +78,7 @@ Item
         id: category
         general: "Categoria"
         testo: shoe.category
-        numberOfSizeLines: numberOfSizeLines
+        numberOfSizeLines: numeroDiLineeTaglia
         isEven: true
         anchors.top:  color.bottom
     }
@@ -85,7 +87,7 @@ Item
         id: sex
         general: "Sesso"
         testo: shoe.sex
-        numberOfSizeLines: numberOfSizeLines
+        numberOfSizeLines: numeroDiLineeTaglia
         isEven: false
         anchors.top:  category.bottom
     }
@@ -94,7 +96,7 @@ Item
         id: price
         general: "Prezzo"
         testo: shoe.price +"€"
-        numberOfSizeLines: numberOfSizeLines
+        numberOfSizeLines: numeroDiLineeTaglia
         isEven: true
         anchors.top:  sex.bottom
     }
@@ -109,7 +111,8 @@ Item
         color: "#9FB7BF"
         anchors.left: parent.left
         anchors.top: price.bottom
-        anchors.topMargin: 20 * scaleY
+//        anchors.topMargin: 20 * scaleY
+        height: 48 * scaleY
     }
 
     Rectangle {
@@ -118,7 +121,7 @@ Item
         height: 1 * scaleY
         color: "#9FB7BF"
         anchors.top: taglie.bottom
-        anchors.topMargin: 10 * scaleY
+//        anchors.topMargin: 5 * scaleY
     }
 
 
@@ -144,7 +147,7 @@ Item
 
         //Coordinate di ogni item; i loro valori incrementano
         var x = startingX;
-        var y = separatorTaglie.y + separatorTaglie.height + (20 * scaleY);
+        var y = separatorTaglie.y + separatorTaglie.height + (24 * scaleY);
 
         //Scorro tutti gli elementi contenuti nella map "sizes"; la map contiene, per ogni stringa della taglia, un booleano
         //che indica se quella taglia è attualmente disponibile o meno
@@ -167,7 +170,7 @@ Item
                 x = startingX;
 
                 //...ed incremento invece la y, per scendere di fila
-                y = y + item.height + (15*scaleY);
+                y = y + item.height + (10*scaleY);
             }
 
             //Di default si assume che la taglia sia disponibile; se non lo è, attivo lo stato relativo in modo che cambi il colore
