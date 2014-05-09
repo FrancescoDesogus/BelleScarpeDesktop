@@ -3,7 +3,7 @@ import QtQuick 2.0
 //Contenitore principale della view
 Rectangle {
     id: container
-    color: "#EEEEEE"
+    color: "#FFFFFF"
 
     //Le dimensioni della view sono prese dal padre che usa questo Component, e sono grandi quanto tutto lo schermo
     width: parent.width

@@ -8,5 +8,6 @@
         <file>ShoeImagesList.qml</file>
         <file>ShoeDetail.qml</file>
         <file>SizeRectangle.qml</file>
+        <file>DetailRectangle.qml</file>
     </qresource>
 </RCC>

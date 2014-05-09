@@ -21,8 +21,8 @@ Rectangle {
     property real thumbnailListContainerWidth: (thumbnailWidth + 30 * scaleX)
 
     //Dimensioni dell'immagine/video corrispondente alla thumbnail selezionata
-    property real mainImageWidth: 600 * scaleX
-    property real mainImageHeight: 900 * scaleY
+    property real mainImageWidth: 500 * scaleX
+    property real mainImageHeight: 800 * scaleY
 
     //Dimensioni totali di TUTTO il component definito in questo file. La larghezza è data dalla somma della larghezza della lista
     //e di quella dell'immagine principale, mentre l'altezza è pari a quella del padre (pari all'altezza dello schermo)
@@ -45,7 +45,7 @@ Rectangle {
         visible: true;
         width: thumbnailListContainerWidth //Larghezza della lista, presa tenendo conto anche della scrollbar
         height: parent.height
-        color: "#DDDDDD"
+        color: "#FBFBFB"
 
 
         //Contenitore della lista delle thumbnail; comprende anche la scrollbar

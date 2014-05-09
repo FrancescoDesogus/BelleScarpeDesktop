@@ -40,4 +40,5 @@ OTHER_FILES += \
     ScrollBar.qml \
     ShoeDetail.qml \
     ShoeImagesList.qml \
-    SizeRectangle.qml
+    SizeRectangle.qml \
+    DetailRectangle.qml
