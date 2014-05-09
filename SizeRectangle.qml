@@ -15,8 +15,8 @@ Rectangle {
     //String che rappresenta il nome dello stato del component quando la data taglia non è disponibile in negozio
     property string unavailable: "unavailable"
 
-    width: 75 * scaleX
-    height: 60 * scaleY
+    width: 69 * scaleX
+    height: 55 * scaleY
 
     color: "#DEDEDE"
 
@@ -26,7 +26,7 @@ Rectangle {
     Text {
         id: size
         color: "#333333"
-        font.pixelSize: 17
+        font.pointSize: 13
         font.weight: Font.Light
         text: "size not defined"
 

@@ -4,7 +4,7 @@ Item
 {
     FontLoader { id: webFont; source: "http://dev.bowdenweb.com/a/fonts/segoe/wp/segeo-wp.ttf" }
     id: container
-    width: 500 * scaleX
+    width: 600 * scaleX
     height: parent.height
     anchors.leftMargin: 100 * scaleX
 
@@ -53,6 +53,7 @@ Item
         anchors.top:  separator.bottom
     }
 
+
     DetailRectangle {
         id: model
         general: "Modello"
@@ -62,14 +63,63 @@ Item
         anchors.top:  brandMini.bottom
     }
 
-//    DetailRectangle {
-//        id: priceRectangle
-//        general: "Prezzo"
-//        testo: shoe.price +"€"
-//        numberOfSizeLines: numberOfSizeLines
-//        isEven: true
-//        anchors.top:  model.bottom
-//    }
+    DetailRectangle {
+        id: color
+        general: "Colore"
+        testo: shoe.color
+        numberOfSizeLines: numberOfSizeLines
+        isEven: false
+        anchors.top:  model.bottom
+    }
+
+    DetailRectangle {
+        id: category
+        general: "Categoria"
+        testo: shoe.category
+        numberOfSizeLines: numberOfSizeLines
+        isEven: true
+        anchors.top:  color.bottom
+    }
+
+    DetailRectangle {
+        id: sex
+        general: "Sesso"
+        testo: shoe.sex
+        numberOfSizeLines: numberOfSizeLines
+        isEven: false
+        anchors.top:  category.bottom
+    }
+
+    DetailRectangle {
+        id: price
+        general: "Prezzo"
+        testo: shoe.price +"€"
+        numberOfSizeLines: numberOfSizeLines
+        isEven: true
+        anchors.top:  sex.bottom
+    }
+
+    Text {
+        id: taglie
+        text: "Taglie Disponibili"
+        font.family: webFont.name
+        font.pointSize: 23
+        font.weight: Font.Normal
+        font.letterSpacing: 1.2
+        color: "#9FB7BF"
+        anchors.left: parent.left
+        anchors.top: price.bottom
+        anchors.topMargin: 20 * scaleY
+    }
+
+    Rectangle {
+        id: separatorTaglie
+        width: parent.width
+        height: 1 * scaleY
+        color: "#9FB7BF"
+        anchors.top: taglie.bottom
+        anchors.topMargin: 10 * scaleY
+    }
 
 
 
@@ -94,7 +144,7 @@ Item
 
         //Coordinate di ogni item; i loro valori incrementano
         var x = startingX;
-        var y = priceRectangle.y + priceRectangle.height + (20 * scaleY);
+        var y = separatorTaglie.y + separatorTaglie.height + (20 * scaleY);
 
         //Scorro tutti gli elementi contenuti nella map "sizes"; la map contiene, per ogni stringa della taglia, un booleano
         //che indica se quella taglia è attualmente disponibile o meno

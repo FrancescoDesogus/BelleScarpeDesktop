@@ -8,12 +8,12 @@ Rectangle {
     /** Proprietà fisse, che non verranno cambiate all'esterno **/
     property string evenColor: "#EBEBEB"
     property string oddColor: "#FCFCFC"
-    property string defaultColor: "#000000"
+    property string defaultColor: "#00000000"
     property int fontSize: 20
     property int margin: 40 * scaleX
 
     property int sizeItemHeight: (15*scaleY) + (60 * scaleY)
-    property int defaultRectangleHeight: 80 * scaleY
+    property int defaultRectangleHeight: 100 * scaleY
     property int rectangleHeight: (numberOfSizeLines < 2) ? (defaultRectangleHeight + (sizeItemHeight/6)) : defaultRectangleHeight
 
     /** Proprietà variabili che potrebbero essere cambiate all'esterno **/
@@ -40,7 +40,7 @@ Rectangle {
     **/
 
 //    color: (isEven) ? (evenColor) : (oddColor)
-    color: "black"
+    color: defaultColor
     height: rectangleHeight
     width: parent.width
 
@@ -66,6 +66,6 @@ Rectangle {
         color: "#111111"
         anchors.left: generalText.left
         anchors.top: generalText.bottom
-        anchors.topMargin: 5
+        anchors.topMargin: 5 * scaleY
     }
 }
