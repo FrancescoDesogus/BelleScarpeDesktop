@@ -1,4 +1,5 @@
 import QtQuick 2.0
+import QtWebKit 3.0
 
 //Contenitore principale della view
 Rectangle {
@@ -9,10 +10,17 @@ Rectangle {
     width: parent.width
     height: parent.height
 
+    //Signal che scatta quando viene rilevato un qualsiasi evento touch nell'interfaccia; serve per riazzerare il timer
+    //che porta alla schermata di partenza dopo un tot di tempo di inattività
+    signal touchEventOccurred()
 
-    /**************************************************************
-     * Costanti usate per definire le grandezze dei vari elementi
-     **************************************************************/
+
+    //L'intero container ha associata una MouseArea che ha il solo scopo di emettere il signal touchEventOccurred(), in modo
+    //da avvisare chi userà il component ShowView che è stato ricevuto un touch event
+    MouseArea {
+        anchors.fill: parent
+        onClicked: container.touchEventOccurred()
+    }
 
 
     //Component contenente la lista delle thumbnail delle immagini e l'immagine attualmente selezionata
@@ -31,12 +39,18 @@ Rectangle {
             imageFocusList.currentIndex = listIndex
             imageFocusList.state = "visible"
         }
+
+        //Anche ShoeImagesList ha un signal onTouchEventOccurred; quando scatta, propago l'evento verso l'esterno
+        onTouchEventOccurred: container.touchEventOccurred()
     }
 
     //Component contenente le informazioni sulla scarpa
     ShoeDetail {
         id: shoeDetail
         anchors.left: imagesList.right
+
+        //Anche ShoeDetail ha un signal onTouchEventOccurred; quando scatta, propago l'evento verso l'esterno
+        onTouchEventOccurred: container.touchEventOccurred()
     }
 
 
@@ -137,18 +151,6 @@ Rectangle {
             }
         ]
 
-
-        //Inserisco una MouseArea grande quanto tutto lo schermo in modo che se si preme da qualsiasi parte mentre il background
-        //è visibile si torni allo stato iniziale
-        MouseArea {
-            anchors.fill: parent
-
-            //Al click rimetto lo stato su "invisible"
-            onClicked: {
-                mainImageFocusBackground.state = "invisible";
-            }
-        }
-
         //Quando il component è stato caricato, setto la sua visibilità su false per non farlo vedere inizialmente
         Component.onCompleted: {
             mainImageFocusBackground.visible = false
@@ -180,7 +182,9 @@ Rectangle {
         delegate: Component {
             Image {
                 id: focusedImage
-                source: "file:///" + model.modelData.source
+//                source: "file:///" + model.modelData.source
+                source: model.modelData.source
+
                 height: parent.height
 
                 //L'immagine deve essere larga quanto tutto lo schermo in modo che nella lsita si veda una sola immagine alla volta
@@ -189,6 +193,14 @@ Rectangle {
                 //Questa impostazione mantiene l'aspect ratio dell'immagine; in questo modo nonostante l'immagine sia grande
                 //quanto lo schermo, si vede come come dovrebbe apparire normalmente
                 fillMode: Image.PreserveAspectFit
+
+
+                //L'immagine ha associata una MouseArea che ha il solo scopo di emettere il signal touchEventOccurred(), in modo
+                //da avvisare chi userà il component ShowView che è stato ricevuto un touch event
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: container.touchEventOccurred()
+                }
 
                 //Per far si che si nasconda la lista quando si preme al di fuori dell'immagine creo due MouseArea da posizionare
                 //in modo che siano una a sinistra dell'immagine e una alla sua destra; inizio con la MouseArea di sinistra
@@ -212,7 +224,13 @@ Rectangle {
                         //come transizioni tra stati di questi componenti
                         imageFocusList.state = "invisible"
                         mainImageFocusBackground.state = "invisible";
+
+                        //Avviso anche che c'è stato un touch event
+                        container.touchEventOccurred();
                     }
+
+                    //Al click avviso che c'è stato un touch event
+                    onClicked: container.touchEventOccurred()
                 }
 
                 //MouseArea per la parte destra dell'immagine
@@ -230,7 +248,11 @@ Rectangle {
 
                         imageFocusList.state = "invisible"
                         mainImageFocusBackground.state = "invisible";
+
+                        container.touchEventOccurred();
                     }
+
+                    onClicked: container.touchEventOccurred()
                 }
 
 //                //La PinchArea permette lo zoom... però non fa a provarlo senza schermo touch

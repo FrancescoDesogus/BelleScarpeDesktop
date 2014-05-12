@@ -9,5 +9,7 @@
         <file>ShoeDetail.qml</file>
         <file>SizeRectangle.qml</file>
         <file>DetailRectangle.qml</file>
+        <file>ScreensaverView.qml</file>
+        <file>youtubePlayer.html</file>
     </qresource>
 </RCC>

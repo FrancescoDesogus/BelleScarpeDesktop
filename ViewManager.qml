@@ -40,7 +40,7 @@ Rectangle {
         duration : 500
         property: "x"
         easing.type: Easing.InQuad
-        onStopped: target.destroy();
+        onStopped: target.destroy()
     }
 
     //Animazione per lo slide verso sinistra per la view che deve apparire
@@ -96,5 +96,12 @@ Rectangle {
     function goBack()
     {
         ViewManagerJs.goBack();
+    }
+
+    /* Funzione che si occupa di svuotare l'array contenente l'history delle view visitate per inserirci esclusivamente
+     * la ScreensaverView. Il parametro newView è la ScreensaverView che dovrà essere mostrata */
+    function resetToView(newView)
+    {
+        ViewManagerJs.reset(newView);
     }
 }

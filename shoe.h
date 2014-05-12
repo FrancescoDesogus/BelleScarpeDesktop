@@ -23,7 +23,7 @@ class Shoe : public QObject
     Q_PROPERTY(QString sex READ getSex CONSTANT)
     Q_PROPERTY(float price READ getPrice CONSTANT)
     Q_PROPERTY(QString category READ getCategory CONSTANT)
-    Q_PROPERTY(QVariantMap sizes READ getSizesAndQuantities)
+    Q_PROPERTY(QVariantMap sizes READ getSizesAndQuantities CONSTANT)
 
 
 public:

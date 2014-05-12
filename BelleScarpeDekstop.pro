@@ -41,4 +41,6 @@ OTHER_FILES += \
     ShoeDetail.qml \
     ShoeImagesList.qml \
     SizeRectangle.qml \
-    DetailRectangle.qml
+    DetailRectangle.qml \
+    ScreensaverView.qml \
+    youtubePlayer.html

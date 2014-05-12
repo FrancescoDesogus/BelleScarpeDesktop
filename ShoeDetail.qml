@@ -22,6 +22,19 @@ Item
     property int numberOfSizesPerLine: 8
     property int numeroDiLineeTaglia: Math.ceil(Object.keys(shoe.sizes).length / numberOfSizesPerLine)
 
+
+    //Signal che scatta quando viene rilevato un qualsiasi evento touch nell'interfaccia; serve per riazzerare il timer
+    //che porta alla schermata di partenza dopo un tot di tempo di inattività
+    signal touchEventOccurred()
+
+    //L'intero container ha associata una MouseArea che ha il solo scopo di emettere il signal touchEventOccurred(), in modo
+    //da avvisare chi userà il component ShoeDetail che è stato ricevuto un touch event
+    MouseArea {
+        anchors.fill: parent
+        onClicked: container.touchEventOccurred()
+    }
+
+
     Text {
         id: brand
         text: shoe.brand

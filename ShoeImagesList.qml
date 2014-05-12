@@ -1,4 +1,5 @@
 import QtQuick 2.0
+import QtWebKit 3.0
 
 /*
  * Contenitore principale; al suo interno ci sarà la lista delle thumbnail (compresa la scrollbar) e l'immagine/video
@@ -24,20 +25,45 @@ Rectangle {
     property real mainImageWidth: 500 * scaleX
     property real mainImageHeight: 800 * scaleY
 
+    //Dimensioni del player di youtube corrispondente al video selezionato
+    property real youtubePlayerWidth: 500 * scaleX
+    property real youtubePlayerHeight: 500 * scaleY
+
     //Dimensioni totali di TUTTO il component definito in questo file. La larghezza è data dalla somma della larghezza della lista
     //e di quella dell'immagine principale, mentre l'altezza è pari a quella del padre (pari all'altezza dello schermo)
     property real totalComponentWidth: thumbnailListContainerWidth + mainImageWidth
     property real totalComponentHeight: parent.height
 
 
+
+    /**************************************************************
+     * Signal emessi verso l'esterno
+     **************************************************************/
+
     //Signal che scatta quando si preme sulla mainImage; è usato da ShoeView per mostrare in focus l'immagine clickata
     signal mainImageClicked (int listIndex)
 
+    //Signal che scatta quando viene rilevato un qualsiasi evento touch nell'interfaccia; serve per riazzerare il timer
+    //che porta alla schermata di partenza dopo un tot di tempo di inattività
+    signal touchEventOccurred()
 
+
+
+    /**************************************************************
+     * Proprietà e componenti figli
+     **************************************************************/
 
 
     height: parent.height
     width: totalComponentWidth
+
+    //L'intero container ha associata una MouseArea che ha il solo scopo di emettere il signal touchEventOccurred(), in modo
+    //da avvisare chi userà il component ShoeImagesList che è stato ricevuto un touch event
+    MouseArea {
+        anchors.fill: parent
+        onClicked: superContainer.touchEventOccurred()
+    }
+
 
     //Rettangolo temporaneo per avere uno sfondo per la lista?
     Rectangle {
@@ -48,19 +74,43 @@ Rectangle {
         color: "#FBFBFB"
 
 
+        //MouseArea che avvisa quando arrivano touch events
+        MouseArea {
+            anchors.fill: parent
+            onClicked: superContainer.touchEventOccurred()
+        }
+
+
         //Contenitore della lista delle thumbnail; comprende anche la scrollbar
         Item {
             id: listContainer
             anchors.fill: parent
 
+            //MouseArea che avvisa quando arrivano touch events
+            MouseArea {
+                anchors.fill: parent
+                onClicked: superContainer.touchEventOccurred()
+            }
+
             //Lista contenente le thumbnail
             ListView {
-                id: listView
-                height: calculateListViewHeight() //L'altezza è calcolata in base a diversi aspetti; more info nella funzione
+                id: thumbnailList
+
+                //L'altezza è calcolata in base a diversi aspetti; più info nella funzione
+                height: calculateListViewHeight()
                 width: listBackground.width
+
+                //Posizione y di partenza per la lista
+                y: calculateListPosition()
+
                 orientation: "Vertical"
-                y: calculateListPosition() //Posizione y di partenza per la lista
-                clip: true //Il clipping fa scomparire gli elementi della lista quando attraversano i bordi della stessa
+
+                //Il clipping fa scomparire gli elementi della lista quando attraversano i bordi della stessa
+                clip: true
+
+                antialiasing: true
+
+//                boundsBehavior: Flickable.StopAtBounds
 
                 //Per mostrare quale thumbnail è stata selezionata utilizzo la proprietà highlight, definendo cosa mostrare;
                 //in questo caso viene mostrato come componente un rettanglo
@@ -69,16 +119,16 @@ Rectangle {
                     width: thumbnailWidth
                     height: thumbnailHeight
                     color: "#22000000" //Colore nero con opacità
-//                    radius: 3
+//                    radius: 5
                     border.color: "red"
                     border.width: 2.5 * scaleX
                     smooth: true
 
                     //Imposto che il rettangolo venga posizionato nelle stesse coordinate della thumbnail selezionata, ma con
                     //coordinata z maggiore per mostrarlo davanti
-                    y: listView.currentItem.y
-                    x: listView.currentItem.x
-                    z: listView.currentItem.z + 1
+                    y: thumbnailList.currentItem.y
+                    x: thumbnailList.currentItem.x
+                    z: thumbnailList.currentItem.z + 1
 
                     //Definisco cosa fare quando varia la y; in questo caso viene fatta un'animazione per muovere il rettangolo
                     //in modo che segua l'elemento attualmente selezionato
@@ -112,30 +162,124 @@ Rectangle {
                     //da una singola immagine
                     Image {
                         id: thumbnail
-                        source: "file:///" + model.modelData.source //Il path per l'immagine è preso dal modello, ricevuto da C++
+
+                        /* Le thumbnail possono essere riferite ad immagini o a video. Nel caso dei video, l'informazione
+                         * che viene passata dal model è l'id del video (quello che sta' dopo "watch?v=" nell'url di un video
+                         * di youtube). Da quell'id si possono ottenere l'url per la thumbnail del video e l'url per mostrare
+                         * il video vero e proprio; per le thumbnail della lista però è importante solo il primo link, quello
+                         * che serve appunto per ottenere la thumbnail. Allo stesso tempo però serve poter ottenere l'id del video
+                         * e basta, che comparirebbe nella url per la thumbnail ma sarebbe difficile e costoso recuperarlo.
+                         * Quindi creo una proprietà che contiene la sorgente di default per la thumbnail; nel caso in cui sia una
+                         * thumbnail di una immagine, si avrà che "thumbnail.source == thumbnail.defaultSource"; nel caso in cui
+                         * la thumbnail sia di un video, le due saranno diverse in quanto thumbnail.source conterrà l'url per
+                         * ottenere la thumbnail del video mentre thumbnail.defaultSource conterrà esclusivamente l'id del video */
+                        property string defaultSource: model.modelData.source
+
+                        /* Creo anche una proprietà per capire velocemente se la thumbnail si riferisce ad un video oppure no.
+                         * Per capire se si tratta di un video sfrutto il fatto che per le immagini salvate in locale appare
+                         * sempre "file://"; quindi controllo se la parola "file" compare nella stringa oppure no */
+                        property bool isVideo: (String(model.modelData.source).indexOf("file") == -1)
+
+                        /* Se la thumbnail è di un video, inserisco il link per prendere la thumbnail del video (il link
+                         * è sempre uguale, e le thumbnail si trovano sempre con default.jpg); altrimenti inserisco il source
+                         * preso pari pari dal modello, che conterrà il path per trovare l'immagine in locale */
+                        source: isVideo ? ("http://img.youtube.com/vi/" + defaultSource + "/default.jpg") : defaultSource
+
                         width: thumbnailHeight
                         height: thumbnailWidth
+
+                        antialiasing: true
 
                         //MouseArea per intercettare gli eventi touch in modo da cambiare immagine
                         MouseArea {
                             anchors.fill: parent
                             onClicked: {
-                                listView.currentIndex = index
-                                mainImage.source = thumbnail.source
+                                //Cambio l'indice della lista; automaticamente verrà cambiata anche la mainImage
+                                thumbnailList.currentIndex = index
+
+                                //Riavvio il timer che scorre da solo la lista delle thumbnail, in modo da non rompere le palle
+                                //all'utente che sta premendo sulla lista
+//                                thumbnailMoverTimer.restart()
+
+                                /* Se l'elemento selezionato non è un video, riavvio il timer che scorre da solo la lista,
+                                 * in modo da non rompere le palle all'utente che sta premendo sulla lista; se si tratta
+                                 * di un video, il timer è fermo e deve rimanere così */
+                                if(!isVideo)
+                                    thumbnailMoverTimer.restart()
+
+                                //Avviso inoltre all'esterno che c'è stato un evento touch
+                                superContainer.touchEventOccurred()
                             }
+                        }
+
+                        //Immagine per il playButton di youtube, che appare in overlay solo se la thumbnail è di un video
+                        Image {
+                            id: playButton
+
+                            anchors.centerIn: parent
+
+                            source: "https://pbs.twimg.com/profile_images/378800000444930032/63c9e86bf8a62d59b4347c7828c47d67.png"
+
+                            width: 40 * scaleX
+                            height: 40 * scaleY
+
+                            //Rendo visibile il playButon solo se la thumbnail in questione è di un video
+                            visible: isVideo
+                        }
+
+
+                        /* Per far che il player dei video sia già pronto a mostrarli quando l'utente preme su uno di essi,
+                         * al termine della creazione della thumbnail controllo se si tratta di un video e nel caso metto la url
+                         * del video nel player, per forzarlo a caricarsi */
+                        Component.onCompleted: {
+                            //Se si tratta di un video, defaultSource conterrà l'id del video stesso
+                            if(isVideo)
+                                youtubePlayer.url = "qrc:///qml/youtubePlayer.html?" + defaultSource;
                         }
                     }
                 }
 
                 focus: true
                 spacing: 5 * scaleY //Spazio tra ogni componente della lista
+
+                /* Quando cambia l'indice della lista (ovvero quando si preme su una thumbnail, o il timer scatta e sposta l'indice
+                 * da solo) a seconda che la thumbnail corrisponda ad un video cambio il filepath della mainImage con quello della
+                 * thumbnail attualmente selezionata o cambio la url del youtubePlayer */
+                onCurrentIndexChanged: {
+                    if(thumbnailList.currentItem.isVideo)
+                    {
+                        //Se si tratta di un video, cambio la url del player con quella del video associato alla thumbnail, ma solo
+                        //se non è uguale a quella già memorizzata nel player, per evitare caricamente inutili
+                        var youtubeLink = "qrc:///qml/youtubePlayer.html?" + thumbnailList.currentItem.defaultSource;
+
+                        if(youtubePlayer.url != youtubeLink)
+                            youtubePlayer.url = youtubeLink;
+
+                        //Rendo visibile il player e invisibile la mainImage, nel caso non lo fossero già
+                        youtubePlayer.visible = true;
+                        mainImage.visible = false;
+
+                        //Blocco il timer che scorre la lista delle thumbnail, in modo che non vada avanti mentre si guarda
+                        //un video
+                        thumbnailMoverTimer.stop()
+                    }
+                    else
+                    {
+                        //Altrimenti se si tratta della thumbnail di una immagine, cambio il source della mainImage...
+                        mainImage.source = thumbnailList.currentItem.source;
+
+                        //...e la rendo visibile, nascondendo il player
+                        mainImage.visible = true;
+                        youtubePlayer.visible = false;
+                    }
+                }
             }
 
 
             //La scrollbar è definita in un file a parte e compare solo se l'altezza della lista supera l'altezza dello schermo
             ScrollBar {
                 id: verticalScrollBar
-                flickable: listView
+                flickable: thumbnailList
             }
         }
     }
@@ -143,12 +287,22 @@ Rectangle {
     //Immagine di dettaglio della thumbnail attualmente selezionata
     Image {
         id: mainImage
+
         width: mainImageWidth
         height: mainImageHeight
+
         clip: true
-        fillMode: Image.PreserveAspectFit //Questa impostazione mantiene l'aspect ratio dell'immagine a prescindere dalla sua grandezza
         smooth: true
-        source: "file:///" + imagesPath
+
+        //Rendo la mainImage visibile inizialmente solo se l'item correntemente selezionato nella lista non è un video
+        visible: !thumbnailList.currentItem.isVideo
+
+        //Questa impostazione mantiene l'aspect ratio dell'immagine a prescindere dalla sua grandezza
+        fillMode: Image.PreserveAspectFit
+
+        //Inserisco come immagine iniziale quella della thumbnail attualmente selezionata (che è la prima)
+        source: thumbnailList.currentItem.source
+
 
         //Ancoro l'immagine a sinistra della lista delle thumbnail e al centro dell'altezza del padre (il superContainer)
         anchors {
@@ -156,13 +310,106 @@ Rectangle {
             verticalCenter: parent.verticalCenter
         }
 
+        //Creo una MouseArea per avvisare all'esterno che è stata premuta l'immagine, in modo da mostrarla ingrandita
         MouseArea {
             anchors.fill: parent
-            onClicked: superContainer.mainImageClicked(listView.currentIndex)
+            onClicked: {
+                //Emetto il signal apposito...
+                superContainer.mainImageClicked(thumbnailList.currentIndex)
 
+                //...ed emetto anche il signal che serve per avvisare che c'è stato un evento touch generico
+                superContainer.touchEventOccurred()
+            }
+        }
+
+        //In modo da mettere un'animazione quando cambia si cambia immagine nella thumbnail list, creo un "Behavior on source" in
+        //modo che scatti ogni volta che si cambia il filepath della mainImage (e quindi quando si seleziona una thumbnail diversa)
+        Behavior on source {
+
+            //Creo un'animazione di fade in
+            NumberAnimation {
+                target: mainImage
+
+                properties: "opacity"
+                duration: 300
+
+                from: 0
+                to: 1
+            }
         }
     }
 
+
+    //Questa WebView carica un file html contenente un iframe che utilizza l'API di YouTube per mostrare il player apposito;
+    //di fatto quindi questo elemento corrisponde al player di YouTube
+    WebView {
+        id: youtubePlayer
+
+        //Inizialmente il player è visibile solo se l'item correntemente selezionato nella lista è un video
+        visible:thumbnailList.currentItem.isVideo
+
+        //La url iniziale è il video se l'elemento selezionato attualmente è un video, altrimenti una stringa vuota
+        url: thumbnailList.currentItem.isVideo ? ("qrc:///qml/youtubePlayer.html?" + thumbnailList.currentItem.source) : ""
+
+
+        width: youtubePlayerWidth
+        height: youtubePlayerHeight
+
+        //Posiziono il player a destra della lista
+        anchors {
+            left: listBackground.right
+            leftMargin: 40 * scaleX
+            verticalCenter: parent.verticalCenter
+        }
+
+        //Per far si che non si vedano cose che non si dovrebbero vedere mentre il player carica, lo nascondo mettendo l'opacità
+        //a 0 quando inizia a caricare e la rimetto a 1 quando finisce
+        onLoadingChanged: {
+            switch (loadRequest.status)
+            {
+            case WebView.LoadStartedStatus:
+                opacity = 0
+                return
+            case WebView.LoadSucceededStatus:
+                opacity = 1
+                return
+            case WebView.LoadStoppedStatus:
+            case WebView.LoadFailedStatus:
+                break
+            }
+        }
+
+//        onTitleChanged: {
+//            console.log("title: " +  1 * title)
+
+//            if (youtubePlayer.title == 1)
+//                thumbnailMoverTimer.stop()
+//        }
+    }
+
+    //Questo timer si occupa di cambiare la thumbnail attualmente selezionata dopo un tot di tempo che non si seleziona una thumbnail
+    Timer {
+        id: thumbnailMoverTimer
+        interval: 6000 //6 secondi
+        running: true
+        repeat: true
+
+        //Quando scatta il timer, se si è raggiunta la fine della lista la riazzero, altrimenti incremento l'indice
+        onTriggered:  {
+            if(thumbnailList.currentIndex == thumbnailList.count - 1)
+                thumbnailList.currentIndex = 0
+            else
+            {
+                thumbnailList.incrementCurrentIndex()
+
+                /* Se l'elemento attuale dopo l'incremento è un video, riazzero l'index della lista. Nota: il timer a questo punto
+                 * sarà fermo fino al prossimo click utente di una thumbnail, in quanto l'incremento di index ha triggerato
+                 * lo stop del timer visto che l'elemento è un video */
+                if(thumbnailList.currentItem.isVideo)
+                    thumbnailList.currentIndex = 0
+            }
+        }
+     }
 
 
     /*
@@ -174,7 +421,7 @@ Rectangle {
     function calculateListViewHeight()
     {
         //Calcolo l'altezza della lista tenendo conto dell'altezza di ogni thumbnail e dello spacing tra ogni immagine
-        var thumbnailListHeight = (thumbnailHeight * listView.count) + (listView.spacing * (listView.count - 1));
+        var thumbnailListHeight = (thumbnailHeight * thumbnailList.count) + (thumbnailList.spacing * (thumbnailList.count - 1));
 
         //Se l'altezza totale calcolata è minore dell'altezza del background (che è pari all'altezza dello schermo), allora
         //viene restituita questa altezza
@@ -195,12 +442,12 @@ Rectangle {
     {
         //Se l'altezza totale della lista supera l'altezza totale del contenitore della lista (che è pari all'altezza dello schermo),
         //allora restituisco 0 in modo tale che la lista venga posizionata all'origine
-        if(listView.height >= listBackground.height)
+        if(thumbnailList.height >= listBackground.height)
             return 0;
 
         //Altrimenti calcolo l'altezza dimezzata della lista, data dall'altezza dimezzata di ogni thumbnail per il loro
         //numero più lo spacing dimezzato che c'è tra ogni componente
-        var listHalvedHeigth = (thumbnailHalvedHeight) * listView.count + (listView.spacing/2 * (listView.count - 1));
+        var listHalvedHeigth = (thumbnailHalvedHeight) * thumbnailList.count + (thumbnailList.spacing/2 * (thumbnailList.count - 1));
 
 
         //Restituisco quindi la posizione vera e propria, che è data dall'altezza dello schermo dimezzata meno lo spazio

@@ -32,9 +32,13 @@ int main(int argc, char *argv[])
     nameFilter << "*.png" << "*.jpg" << "*.gif";
 
     foreach (QFileInfo fInfo, path.entryInfoList(nameFilter, QDir::Files, QDir::Name)) {
-//        qDebug() << fInfo.absoluteFilePath();
-         dataList.append(new DataObject(fInfo.absoluteFilePath()));
+//         dataList.append(new DataObject(fInfo.absoluteFilePath()));
+        dataList.append(new DataObject("file:///" + fInfo.absoluteFilePath()));
     }
+
+    dataList.append(new DataObject("7jXJz6wz9HU"));
+    dataList.append(new DataObject("-6oJSA39Evk"));
+
 
     view->rootContext()->setContextProperty("imagesPath", imagesPath);
     view->rootContext()->setContextProperty("myModel", QVariant::fromValue(dataList));
