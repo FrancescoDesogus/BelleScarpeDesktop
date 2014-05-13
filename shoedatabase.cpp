@@ -211,7 +211,10 @@ vector<Shoe*> ShoeDatabase::getSimiliarShoes(int shoeId, QString sex, QString ca
     }
     else
     {
-        qDebug() << query.lastError();
+        if(query.size() > 0)
+            qDebug() << "ShoeDatabase::getSimiliarShoes: nessuna scarpa simile è stata trovata";
+        else
+            qDebug() << "ShoeDatabase::getSimiliarShoes: c'è stato un errore nella query: " << query.lastError();
 
         //Restituisco l'array vuoto
         return shoeList;

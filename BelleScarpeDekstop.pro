@@ -43,4 +43,5 @@ OTHER_FILES += \
     SizeRectangle.qml \
     DetailRectangle.qml \
     ScreensaverView.qml \
-    youtubePlayer.html
+    youtubePlayer.html \
+    SimiliarShoesList.qml

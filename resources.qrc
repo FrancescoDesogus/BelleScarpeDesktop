@@ -11,5 +11,6 @@
         <file>DetailRectangle.qml</file>
         <file>ScreensaverView.qml</file>
         <file>youtubePlayer.html</file>
+        <file>SimiliarShoesList.qml</file>
     </qresource>
 </RCC>

@@ -7,12 +7,19 @@ Rectangle {
     color: "#FFFFFF"
 
     //Le dimensioni della view sono prese dal padre che usa questo Component, e sono grandi quanto tutto lo schermo
-    width: parent.width
-    height: parent.height
+//    width: parent.width
+//    height: parent.height
+    width: TARGET_RESOLUTION_WIDTH
+    height: TARGET_RESOLUTION_HEIGHT
 
     //Signal che scatta quando viene rilevato un qualsiasi evento touch nell'interfaccia; serve per riazzerare il timer
     //che porta alla schermata di partenza dopo un tot di tempo di inattività
     signal touchEventOccurred()
+
+    signal needShoeIntoContext(int id)
+
+
+    signal goBack()
 
 
     //L'intero container ha associata una MouseArea che ha il solo scopo di emettere il signal touchEventOccurred(), in modo
@@ -51,6 +58,56 @@ Rectangle {
 
         //Anche ShoeDetail ha un signal onTouchEventOccurred; quando scatta, propago l'evento verso l'esterno
         onTouchEventOccurred: container.touchEventOccurred()
+    }
+
+
+    SimiliarShoesList {
+        id: similiarShoesList
+        anchors.left: shoeDetail.right
+
+        //Anche SimiliarShoesList ha un signal onTouchEventOccurred; quando scatta, propago l'evento verso l'esterno
+//        onTouchEventOccurred: container.touchEventOccurred()
+    }
+
+    Rectangle {
+        id: prova
+        anchors.top: similiarShoesList.bottom
+
+        width: 200
+        height: 200
+
+        color: "lightgreen"
+
+        Text {
+            text: "Don't you dare click me"
+        }
+
+        MouseArea {
+            anchors.fill: parent
+
+            onClicked: container.needShoeIntoContext(Math.floor(Math.random() * (10 - 1 + 1)) + 1)
+        }
+    }
+
+
+    Rectangle {
+        id: prova2
+        anchors.top: prova.bottom
+
+        width: 200
+        height: 200
+
+        color: "lightblue"
+
+        Text {
+            text: "Go back"
+        }
+
+        MouseArea {
+            anchors.fill: parent
+
+            onClicked:{ container.goBack() }
+        }
     }
 
 
@@ -379,5 +436,5 @@ Rectangle {
          * Nota: se highlightFollowsCurrentItem fosse stato true la chiamata a positionViewAtIndex avrebbe provocato
          * un'animazione di transizione (mooolto lenta); messo su false, lo spostamento è istantaneo */
         onCurrentIndexChanged: imageFocusList.positionViewAtIndex(currentIndex, ListView.Contain)
-    }    
+    }     
 }

@@ -18,6 +18,7 @@ private:
 
 public slots:
     void getCode(QString code);
+    void loadShoeIntoContext(int id);
 
 };
 

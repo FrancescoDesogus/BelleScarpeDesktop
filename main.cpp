@@ -20,29 +20,30 @@ int main(int argc, char *argv[])
 
     WindowManager *view = new WindowManager();
 
-    // Retrieve the path to the app's working directory
-    QString imagesPath = QDir::currentPath() + "/debug/shoes_media/2/your_turn1.jpg";
+//    // Retrieve the path to the app's working directory
+//    QString imagesPath = QDir::currentPath() + "/debug/shoes_media/2/your_turn1.jpg";
 
-    QDir path = QDir::currentPath() + "/debug/shoes_media/2/";
+//    QDir path = QDir::currentPath() + "/debug/shoes_media/2/";
 
-    QList<QObject*> dataList;
-    //    dataList.append(new DataObject(imagesPath));
+//    QList<QObject*> dataList;
+//    //    dataList.append(new DataObject(imagesPath));
 
-    QStringList nameFilter;
-    nameFilter << "*.png" << "*.jpg" << "*.gif";
+//    QStringList nameFilter;
+//    nameFilter << "*.png" << "*.jpg" << "*.gif";
 
-    foreach (QFileInfo fInfo, path.entryInfoList(nameFilter, QDir::Files, QDir::Name)) {
-//         dataList.append(new DataObject(fInfo.absoluteFilePath()));
-        dataList.append(new DataObject("file:///" + fInfo.absoluteFilePath()));
-    }
+//    foreach (QFileInfo fInfo, path.entryInfoList(nameFilter, QDir::Files, QDir::Name)) {
+//        dataList.append(new DataObject("file:///" + fInfo.absoluteFilePath()));
+//    }
 
-    dataList.append(new DataObject("7jXJz6wz9HU"));
-    dataList.append(new DataObject("-6oJSA39Evk"));
+//    dataList.append(new DataObject("7jXJz6wz9HU"));
+//    dataList.append(new DataObject("-6oJSA39Evk"));
 
 
-    view->rootContext()->setContextProperty("imagesPath", imagesPath);
-    view->rootContext()->setContextProperty("myModel", QVariant::fromValue(dataList));
+//    view->rootContext()->setContextProperty("imagesPath", imagesPath);
+//    view->rootContext()->setContextProperty("myModel", QVariant::fromValue(dataList));
     view->setupScreen();
+
+
 
 
 //    SerialReaderThread thread;

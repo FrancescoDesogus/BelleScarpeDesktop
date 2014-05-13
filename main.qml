@@ -16,6 +16,8 @@ Rectangle {
         id: myViewManager
         objectName: "myViewManager"
 
+        property Component lastChild;
+
 //        ShoeView {
 //            id: showView
 
@@ -26,7 +28,7 @@ Rectangle {
             id: screensaverView
         }
 
-        Component.onCompleted: addView()
+//        Component.onCompleted: addView()
     }
 
 
@@ -70,6 +72,10 @@ Rectangle {
          * in esecuzione, ma deve partire non appena l'RFID reader legge qualcosa e viene appunto chiamata la funzione addView()) */
         newView.touchEventOccurred.connect(screenTimeoutTimer.restart);
 
+
+        newView.needShoeIntoContext.connect(window.loadShoeIntoContext);
+
+
         //Setto inizialmente la visibilità della nuova view su falso
         newView.visible = false;
 
@@ -79,6 +85,34 @@ Rectangle {
         //Adesso che la view è connessa col gestore, la rendo visibile. Questo farà si che la view corrente sparisca per lasciare
         //spazio alla view appena aggiunta
         newView.visible = true;
+    }
+
+
+    /* Funzione per aggiungere una view al ViewManager dinamicamente (keyword da cercare su google: Dynamic QML Object Creation from JavaScript).
+     * Dopo l'esecuzione del metodo, la nuova view creata diventerà la view visibile.
+     * Questa funzione è chiamata da C++ usando il metodo invokeMethod(); è messa quindi in questo file in modo che ci si possa accedere facilmente */
+    function prova()
+    {
+        myViewManager.lastChild.visible = false;
+
+//        myViewManager.lastChild.needShoeIntoContext.connect(window.loadShoeIntoContext);
+        myViewManager.lastChild.needShoeIntoContext.connect(function(id) {
+            console.log("asdasdsdsadad man");
+            window.loadShoeIntoContext(id);
+        });
+
+
+        myViewManager.connectViewEvents(myViewManager.lastChild);
+
+        console.log("ahahahah")
+
+
+        myViewManager.lastChild.goBack.connect(function() {
+            console.log("yo man")
+            myViewManager.goBack()
+        });
+
+        myViewManager.lastChild.visible = true;
     }
 
 
