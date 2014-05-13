@@ -50,7 +50,7 @@ Rectangle
                 Image {
                     id: similarThumbnail
                     antialiasing: true
-                    source: "file:///D:/QT/build-BelleScarpeDekstop-Desktop_Qt_5_2_1_MinGW_32bit-Debug/debug/shoes_media/" + modelData.id +"/thumbnail/thumbnail.jpg"
+                    source: "file:///C:/Users/Gabriele/build-BelleScarpeDekstop-Desktop_Qt_5_3_0_MinGW_32bit-Debug/debug/shoes_media/" + modelData.id +"/thumbnail/thumbnail.jpg"
                     width: 200 * scaleX
                     height: 170 * scaleY
                     fillMode: Image.PreserveAspectFit
@@ -62,13 +62,13 @@ Rectangle
                 Text {
                     id: t1
                     anchors.left: suggestionContainer.left
-                    anchors.leftMargin: 50 * scaleX
-                    font.weight: Font.Normal
+//                    anchors.leftMargin: 50 * scaleX
                     font.letterSpacing: 1.2
                     color: "#9FB7BF"
                     text: modelData.brand + " " + modelData.model
                     font.family: webFont.name
-                    font.pointSize: 15
+                    font.pointSize: 16
+                    font.weight: Font.Light
                 }
 
                 Text {
@@ -77,7 +77,8 @@ Rectangle
                     anchors.topMargin: 15 * scaleY
                     text: modelData.brand
                     font.family: webFont.name
-                    font.pointSize: 12
+                    font.pointSize: 14
+                    font.weight: Font.Light
                 }
 
                 Text {
@@ -86,7 +87,8 @@ Rectangle
                     anchors.topMargin: 15 * scaleY
                     text: modelData.model
                     font.family: webFont.name
-                    font.pointSize: 12
+                    font.pointSize: 14
+                    font.weight: Font.Light
                 }
 
                 Text {
@@ -95,13 +97,14 @@ Rectangle
                     anchors.topMargin: 15 * scaleY
                     text: modelData.price
                     font.family: webFont.name
-                    font.pointSize: 12
+                    font.pointSize: 14
+                    font.weight: Font.Light
                 }
 
                 Rectangle {
                     id: separator
                     width: parent.width
-                    height: 2 * scaleY
+                    height: 1 * scaleY
                     color: "#9FB7BF"
                     anchors.bottom: suggestionContainer.bottom
                 }
@@ -110,6 +113,6 @@ Rectangle
         }
 
         orientation: ListView.Vertical
-        spacing: 5
+        spacing: 20
     }
 }

@@ -55,6 +55,7 @@ Rectangle {
     ShoeDetail {
         id: shoeDetail
         anchors.left: imagesList.right
+        anchors.leftMargin: 50 * scaleX
 
         //Anche ShoeDetail ha un signal onTouchEventOccurred; quando scatta, propago l'evento verso l'esterno
         onTouchEventOccurred: container.touchEventOccurred()
@@ -64,6 +65,10 @@ Rectangle {
     SimiliarShoesList {
         id: similiarShoesList
         anchors.left: shoeDetail.right
+        anchors.leftMargin: 150 * scaleX
+
+        anchors.top: parent.top
+        anchors.topMargin: 100 * scaleY
 
         //Anche SimiliarShoesList ha un signal onTouchEventOccurred; quando scatta, propago l'evento verso l'esterno
 //        onTouchEventOccurred: container.touchEventOccurred()

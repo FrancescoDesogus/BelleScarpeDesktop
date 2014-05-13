@@ -148,7 +148,7 @@ Rectangle {
                 //un margine per lasciare spazio alla scrollbar
                 anchors {
                     left: parent.left
-                    leftMargin: 25 * scaleX
+                    leftMargin: 15 * scaleX
                 }
 
 
