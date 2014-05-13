@@ -190,6 +190,9 @@ Rectangle {
 
                         antialiasing: true
 
+                        //Togliere per stretchare l'immagine
+                        fillMode: Image.PreserveAspectFit
+
                         //MouseArea per intercettare gli eventi touch in modo da cambiare immagine
                         MouseArea {
                             anchors.fill: parent
