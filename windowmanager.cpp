@@ -58,7 +58,7 @@ void WindowManager::setupScreen()
     this->rootContext()->setContextProperty("window", this);
 
 
-
+    //Inserisco come proprietà le informazioni sulla risoluzione target da usare
     this->rootContext()->setContextProperty("TARGET_RESOLUTION_WIDTH", TARGET_RESOLUTION_WIDTH);
     this->rootContext()->setContextProperty("TARGET_RESOLUTION_HEIGHT", TARGET_RESOLUTION_HEIGHT);
 

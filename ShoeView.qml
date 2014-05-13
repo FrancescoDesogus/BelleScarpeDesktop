@@ -9,8 +9,8 @@ Rectangle {
     //Le dimensioni della view sono prese dal padre che usa questo Component, e sono grandi quanto tutto lo schermo
 //    width: parent.width
 //    height: parent.height
-    width: TARGET_RESOLUTION_WIDTH
-    height: TARGET_RESOLUTION_HEIGHT
+    width: TARGET_RESOLUTION_WIDTH * scaleX
+    height: TARGET_RESOLUTION_HEIGHT * scaleY
 
     //Signal che scatta quando viene rilevato un qualsiasi evento touch nell'interfaccia; serve per riazzerare il timer
     //che porta alla schermata di partenza dopo un tot di tempo di inattività
