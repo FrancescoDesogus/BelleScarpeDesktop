@@ -16,12 +16,21 @@ Item {
     property Flickable flickable               : null;
     property int       handleSize              : 8;
 
+    //Proprietà che espone il timer che fa scomparire la barra dopo il termine dell'input u
+    property alias barOpacity: backHandle.opacity
+
+    //Valore di defualt dell'opacità per la ScrollBar
+    property real defaultOpacity: 0.55
+
     function scrollDown () {
         flickable.contentY = Math.min (flickable.contentY + (flickable.height / 4), flickable.contentHeight - flickable.height);
     }
     function scrollUp () {
         flickable.contentY = Math.max (flickable.contentY - (flickable.height / 4), 0);
     }
+
+
+
 
    Binding {
         target: handle;
@@ -94,10 +103,12 @@ Item {
         clip: true;
         anchors {
             fill: parent;
-            topMargin: (backScrollbar.border.width +1 + btnUp.height +1);
+//            topMargin: (backScrollbar.border.width +1 + btnUp.height +1);
+            topMargin: (backScrollbar.border.width +1);
             leftMargin: (backScrollbar.border.width +1);
             rightMargin: (backScrollbar.border.width +1);
-            bottomMargin: (backScrollbar.border.width +1 + btnDown.height +1);
+//            bottomMargin: (backScrollbar.border.width +1 + btnDown.height +1);
+            bottomMargin: (backScrollbar.border.width +1 +1);
         }
 
         MouseArea {
@@ -124,11 +135,11 @@ Item {
                 radius: 20
                 color: (clicker.pressed ? "blue" : "black");
 //                opacity: (flickable.moving ? 0.65 : 0.35);
-                opacity: (flickable.moving ? 0.55 : 0.25);
-                anchors { fill: parent; }
+                opacity: defaultOpacity;
+                anchors.fill: parent
 
                 Behavior on opacity { NumberAnimation { duration: 200; } }
             }
-        }
+        }    
     }
 }

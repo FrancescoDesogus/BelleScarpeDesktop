@@ -110,6 +110,7 @@ Rectangle {
 
                 antialiasing: true
 
+
                 boundsBehavior: verticalScrollBar.visible == false ? Flickable.StopAtBounds : Flickable.DragOverBounds
 
                 //Per mostrare quale thumbnail è stata selezionata utilizzo la proprietà highlight, definendo cosa mostrare;
@@ -274,6 +275,28 @@ Rectangle {
                         youtubePlayer.visible = false;
                     }
                 }
+
+
+                //Quando inizia il movimento della lista da parte dell'utente devo bloccare il timer che fa scomparire la scrollbar
+                onMovementStarted: {
+                    //Eseguo il codice solo se la barra è visibile
+                    if(verticalScrollBar.visible)
+                    {
+                        //Rimetto l'opacità della barra al valore di default, qualora non fosse già così
+                        verticalScrollBar.barOpacity = verticalScrollBar.defaultOpacity
+
+                        //Termino il timer, qualora fosse in esecuzione
+                        fadeOutTImer.stop()
+                    }
+                }
+
+                //Quando finisce il movimento della lista da parte dell'utente devo mandare in esecuzione il timer
+                //che fa scomparire la scrollbar
+                onMovementEnded: {
+                    if(verticalScrollBar.visible)
+                        fadeOutTimer.running = true
+
+                }
             }
 
 
@@ -281,6 +304,17 @@ Rectangle {
             ScrollBar {
                 id: verticalScrollBar
                 flickable: thumbnailList
+            }
+
+            //Timer che si occupa di far sparire la ScrollBar dopo un tot di tempo dal termine dell'input utente
+            Timer {
+                id: fadeOutTimer
+                interval: 1000 //1 secondo
+                running: true //Faccio partire il timer all'inizio del programma
+                repeat: false
+
+                //Quando scatta il timer, porto l'opacità della barra a zero
+                onTriggered: verticalScrollBar.barOpacity = 0
             }
         }
     }
