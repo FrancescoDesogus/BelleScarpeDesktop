@@ -73,6 +73,7 @@ Rectangle {
 
         //Anche SimiliarShoesList ha un signal onTouchEventOccurred; quando scatta, propago l'evento verso l'esterno
 //        onTouchEventOccurred: container.touchEventOccurred()
+        onNeedShoeIntoContext: container.needShoeIntoContext(id)
     }
 
     Rectangle {
