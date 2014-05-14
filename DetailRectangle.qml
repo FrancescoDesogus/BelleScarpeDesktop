@@ -3,7 +3,7 @@ import QtQuick 2.0
 Rectangle {
 
     id: container
-    FontLoader { id: webFont; source: "http://dev.bowdenweb.com/a/fonts/segoe/wp/segeo-wp.ttf" }
+    FontLoader { id: metroFont; source: "qrc:segeo-wp.ttf" }
 
     /** Proprietà fisse, che non verranno cambiate all'esterno **/
     property string evenColor: "#EBEBEB"
@@ -47,7 +47,7 @@ Rectangle {
     Text {
         id: generalText
         text: general
-        font.family: webFont.name
+        font.family: metroFont.name
         font.pointSize: generalFontSize
         font.weight: Font.Light
 //        font.letterSpacing: 1.2
@@ -60,7 +60,7 @@ Rectangle {
     Text {
         id: text
         text: testo
-        font.family: webFont.name
+        font.family: metroFont.name
         font.pointSize: fontSize
 //        font.letterSpacing: 1.2
         color: "#111111"
