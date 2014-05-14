@@ -13,38 +13,23 @@ Rectangle {
     property alias text: size.text
 
     //String che rappresenta il nome dello stato del component quando la data taglia non è disponibile in negozio
-    property string unavailable: "unavailable"
+    property bool isAvailable: true
 
-    width: 69 * scaleX
-    height: 55 * scaleY
+    width: 66 * scaleX
+    height: 52 * scaleY
 
-    color: "#DEDEDE"
+    color:(isAvailable) ? "#DEDEDE" : "#F1F1F1"
 
     radius: 5;
 
 
     Text {
         id: size
-        color: "#333333"
-        font.pointSize: 13
+        color:(isAvailable) ? "#333333" : "#919191"
+        font.pointSize: 12
         font.weight: Font.Light
         text: "size not defined"
 
         anchors.centerIn: parent
     }
-
-    //Creo lo stato che modifichi il colore del component quando la taglia non è disponibile
-    states: State {
-            name: unavailable
-
-            PropertyChanges {
-                target: container
-                color: "#F7F7F7"
-            }
-
-            PropertyChanges {
-                target: size
-                color: "#999999"
-            }
-        }
 }

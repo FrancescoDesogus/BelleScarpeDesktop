@@ -4,11 +4,11 @@ Item
 {
     FontLoader { id: webFont; source: "http://dev.bowdenweb.com/a/fonts/segoe/wp/segeo-wp.ttf" }
     id: container
-    width: 600 * scaleX
+    width: 500 * scaleX
     height: parent.height
     anchors.leftMargin: 100 * scaleX
 
-    property int titleFontSize: 27
+    property int titleFontSize: 25
 
     /**
       Vai col vaneggio
@@ -174,7 +174,7 @@ Item
             item.y = y;
 
             //Incremento la coordinata, aggiungendo un margine di separazione tra un elemento e l'altro
-            x = x + item.width + (7*scaleX);
+            x = x + item.width + (6*scaleX);
 
             //Se la nuova x supera la larghezza disponibile del container...
             if(x > container.width)
@@ -189,7 +189,7 @@ Item
 
             //Di default si assume che la taglia sia disponibile; se non lo è, attivo lo stato relativo in modo che cambi il colore
             if(!sizes[size])
-                item.state = item.unavailable;
+                item.isAvailable = false;
 
             //Infine, inserisco il testo della taglia
             item.text = size;

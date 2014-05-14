@@ -9,7 +9,8 @@ Rectangle {
     property string evenColor: "#EBEBEB"
     property string oddColor: "#FCFCFC"
     property string defaultColor: "#00000000"
-    property int fontSize: 19
+    property int generalFontSize: 18
+    property int fontSize: 17
 
     property int sizeItemHeight: (15*scaleY) + (55 * scaleY)
     property int defaultRectangleHeight: 80 * scaleY
@@ -47,7 +48,7 @@ Rectangle {
         id: generalText
         text: general
         font.family: webFont.name
-        font.pointSize: fontSize
+        font.pointSize: generalFontSize
         font.weight: Font.Light
 //        font.letterSpacing: 1.2
         color: "#9FB7BF"

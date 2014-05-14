@@ -14,7 +14,7 @@ Item {
     }
 
     property Flickable flickable               : null;
-    property int       handleSize              : 12;
+    property int       handleSize              : 8;
 
     function scrollDown () {
         flickable.contentY = Math.min (flickable.contentY + (flickable.height / 4), flickable.contentHeight - flickable.height);
@@ -37,13 +37,13 @@ Item {
     }
     Rectangle {
         id: backScrollbar;
-        radius: 2;
-        antialiasing: true;
-        color: "#FAF2F2";
-        border {
-            width: 0.5;
-            color: "#FAF2F2";
-        }
+//        radius: 2;
+//        antialiasing: true;
+//        color: "#FAF2F2";
+//        border {
+//            width: 0.5;
+//            color: "#FAF2F2";
+//        }
         anchors { fill: parent; }
 
         MouseArea {
@@ -51,44 +51,44 @@ Item {
             onClicked: { }
         }
     }
-    MouseArea {
-        id: btnUp;
-        height: width;
-        anchors {
-            top: parent.top;
-            left: parent.left;
-            right: parent.right;
-            margins: (backScrollbar.border.width +1);
-        }
-        onClicked: { scrollUp (); }
+//    MouseArea {
+//        id: btnUp;
+//        height: width;
+//        anchors {
+//            top: parent.top;
+//            left: parent.left;
+//            right: parent.right;
+//            margins: (backScrollbar.border.width +1);
+//        }
+//        onClicked: { scrollUp (); }
 
-        Text {
-            text: "<";
-            antialiasing: true
-            color: (btnUp.pressed ? "black" : "gray");
-            rotation: 90;
-            anchors.centerIn: parent;
-        }
-    }
-    MouseArea {
-        id: btnDown;
-        height: width;
-        anchors {
-            left: parent.left;
-            right: parent.right;
-            bottom: parent.bottom;
-            margins: (backScrollbar.border.width +1);
-        }
-        onClicked: { scrollDown (); }
+//        Text {
+//            text: "<";
+//            antialiasing: true
+//            color: (btnUp.pressed ? "black" : "gray");
+//            rotation: 90;
+//            anchors.centerIn: parent;
+//        }
+//    }
+//    MouseArea {
+//        id: btnDown;
+//        height: width;
+//        anchors {
+//            left: parent.left;
+//            right: parent.right;
+//            bottom: parent.bottom;
+//            margins: (backScrollbar.border.width +1);
+//        }
+//        onClicked: { scrollDown (); }
 
-        Text {
-            antialiasing: true
-            text: "<";
-            rotation: -90
-            color: (btnDown.pressed ? "black" : "gray");
-            anchors.centerIn: parent;
-        }
-    }
+//        Text {
+//            antialiasing: true
+//            text: "<";
+//            rotation: -90
+//            color: (btnDown.pressed ? "black" : "gray");
+//            anchors.centerIn: parent;
+//        }
+//    }
     Item {
         id: groove;
         clip: true;
@@ -121,11 +121,13 @@ Item {
 
             Rectangle {
                 id: backHandle;
-                color: (clicker.pressed ? "gray" : "black");
-                opacity: (flickable.moving ? 0.65 : 0.35);
+                radius: 20
+                color: (clicker.pressed ? "blue" : "black");
+//                opacity: (flickable.moving ? 0.65 : 0.35);
+                opacity: (flickable.moving ? 0.55 : 0.25);
                 anchors { fill: parent; }
 
-                Behavior on opacity { NumberAnimation { duration: 150; } }
+                Behavior on opacity { NumberAnimation { duration: 200; } }
             }
         }
     }

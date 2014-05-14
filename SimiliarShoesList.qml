@@ -17,14 +17,15 @@ Rectangle
     property real listContainerWidth: (listEntryWidth + 30 * scaleX)
 
 
-    width: 100
-    height: 62
+    height: parent.height
+    width: 500 * scaleX
 
+    FontLoader { id: webFont; source: "http://dev.bowdenweb.com/a/fonts/segoe/wp/segeo-wp.ttf" }
 
     ListView {
-        id: prova2
+        id: similarList
 
-        //La lista è grande quanto tutto lo schermo, quindi "filla" tutto il parent
+        //La lista è grande quanto tutto lo schermo, quindi "riempie" tutto il parent
         anchors.fill: parent
 
 
@@ -41,26 +42,77 @@ Rectangle
         delegate: Component {
 
             Rectangle {
-                x: 300
-                y: 300
-                width: 100
-                height: 100
-                color: "red"
-                Text {
-                    id: t1
-                    anchors.centerIn: parent
-                    text: modelData.brand
+                id: suggestionContainer
+                width: similarList.width
+                height: 190 * scaleY
+                color: "#00000000"
+
+                Image {
+                    id: similarThumbnail
+                    antialiasing: true
+                    source: "file:///C:/Users/Gabriele/build-BelleScarpeDekstop-Desktop_Qt_5_3_0_MinGW_32bit-Debug/debug/shoes_media/" + modelData.id +"/thumbnail/thumbnail.jpg"
+                    width: 200 * scaleX
+                    height: 170 * scaleY
+                    fillMode: Image.PreserveAspectFit
+                    anchors.right: suggestionContainer.right
+                    anchors.rightMargin: 5 * scaleX
+                    anchors.verticalCenter: suggestionContainer.verticalCenter
                 }
 
-                            Text {
-                                anchors.left: t1.right
-                //                anchors.centerIn: parent
-                                text: modelData.model
-                            }
+                Text {
+                    id: t1
+                    anchors.left: suggestionContainer.left
+//                    anchors.leftMargin: 50 * scaleX
+                    font.letterSpacing: 1.2
+                    color: "#9FB7BF"
+                    text: modelData.brand + " " + modelData.model
+                    font.family: webFont.name
+                    font.pointSize: 16
+                    font.weight: Font.Light
+                }
+
+                Text {
+                    id: brand
+                    anchors.top: t1.bottom
+                    anchors.topMargin: 15 * scaleY
+                    text: modelData.brand
+                    font.family: webFont.name
+                    font.pointSize: 14
+                    font.weight: Font.Light
+                }
+
+                Text {
+                    id: model
+                    anchors.top: brand.bottom
+                    anchors.topMargin: 15 * scaleY
+                    text: modelData.model
+                    font.family: webFont.name
+                    font.pointSize: 14
+                    font.weight: Font.Light
+                }
+
+                Text {
+                    id: price
+                    anchors.top: model.bottom
+                    anchors.topMargin: 15 * scaleY
+                    text: modelData.price
+                    font.family: webFont.name
+                    font.pointSize: 14
+                    font.weight: Font.Light
+                }
+
+                Rectangle {
+                    id: separator
+                    width: parent.width
+                    height: 1 * scaleY
+                    color: "#9FB7BF"
+                    anchors.bottom: suggestionContainer.bottom
+                }
 
             }
         }
 
         orientation: ListView.Vertical
+        spacing: 20
     }
 }
