@@ -16,6 +16,12 @@ Rectangle
     //Larghezza totale della lista (tiene conto della larghezza della scrollbar)
     property real listContainerWidth: (listEntryWidth + 30 * scaleX)
 
+    property bool isClickable: true
+
+    //Questo signal indica che è stata premuta una nuova scarpa e che bisogna creare una nuova view che la visualizzi;
+    //passa come parametro l'id della scarpa toccata
+    signal needShoeIntoContext(int id)
+
 
     height: parent.height
     width: 500 * scaleX
@@ -46,6 +52,8 @@ Rectangle
                 width: similarList.width
                 height: 190 * scaleY
                 color: "#00000000"
+
+                Behavior on color { ColorAnimation { duration: 100 }}
 
                 Image {
                     id: similarThumbnail
@@ -107,6 +115,31 @@ Rectangle
                     height: 1 * scaleY
                     color: "#9FB7BF"
                     anchors.bottom: suggestionContainer.bottom
+                }
+
+                MouseArea {
+                    anchors.fill: parent;
+
+                    Timer {
+                        id: clickTimer
+                        interval: 500
+                        running: false
+                        repeat: false
+
+                        onTriggered: {
+                            suggestionContainer.color = "#00000000"
+                            isClickable = true
+                        }
+                    }
+
+                    onClicked: {
+                        if(isClickable){
+                            suggestionContainer.color = "#DEDEDE"
+                            clickTimer.start()
+                            isClickable = false
+                            container.needShoeIntoContext(modelData.id)
+                        }
+                    }
                 }
 
             }
