@@ -50,7 +50,7 @@ Rectangle
                 Image {
                     id: similarThumbnail
                     antialiasing: true
-                    source: "file:///C:/Users/Gabriele/build-BelleScarpeDekstop-Desktop_Qt_5_3_0_MinGW_32bit-Debug/debug/shoes_media/" + modelData.id +"/thumbnail/thumbnail.jpg"
+                    source: modelData.thumbnail
                     width: 200 * scaleX
                     height: 170 * scaleY
                     fillMode: Image.PreserveAspectFit

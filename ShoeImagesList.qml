@@ -110,7 +110,7 @@ Rectangle {
 
                 antialiasing: true
 
-//                boundsBehavior: Flickable.StopAtBounds
+                boundsBehavior: verticalScrollBar.visible == false ? Flickable.StopAtBounds : Flickable.DragOverBounds
 
                 //Per mostrare quale thumbnail è stata selezionata utilizzo la proprietà highlight, definendo cosa mostrare;
                 //in questo caso viene mostrato come componente un rettanglo

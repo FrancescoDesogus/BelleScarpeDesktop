@@ -7,6 +7,7 @@
 #include <QtSql/QSqlQuery>
 #include <QtSql/QSqlError>
 #include <vector>
+#include <QDir>
 
 
 //Namespace contenente classi come "vector" e "map". Usare il namespace fa si che non si debba scrivere ad esempio std::vector quando lo si usa
@@ -249,7 +250,27 @@ vector<Shoe*> ShoeDatabase::getSimiliarShoes(int shoeId, QString sex, QString ca
             //Array vuoto da inserire nel costruttore; è vuoto perchè per visualizzare le scarpe simili non importa sapere le taglie
             QVariantMap sizesAndQuantities;
 
-            shoeList.push_back(new Shoe(id, brand, model, color, sex, price, category, sizesAndQuantities, mediaPath, RFIDcode));
+            //Creo la nuova scarpa
+            Shoe *shoe = new Shoe(id, brand, model, color, sex, price, category, sizesAndQuantities, mediaPath, RFIDcode);
+
+
+            //Dato che le scarpe consigliate hanno una thumbnail, devo settare il path all'immagine per ogni scarpa. Prendo
+            //quindi il path assoluto della cartella che conterrà la thumbnail
+            QDir path = QDir::currentPath() + "/debug/shoes_media/" + shoe->getMediaPath() + "/thumbnail/";
+
+
+            //Filtro per recuperare solo immagini, non si sa mai
+            QStringList nameFilter;
+            nameFilter << "*.png" << "*.jpg" << "*.gif";
+
+            //Recupero il path del primo file trovato che soddisfi i filtri; userò quello come thumbnail
+            QString thumbnailPath = "file:///" + path.entryInfoList(nameFilter, QDir::Files, QDir::Name).first().absoluteFilePath();
+
+            //Setto quindi il path trovato come thumbnail della scarpa
+            shoe->setThumbnailPath(thumbnailPath);
+
+            //Infine, inserisco la scarpa nell'array
+            shoeList.push_back(shoe);
         }
 
         return shoeList;

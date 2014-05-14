@@ -113,6 +113,11 @@ void Shoe::setRFIDcode(const QString& RFIDcode)
     this->RFIDcode = RFIDcode;
 }
 
+void Shoe::setThumbnailPath(const QString& thumbnailPath)
+{
+    this->thumbnailPath = thumbnailPath;
+}
+
 
 
 
@@ -164,6 +169,11 @@ const QString &Shoe::getMediaPath()
 const QString &Shoe::getRFIDcode()
 {
     return this->RFIDcode;
+}
+
+const QString &Shoe::getThumbnailPath()
+{
+    return this->thumbnailPath;
 }
 
 

@@ -24,6 +24,7 @@ class Shoe : public QObject
     Q_PROPERTY(float price READ getPrice CONSTANT)
     Q_PROPERTY(QString category READ getCategory CONSTANT)
     Q_PROPERTY(QVariantMap sizes READ getSizesAndQuantities CONSTANT)
+    Q_PROPERTY(QString thumbnail READ getThumbnailPath CONSTANT)
 
 
 public:
@@ -41,6 +42,8 @@ public:
     void setSizesAndQuantities(const QVariantMap& sizesAndQuantities);
     void setMediaPath(const QString& mediaPath);
     void setRFIDcode(const QString& RFIDcode);
+    void setThumbnailPath(const QString& thumbnailPath);
+
 
     //Getter
     int getId();
@@ -53,6 +56,7 @@ public:
     const QVariantMap& getSizesAndQuantities();
     const QString& getMediaPath();
     const QString& getRFIDcode();
+    const QString& getThumbnailPath();
 
     void toString();
 
@@ -68,6 +72,7 @@ private:
     QVariantMap sizesAndQuantities; //La map è da String a bool (ogni taglia ha associato un bool per indicare se è disponibile)
     QString mediaPath;
     QString RFIDcode;
+    QString thumbnailPath;
 
 signals:
 
