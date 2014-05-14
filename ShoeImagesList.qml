@@ -286,7 +286,7 @@ Rectangle {
                         verticalScrollBar.barOpacity = verticalScrollBar.defaultOpacity
 
                         //Termino il timer, qualora fosse in esecuzione
-                        fadeOutTImer.stop()
+                        fadeOutTimer.stop()
                     }
                 }
 

@@ -140,6 +140,6 @@ Item {
 
                 Behavior on opacity { NumberAnimation { duration: 200; } }
             }
-        }    
+        }
     }
 }
