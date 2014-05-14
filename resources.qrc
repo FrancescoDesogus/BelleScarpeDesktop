@@ -12,5 +12,6 @@
         <file>ScreensaverView.qml</file>
         <file>youtubePlayer.html</file>
         <file>SimiliarShoesList.qml</file>
+        <file>segeo-wp.ttf</file>
     </qresource>
 </RCC>

@@ -2,7 +2,7 @@ import QtQuick 2.0
 
 Item
 {
-    FontLoader { id: webFont; source: "http://dev.bowdenweb.com/a/fonts/segoe/wp/segeo-wp.ttf" }
+    FontLoader { id: metroFont; source: "qrc:segeo-wp.ttf" }
     id: container
     width: 500 * scaleX
     height: parent.height
@@ -38,7 +38,7 @@ Item
     Text {
         id: brand
         text: shoe.brand
-        font.family: webFont.name
+        font.family: metroFont.name
         font.pointSize: titleFontSize
         font.weight: Font.Normal
         font.letterSpacing: 1.2
@@ -117,7 +117,7 @@ Item
     Text {
         id: taglie
         text: "Taglie Disponibili"
-        font.family: webFont.name
+        font.family: metroFont.name
         font.pointSize: 23
         font.weight: Font.Normal
         font.letterSpacing: 1.2

@@ -8,6 +8,8 @@ import QtQuick 2.0
 Rectangle {
     id: container
 
+    FontLoader { id: metroFont; source: "qrc:segeo-wp.ttf" }
+
     //Creo una proprietà "text" visibile dall'esterno che modifichi la proprietà del Text; senza questo non si potrebbe
     //modificare il testo dall'esterno
     property alias text: size.text
@@ -26,6 +28,7 @@ Rectangle {
     Text {
         id: size
         color:(isAvailable) ? "#333333" : "#919191"
+        font.family: metroFont.name
         font.pointSize: 12
         font.weight: Font.Light
         text: "size not defined"

@@ -20,7 +20,7 @@ Rectangle
     height: parent.height
     width: 500 * scaleX
 
-    FontLoader { id: webFont; source: "http://dev.bowdenweb.com/a/fonts/segoe/wp/segeo-wp.ttf" }
+    FontLoader { id: metroFont; source: "qrc:segeo-wp.ttf" }
 
     ListView {
         id: similarList
@@ -66,7 +66,7 @@ Rectangle
                     font.letterSpacing: 1.2
                     color: "#9FB7BF"
                     text: modelData.brand + " " + modelData.model
-                    font.family: webFont.name
+                    font.family: metroFont.name
                     font.pointSize: 16
                     font.weight: Font.Light
                 }
@@ -76,7 +76,7 @@ Rectangle
                     anchors.top: t1.bottom
                     anchors.topMargin: 15 * scaleY
                     text: modelData.brand
-                    font.family: webFont.name
+                    font.family: metroFont.name
                     font.pointSize: 14
                     font.weight: Font.Light
                 }
@@ -86,7 +86,7 @@ Rectangle
                     anchors.top: brand.bottom
                     anchors.topMargin: 15 * scaleY
                     text: modelData.model
-                    font.family: webFont.name
+                    font.family: metroFont.name
                     font.pointSize: 14
                     font.weight: Font.Light
                 }
@@ -96,7 +96,7 @@ Rectangle
                     anchors.top: model.bottom
                     anchors.topMargin: 15 * scaleY
                     text: modelData.price
-                    font.family: webFont.name
+                    font.family: metroFont.name
                     font.pointSize: 14
                     font.weight: Font.Light
                 }
