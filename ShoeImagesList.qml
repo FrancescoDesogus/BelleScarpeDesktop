@@ -108,9 +108,8 @@ Rectangle {
                 //Il clipping fa scomparire gli elementi della lista quando attraversano i bordi della stessa
                 clip: true
 
-                antialiasing: true
-
-
+                //Attivo lo scrolling della lista solo se si vede la scrollbar, ovvero se la lista è così lunga da superare
+                //l'altezza dello schermo (e quindi abbastanza grande da far comparire la scrollbar)
                 boundsBehavior: verticalScrollBar.visible == false ? Flickable.StopAtBounds : Flickable.DragOverBounds
 
                 //Per mostrare quale thumbnail è stata selezionata utilizzo la proprietà highlight, definendo cosa mostrare;
@@ -295,7 +294,6 @@ Rectangle {
                 onMovementEnded: {
                     if(verticalScrollBar.visible)
                         fadeOutTimer.running = true
-
                 }
             }
 

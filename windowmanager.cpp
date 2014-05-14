@@ -178,9 +178,27 @@ void WindowManager::loadShoe(Shoe *shoe)
     imagesOnlyPathsModel = imagesAndVideoPathsModel;
 
 
-    //Video /////da recuperare dal file txt
-    imagesAndVideoPathsModel.append("7jXJz6wz9HU");
-    imagesAndVideoPathsModel.append("-6oJSA39Evk");
+    //Adesso devo recuperare i video; gli id dei video di YouTube sono contenuti nel file video_links.txt, quindi lo recupero
+    QFile inputFile(path.absolutePath() + "/video_links.txt");
+
+
+    //Apro il file in modalità read only
+    if(inputFile.open(QIODevice::ReadOnly))
+    {
+       QTextStream in(&inputFile);
+
+       //Scorro il file
+       while(!in.atEnd())
+       {
+           //Inserisco riga per riga tutti gli id dei video presenti
+          imagesAndVideoPathsModel.append(in.readLine());
+       }
+
+       inputFile.close();
+    }
+    else
+        qDebug() << "Non è stato possibile aprire il file con i video";
+
 
 
     /* Adesso devo recuperare tutte le scarpe simili; creo quindi una lista di QObject che fungerà da model per la rispettiva lista
