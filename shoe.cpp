@@ -47,7 +47,7 @@ using namespace std;
  *
  *
  */
-Shoe::Shoe(int id, const QString& brand, const QString& model, const QString& color, const QString& sex, float price, const QString& category, const QVariantMap& sizesAndQuantities, const QString& mediaPath)
+Shoe::Shoe(int id, const QString& brand, const QString& model, const QString& color, const QString& sex, float price, const QString& category, const QVariantMap& sizesAndQuantities, const QString& mediaPath, const QString& RFIDcode)
 {
     this->setId(id);
     this->setBrand(brand);
@@ -58,6 +58,7 @@ Shoe::Shoe(int id, const QString& brand, const QString& model, const QString& co
     this->setCategory(category);
     this->setSizesAndQuantities(sizesAndQuantities);
     this->setMediaPath(mediaPath);
+    this->setRFIDcode(RFIDcode);
 }
 
 
@@ -84,10 +85,6 @@ void Shoe::setColor(const QString& color)
 
 void Shoe::setSex(const QString &sex)
 {
-//    if(sex == "m")
-//        this->sex = "Uomo";
-//    else
-//        this->sex = "Donna";
     this->sex = sex;
 }
 
@@ -109,6 +106,11 @@ void Shoe::setSizesAndQuantities(const QVariantMap &sizes)
 void Shoe::setMediaPath(const QString& mediaPath)
 {
     this->mediaPath = mediaPath;
+}
+
+void Shoe::setRFIDcode(const QString& RFIDcode)
+{
+    this->RFIDcode = RFIDcode;
 }
 
 
@@ -159,11 +161,16 @@ const QString &Shoe::getMediaPath()
     return this->mediaPath;
 }
 
+const QString &Shoe::getRFIDcode()
+{
+    return this->RFIDcode;
+}
+
 
 void Shoe::toString()
 {
     qDebug() << this->id << ") brand: " << this->brand << "; model: " << this->model << "; color: " << this->color << "; sex: " << this->sex <<
-                "; price: " << this->price << "; category: " << this->category << "; mediaPath: " << this->mediaPath;
+                "; price: " << this->price << "; category: " << this->category << "; mediaPath: " << this->mediaPath << "; RFIDcode: " + this->RFIDcode;
 
     QString sizes;
 

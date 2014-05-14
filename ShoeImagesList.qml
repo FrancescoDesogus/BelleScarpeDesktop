@@ -148,12 +148,12 @@ Rectangle {
                 //un margine per lasciare spazio alla scrollbar
                 anchors {
                     left: parent.left
-                    leftMargin: 25 * scaleX
+                    leftMargin: 15 * scaleX
                 }
 
 
                 //Modello della lista; contiene le informazioni da visualizzare ed è creato in C++
-                model: myModel
+                model: thumbnailModel
 
                 //Delegate della lista; definisce COME le informazioni devono essere visualizzate; in questo caso
                 //nella forma di immagini
@@ -173,12 +173,12 @@ Rectangle {
                          * thumbnail di una immagine, si avrà che "thumbnail.source == thumbnail.defaultSource"; nel caso in cui
                          * la thumbnail sia di un video, le due saranno diverse in quanto thumbnail.source conterrà l'url per
                          * ottenere la thumbnail del video mentre thumbnail.defaultSource conterrà esclusivamente l'id del video */
-                        property string defaultSource: model.modelData.source
+                        property string defaultSource: modelData
 
                         /* Creo anche una proprietà per capire velocemente se la thumbnail si riferisce ad un video oppure no.
                          * Per capire se si tratta di un video sfrutto il fatto che per le immagini salvate in locale appare
                          * sempre "file://"; quindi controllo se la parola "file" compare nella stringa oppure no */
-                        property bool isVideo: (String(model.modelData.source).indexOf("file") == -1)
+                        property bool isVideo: (String(modelData).indexOf("file") == -1)
 
                         /* Se la thumbnail è di un video, inserisco il link per prendere la thumbnail del video (il link
                          * è sempre uguale, e le thumbnail si trovano sempre con default.jpg); altrimenti inserisco il source
@@ -189,6 +189,9 @@ Rectangle {
                         height: thumbnailWidth
 
                         antialiasing: true
+
+
+                        fillMode: Image.PreserveAspectFit
 
                         //MouseArea per intercettare gli eventi touch in modo da cambiare immagine
                         MouseArea {
@@ -203,9 +206,11 @@ Rectangle {
 
                                 /* Se l'elemento selezionato non è un video, riavvio il timer che scorre da solo la lista,
                                  * in modo da non rompere le palle all'utente che sta premendo sulla lista; se si tratta
-                                 * di un video, il timer è fermo e deve rimanere così */
+                                 * di un video, il timer viene blocato */
                                 if(!isVideo)
                                     thumbnailMoverTimer.restart()
+                                else
+                                    thumbnailMoverTimer.stop()
 
                                 //Avviso inoltre all'esterno che c'è stato un evento touch
                                 superContainer.touchEventOccurred()
@@ -258,10 +263,6 @@ Rectangle {
                         //Rendo visibile il player e invisibile la mainImage, nel caso non lo fossero già
                         youtubePlayer.visible = true;
                         mainImage.visible = false;
-
-                        //Blocco il timer che scorre la lista delle thumbnail, in modo che non vada avanti mentre si guarda
-                        //un video
-                        thumbnailMoverTimer.stop()
                     }
                     else
                     {
@@ -378,13 +379,6 @@ Rectangle {
                 break
             }
         }
-
-//        onTitleChanged: {
-//            console.log("title: " +  1 * title)
-
-//            if (youtubePlayer.title == 1)
-//                thumbnailMoverTimer.stop()
-//        }
     }
 
     //Questo timer si occupa di cambiare la thumbnail attualmente selezionata dopo un tot di tempo che non si seleziona una thumbnail
@@ -397,16 +391,14 @@ Rectangle {
         //Quando scatta il timer, se si è raggiunta la fine della lista la riazzero, altrimenti incremento l'indice
         onTriggered:  {
             if(thumbnailList.currentIndex == thumbnailList.count - 1)
-                thumbnailList.currentIndex = 0
+                thumbnailList.currentIndex = 0;
             else
             {
-                thumbnailList.incrementCurrentIndex()
+                thumbnailList.incrementCurrentIndex();
 
-                /* Se l'elemento attuale dopo l'incremento è un video, riazzero l'index della lista. Nota: il timer a questo punto
-                 * sarà fermo fino al prossimo click utente di una thumbnail, in quanto l'incremento di index ha triggerato
-                 * lo stop del timer visto che l'elemento è un video */
+                /* Se l'elemento attuale dopo l'incremento è un video, riazzero l'index della lista */
                 if(thumbnailList.currentItem.isVideo)
-                    thumbnailList.currentIndex = 0
+                    thumbnailList.currentIndex = 0;
             }
         }
      }

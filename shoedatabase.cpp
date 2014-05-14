@@ -34,6 +34,7 @@ const QString ShoeDatabase::SHOE_SEX_COLUMN = "sesso";
 const QString ShoeDatabase::SHOE_CATEGORY_COLUMN = "categoria";
 const QString ShoeDatabase::SHOE_PRICE_COLUMN = "prezzo";
 const QString ShoeDatabase::SHOE_MEDIA_COLUMN = "media";
+const QString ShoeDatabase::SHOE_RFID_CODE_COLUMN = "rfid_code";
 
 
 //Posizioni delle colonne della tabella delle scarpe
@@ -45,6 +46,8 @@ const int ShoeDatabase::SHOE_SEX_COLUMN_POSITION = 4;
 const int ShoeDatabase::SHOE_CATEGORY_COLUMN_POSITION = 5;
 const int ShoeDatabase::SHOE_PRICE_COLUMN_POSITION = 6;
 const int ShoeDatabase::SHOE_MEDIA_COLUMN_POSITION = 7;
+const int ShoeDatabase::SHOE_RFID_CODE_COLUMN_POSITION = 8;
+
 
 
 //Nomi delle colonne della tabella delle taglie
@@ -64,7 +67,9 @@ const int ShoeDatabase::SIZE_QUANTITY_COLUMN_POSITION = 2;
  */
 ShoeDatabase::ShoeDatabase()
 {
+    //Setup del database
     db = QSqlDatabase::addDatabase("QMYSQL");
+
     db.setHostName(ShoeDatabase::HOST_NAME);
     db.setPort(ShoeDatabase::DB_PORT);
     db.setDatabaseName(ShoeDatabase::DB_NAME);
@@ -102,10 +107,47 @@ bool ShoeDatabase::open()
  */
 Shoe* ShoeDatabase::getShoeFromId(int shoeId)
 {
+    //Preparo la query vera e propria da eseguire in base all'id passato
+    QString queryString = "SELECT * FROM " + ShoeDatabase::SHOE_TABLE_NAME + " " +
+                          "WHERE " + ShoeDatabase::SHOE_ID_COLUMN + " = " + QString::number(shoeId);
+
+    //Chiamo il metodo che si occuperà di eseguire la query vera e propria e di restituire la scarpa trovata
+    return getShoe(queryString);
+}
+
+
+/**
+ * @brief ShoeDatabase::getShoeFromId preleva i dati della scarpa con l'id specificato
+ *
+ * @param RFIDcode il codice RFID associato alla scarpa da cercare
+ *
+ * @return un oggetto Shoe contenente i dati (è un puntatore perchè estende QObject e gli oggetti che estendono QObject non possono
+ *         essere copiati, bisogna passare per forza un riferimento). Viene ritornato NULL in caso di errori o se non è stato trovato niente
+ */
+Shoe* ShoeDatabase::getShoeFromId(QString RFIDcode)
+{
+    //Preparo la query vera e propria da eseguire in base al codice RFID passato
+    QString queryString = "SELECT * FROM " + ShoeDatabase::SHOE_TABLE_NAME + " WHERE " + ShoeDatabase::SHOE_RFID_CODE_COLUMN + " = " + RFIDcode;
+
+    //Chiamo il metodo che si occuperà di eseguire la query vera e propria e di restituire la scarpa trovata
+    return getShoe(queryString);
+}
+
+
+/**
+ * @brief ShoeDatabase::getShoe preleva i dati della scarpa dopo aver eseguito la query passatagli come stringa
+ *
+ * @param queryString la query sotto forma di stringa da usare per il recupero
+ *
+ * @return un oggetto Shoe contenente i dati (è un puntatore perchè estende QObject e gli oggetti che estendono QObject non possono
+ *         essere copiati, bisogna passare per forza un riferimento). Viene ritornato NULL in caso di errori o se non è stato trovato niente
+ */
+Shoe* ShoeDatabase::getShoe(QString queryString)
+{
     QSqlQuery query;
 
     //Eseguo la query
-    query.exec("SELECT * FROM " + ShoeDatabase::SHOE_TABLE_NAME + " WHERE " + ShoeDatabase::SHOE_ID_COLUMN + " = " + QString::number(shoeId));
+    query.exec(queryString);
 
 
     //Se non ci sono stati errori e se è stata trovata esattamente una scarpa procedo
@@ -116,6 +158,7 @@ Shoe* ShoeDatabase::getShoeFromId(int shoeId)
 
         //Recupero tutti gli elementi; sono ordinati in base a come sono stati specificati nella SELECT. In questo caso sono nell'ordine
         //con cui sono state messe le colonne della tabella, quindi ci accedo con le costanti specificate in questa classe
+        int shoeId = query.value(ShoeDatabase::SHOE_ID_COLUMN_POSITION).toInt();
         QString brand = query.value(ShoeDatabase::SHOE_BRAND_COLUMN_POSITION).toString();
         QString model = query.value(ShoeDatabase::SHOE_MODEL_COLUMN_POSITION).toString();
         QString color = query.value(ShoeDatabase::SHOE_COLOR_COLUMN_POSITION).toString();
@@ -123,6 +166,8 @@ Shoe* ShoeDatabase::getShoeFromId(int shoeId)
         QString category = query.value(ShoeDatabase::SHOE_CATEGORY_COLUMN_POSITION).toString();
         float price = query.value(ShoeDatabase::SHOE_PRICE_COLUMN_POSITION).toFloat();
         QString mediaPath = query.value(ShoeDatabase::SHOE_MEDIA_COLUMN_POSITION).toString();
+        QString RFIDcode = query.value(ShoeDatabase::SHOE_RFID_CODE_COLUMN_POSITION).toString();
+
 
 
         //Adesso devo recuperare tutte le taglie disponibili per la scarpa. Per farlo devo eseguire un'altra query
@@ -133,7 +178,7 @@ Shoe* ShoeDatabase::getShoeFromId(int shoeId)
 
         QVariantMap sizesAndQuantities;
 
-        //Se non ci sono stati errori procedo
+        //Se non ci sono stati errori, procedo
         if(queryForSizes.lastError().number() == -1)
         {
             //Scorro tutti i risultati, fino a quando non ce ne sono più
@@ -149,9 +194,8 @@ Shoe* ShoeDatabase::getShoeFromId(int shoeId)
             }
         }
 
-//        sizesAndQuantities["48"] = true;
         //Ora che ho tutti i dati, creo l'oggetto Shoe...
-        Shoe* shoe = new Shoe(shoeId, brand, model, color, sex, price, category, sizesAndQuantities, mediaPath);
+        Shoe* shoe = new Shoe(shoeId, brand, model, color, sex, price, category, sizesAndQuantities, mediaPath, RFIDcode);
 
         //...e lo ritorno
         return shoe;
@@ -163,7 +207,6 @@ Shoe* ShoeDatabase::getShoeFromId(int shoeId)
         return NULL;
     }
 }
-
 
 
 /**
@@ -200,19 +243,21 @@ vector<Shoe*> ShoeDatabase::getSimiliarShoes(int shoeId, QString sex, QString ca
             QString category = query.value(ShoeDatabase::SHOE_CATEGORY_COLUMN_POSITION).toString();
             float price = query.value(ShoeDatabase::SHOE_PRICE_COLUMN_POSITION).toFloat();
             QString mediaPath = query.value(ShoeDatabase::SHOE_MEDIA_COLUMN_POSITION).toString();
+            QString RFIDcode = query.value(ShoeDatabase::SHOE_RFID_CODE_COLUMN_POSITION).toString();
 
-            //Array vuoto da inserire nel costruttore (?)
+
+            //Array vuoto da inserire nel costruttore; è vuoto perchè per visualizzare le scarpe simili non importa sapere le taglie
             QVariantMap sizesAndQuantities;
 
-            shoeList.push_back(new Shoe(id, brand, model, color, sex, price, category, sizesAndQuantities, mediaPath));
+            shoeList.push_back(new Shoe(id, brand, model, color, sex, price, category, sizesAndQuantities, mediaPath, RFIDcode));
         }
 
         return shoeList;
     }
     else
     {
-        if(query.size() > 0)
-            qDebug() << "ShoeDatabase::getSimiliarShoes: nessuna scarpa simile è stata trovata";
+        if(query.size() == 0)
+            qDebug() << "ShoeDatabase::getSimiliarShoes: nessuna scarpa simile è stata trovata; id scarpa:" << shoeId;
         else
             qDebug() << "ShoeDatabase::getSimiliarShoes: c'è stato un errore nella query: " << query.lastError();
 

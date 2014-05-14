@@ -28,9 +28,6 @@ private:
 protected:
     virtual void run();
 
-public slots:
-    void sendCode();
-
 signals:
     void codeArrived(QString code);
 

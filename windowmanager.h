@@ -2,6 +2,8 @@
 #define WINDOWMANAGER_H
 
 #include <QQuickView>
+#include <ShoeDatabase.h>
+#include <QQmlComponent>
 
 class WindowManager : public QQuickView
 {
@@ -13,13 +15,18 @@ public:
     void setupScreen();
 
 private:
+    //Costanti che contengono le dimensioni della risoluzione usata come target dell'applicazione (di default, 1920x1080)
     static const int TARGET_RESOLUTION_WIDTH;
     static const int TARGET_RESOLUTION_HEIGHT;
 
-public slots:
-    void getCode(QString code);
-    void loadShoeIntoContext(int id);
+    //Database dal quale recuperare informazioni sulle scarpe
+    ShoeDatabase database;
 
+    void loadShoe(Shoe *shoe);
+
+public slots:
+    void loadNewShoeView(int id);
+    void loadNewShoeView(QString RFIDcode);
 };
 
 #endif // WINDOWMANAGER_H

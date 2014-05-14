@@ -31,10 +31,11 @@
 
 #include <QDeclarativeEngine>
 
+//Dato che uso il "vector" di C++, utilizzo il namespace std come scorciatoia invece di scrivere "std::vector"
 using namespace std;
 
 
-
+//Costanti che definiscono le dimensioni della risoluzione target dell'applicazione
 const int WindowManager::TARGET_RESOLUTION_WIDTH = 1920;
 const int WindowManager::TARGET_RESOLUTION_HEIGHT = 1080;
 
@@ -47,9 +48,8 @@ WindowManager::WindowManager(QQuickView *parent) :
 
 void WindowManager::setupScreen()
 {
-    //Recupero informazioni sulla grandezza dello schermo, in modo da visualizzare la view in fullscreen correttamente
-    QDesktopWidget widget;
-    QRect mainScreenSize = widget.screenGeometry(widget.primaryScreen());
+    //Preparo il database
+    this->database;
 
 
     /* Aggiungo al contesto dell'engile qml una proprietà che corrisponde all'istanza di questa classe. In questo modo nei file qml
@@ -61,6 +61,12 @@ void WindowManager::setupScreen()
     //Inserisco come proprietà le informazioni sulla risoluzione target da usare
     this->rootContext()->setContextProperty("TARGET_RESOLUTION_WIDTH", TARGET_RESOLUTION_WIDTH);
     this->rootContext()->setContextProperty("TARGET_RESOLUTION_HEIGHT", TARGET_RESOLUTION_HEIGHT);
+
+
+    //Recupero informazioni sulla grandezza dello schermo vera e propria, in modo da visualizzare la view in fullscreen correttamente
+    QDesktopWidget widget;
+    QRect mainScreenSize = widget.screenGeometry(widget.primaryScreen());
+
 
 
     /* Definisco nel contesto dell'engine qml altre due proprietà, che sono i valori per cui bisogna moltiplicare ogni coordinata di larghezza
@@ -81,123 +87,167 @@ void WindowManager::setupScreen()
 
     this->showFullScreen();
 
-    loadShoeIntoContext(2);
+    //Appena avviato carico una scarpa per provare
+    loadNewShoeView(2);
 }
 
 
-/* Slot chiamato dal secondo thread non appena è letto un nuovo codice. Questo metodo dovrebbe teoricamente
- * prendere i dati della scarpa dal db grazie al codice ricevuto, preparare i dati da mostrare nella view qml,
- * e avvertire la parte qml che deve creare una nuova view del tipo indicato (che dovrà mostrare i dati recuperati) */
-void WindowManager::getCode(QString code)
+/**
+ * @brief WindowManager::loadNewShoeView è uno slot chiamato dal secondo thread non appena viene letto un nuovo codice.
+ *        Il metodo si occupa di recuperare la scarpa a cui corrisponde il codice RFID ricevuto, e quindi di creare una
+ *        nuova view che mostri la nuova scarpa
+ *
+ * @param RFIDcode il codice RFID della scarpa da ricercare
+ */
+void WindowManager::loadNewShoeView(QString RFIDcode)
 {
-    qDebug() << "code received: " << code;
+    qDebug() << "code received: " << RFIDcode;
 
-    //Quello che devo fare adesso è avvisare la parte qml che deve creare una nuova view. Il file main.qml ha nell'oggetto root una
-    //funzione apposita, quindi quello che devo fare è chiamarla. Per poterlo fare, recupero l'oggetto root
-    QObject *object = this->rootObject();
+    //Apro il database, visto che dovrò effettuare query
+    database.open();
 
-    //Con il metodo statico invokeMethod() sfrutto il sistema meta-object based di qml per chiamare il metodo specificato, passando come
-    //parametro l'item qml che contiene quella funzione
-    QMetaObject::invokeMethod(object, "addView");
+    //Recupero la scarpa
+    Shoe *shoe = database.getShoeFromId(RFIDcode);
+
+    //Chiamo il metodo che si occupa effettivamente di recuperare il resto delle informazioni, di creare la nuova view ecc...
+    loadShoe(shoe);
 }
 
 
-void WindowManager::loadShoeIntoContext(int id)
+
+/**
+ * @brief WindowManager::loadNewShoeView è uno slot chiamato da QML quando si preme ad esempio su una scarpa diversa da quella
+ *        correntemente mostrata in modo da visualizzare la sua pagina.
+ *        Il metodo si occupa di recuperare la scarpa a cui corrisponde il codice RFID ricevuto, e quindi di creare una
+ *        nuova view che mostri la nuova scarpa
+ *
+ * @param id l'id della scarpa da ricercare
+ */
+void WindowManager::loadNewShoeView(int id)
 {
-    ShoeDatabase db;
-    db.open();
+    //Apro il database, visto che dovrò effettuare query
+    database.open();
+
+    //Recupero la scarpa
+    Shoe *shoe = database.getShoeFromId(id);
+
+    //Chiamo il metodo che si occupa effettivamente di recuperare il resto delle informazioni, di creare la nuova view ecc...
+    loadShoe(shoe);
+}
 
 
 
-    Shoe *shoe = db.getShoeFromId(id);
+void WindowManager::loadShoe(Shoe *shoe)
+{
+    //Se shoe è uguale a null, c'è stato qualche problema con il recupero della scarpa dal db, quindi bisogna gestirlo
+    if(shoe == NULL)
+    {
+        //Recupero l'elemento root di qml (contenente il view manager)
+        QObject *qmlRoot = this->rootObject();
+
+        //Chiamo un metodo della root per gestire l'errore; il metodo si occuperà di mostrare un errore visivo
+        QMetaObject::invokeMethod(qmlRoot, "cantLoadShoe");
+
+        //Chiudo il db e concludo qua il metodo
+        database.close();
+
+        return;
+    }
 
 
+    /* Se l'oggeto Shoe è stato recuperato correttamente, procedo con il recupero delle sue informazioni. Dovranno essere mostrate
+     * delle immagini, quindi recupero il path dal quale prenderle */
     QDir path = QDir::currentPath() + "/debug/shoes_media/" + shoe->getMediaPath() + "/";
 
-    QList<QObject*> imagesPathModel;
 
+    /* Creo due liste, che fungeranno da model per la lista delle thumbnail e quella delle immagini delle scarpe messe in evidenza:
+     * la prima conterrà i path delle immagini salvate in olcale da usare e l'id dei video di YouTube, la seconda conterrà solo
+     * i path delle immagini, niente video */
+    QStringList imagesAndVideoPathsModel;
+    QStringList imagesOnlyPathsModel;
+
+    //Filtro per recuperare le immagini salvate in locale nella cartella specificata dalla scarpa
     QStringList nameFilter;
     nameFilter << "*.png" << "*.jpg" << "*.gif";
 
-    foreach (QFileInfo fInfo, path.entryInfoList(nameFilter, QDir::Files, QDir::Name)) {
-        imagesPathModel.append(new DataObject("file:///" + fInfo.absoluteFilePath()));
-    }
+    //Scorro tutti i file della cartella, recuperando tutte le entry che rispettano i filtri
+    foreach (QFileInfo fInfo, path.entryInfoList(nameFilter, QDir::Files, QDir::Name))
+        imagesAndVideoPathsModel.append("file:///" + fInfo.absoluteFilePath());
 
-    //Video
-    imagesPathModel.append(new DataObject("7jXJz6wz9HU"));
-    imagesPathModel.append(new DataObject("-6oJSA39Evk"));
-
+    //Dato che ho preso tutte le immagini salvate in locale, faccio una copia per la lista che deve contenere solo immagini
+    imagesOnlyPathsModel = imagesAndVideoPathsModel;
 
 
+    //Video /////da recuperare dal file txt
+    imagesAndVideoPathsModel.append("7jXJz6wz9HU");
+    imagesAndVideoPathsModel.append("-6oJSA39Evk");
+
+
+    /* Adesso devo recuperare tutte le scarpe simili; creo quindi una lista di QObject che fungerà da model per la rispettiva lista
+     * QML; le scarpe estendono QObject, quindi posso inserirle direttamente nella lista e saranno accessibili da QML le proprietà
+     * definite Q_PROPERTY nella classe Shoe */
     QList<QObject*> similiarShoesModel;
 
+    //Recupero dal db il vettore contenente tutte le scarpe simili a quella considerata in base ai parametri specificati
+    vector<Shoe*> similiarShoes = database.getSimiliarShoes(shoe->getId(), shoe->getSex(), shoe->getCategory());
 
-    vector<Shoe*> similiarShoes = db.getSimiliarShoes(shoe->getId(), shoe->getSex(), shoe->getCategory());
-
-    for(int i = 0; i < similiarShoes.size(); i++){
+    //Inserisco nel model tutte le scarpe
+    for(int i = 0; i < similiarShoes.size(); i++)
        similiarShoesModel.append(similiarShoes[i]);
-       similiarShoes[i]->toString();
-    }
 
 
-//    this->rootContext()->setContextProperty("shoe", shoe);
-//    this->rootContext()->setContextProperty("myModel", QVariant::fromValue(imagesPathModel));
-//    this->rootContext()->setContextProperty("similiarShoesModel", QVariant::fromValue(similiarShoesModel));
+    //Dato che ho prelevato tutto quello che mi serviva dal db, posso chiuderlo
+    database.close();
 
 
 
-    db.close();
+    /* Adesso la parte importante: bisogna epsorre le cose appena recuperate in modo che siano accessibili da QML.
+     * In generale le viste QML sono basate su un context; nel metodo setupScreen() erano state aggiunte delle proprietà
+     * al context del root, ovvero il context globale e condiviso da tutte le viste che nascono da quel root. Per far si
+     * che ogni view aggiunta dinamicamente mostri esclusivamente i contenuti della scarpa della view, non bisogna mettere
+     * questi contenuti nel context globale (altrimenti ogni volta che se ne aggiungono vengono sovrascritti i dati precedenti
+     * e ogni view finisce per mostrare la stessa scarpa), ma bisogna far si che ogni view di una scarpa abbia un SUO context,
+     * che parta da quello globale ma che si arricchisca dei dati che le servono.
+     * Di conseguenza quello che faccio è creare un nuovo context da arricchirlo con i dati appena recuperati, e creo un nuovo
+     * component (che sarà la view che mostrerà la scarpa) che usi il context appena creato.
+     * Inizio con il creare un nuovo context, che parta dal context globale */
+    QQmlContext *context = new QQmlContext(this->rootContext());
 
-
-    QObject *object = this->rootObject();
-
-    //Con il metodo statico invokeMethod() sfrutto il sistema meta-object based di qml per chiamare il metodo specificato, passando come
-    //parametro l'item qml che contiene quella funzione
-//    QMetaObject::invokeMethod(object, "addView");
-
-//    QQuickItem* loa = qobject_cast<QQuickItem*>(this->children().last());
-
-//    QQmlEngine *engine = QQmlEngine::contextForObject(loa)->engine();
-
-//    QQmlContext *context = QQmlEngine::contextForObject(loa);
-
-
-    qDebug() << "ASDSADSADASDSADASDSADSADASDASDASDASDASDASDASD";
-
-
-
-
-
-
-
-    QQmlContext *context = new QQmlContext(this->engine()->rootContext());
+    //Creato il context, lo arricchisco di tutti i dati appena recuperati. Nota: posso passare direttamente "shoe" perchè
+    //estende QObject e ha definite delle Q_PROPERTY per accedere ai suoi dati
     context->setContextProperty("shoe", shoe);
-    context->setContextProperty("myModel", QVariant::fromValue(imagesPathModel));
+    context->setContextProperty("thumbnailModel", QVariant::fromValue(imagesAndVideoPathsModel));
+    context->setContextProperty("imagesModel", QVariant::fromValue(imagesOnlyPathsModel));
     context->setContextProperty("similiarShoesModel", QVariant::fromValue(similiarShoesModel));
 
 
+    //Terminata la creazione e l'arricchimento del context, creo un nuovo component con il file che è la view della scarpa
     QQmlComponent component(this->engine(), QUrl("qrc:/qml/ShoeView.qml"));
 
-    qDebug() << component.errors();
+    //Creo quindi una istanza del component appena creato, inserendo il context sopra definito, e la recupero. Questa nuova view
+    //quindi potrà accedere a tutte le proprietà sopra definite
+    QQuickItem *newView = qobject_cast<QQuickItem*>(component.create(context));
 
-//    QObject *window = component.create(context);
-    QQuickItem *window = qobject_cast<QQuickItem*>(component.create(context));
-
-    QDeclarativeEngine::setObjectOwnership(window, QDeclarativeEngine::JavaScriptOwnership);
-
-
-    QObject *viewManager = object->findChild<QObject*>("myViewManager");
-
-    if (viewManager)
-        viewManager->setProperty("lastChild", QVariant::fromValue(window));
-
-        window->setParentItem(qobject_cast<QQuickItem*>(viewManager));
+    //Dichiaro che la parte JavaScript (e QML) hanno ownership sulla view. Questo serve per quando le view dinamicamente create
+    //come quella creata poco sopra devono essere distrutte da QML; senza non potrebbero essere eliminate dal view manager
+    QDeclarativeEngine::setObjectOwnership(newView, QDeclarativeEngine::JavaScriptOwnership);
 
 
+    //La view appena creata non ha ancora un padre però, quindi devo assegnarlelo. Per farlo, devo prima recuperarlo, quindi
+    //recupero la root di QML in modo da cercare il padre
+    QObject *qmlRoot = this->rootObject();
 
-    QMetaObject::invokeMethod(object, "prova");
+    //Recupero il ViewManager, che sarà il padre della nuova view (in modo che possa gestirne le transizioni). Nota: la ricerca
+    //non è fatta in base alla proprietà "id" del component, ma a quella "objectName", che in questo caso è "myViewManager"
+    QObject *viewManager = qmlRoot->findChild<QObject*>("myViewManager");
+
+    //Preso il view manager, lo setto come padre della nuova view
+    newView->setParentItem(qobject_cast<QQuickItem*>(viewManager));
+
+
+    /* Il processo di creazione della nuova view non è finito. Bisogna connettere la nuova view a eventi, signals e cose varie
+     * che sono visibili e accessibili solo dalla parte QML, quindi quello che faccio è chiamare una funzione contenuta nel
+     * file main.qml (che corrisponte ora a qmlRoot) che si occuperà di questi collegamenti, e le passo la nuova view
+     * appena aggiunta. Dopo l'esecuzione di quella funzione, la nuova view verrà mostrata */
+    QMetaObject::invokeMethod(qmlRoot, "connectNewViewEvents", Q_ARG(QVariant, QVariant::fromValue(newView)));
 }
-
-
-
-

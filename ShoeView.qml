@@ -6,9 +6,7 @@ Rectangle {
     id: container
     color: "#FFFFFF"
 
-    //Le dimensioni della view sono prese dal padre che usa questo Component, e sono grandi quanto tutto lo schermo
-//    width: parent.width
-//    height: parent.height
+    //Le dimensioni della view sono grandi quanto tutto lo schermo
     width: TARGET_RESOLUTION_WIDTH * scaleX
     height: TARGET_RESOLUTION_HEIGHT * scaleY
 
@@ -16,9 +14,11 @@ Rectangle {
     //che porta alla schermata di partenza dopo un tot di tempo di inattività
     signal touchEventOccurred()
 
+    //Questo signal indica che è stata premuta una nuova scarpa e che bisogna creare una nuova view che la visualizzi;
+    //passa come parametro l'id della scarpa toccata
     signal needShoeIntoContext(int id)
 
-
+    //Signal che indica che bisogna tornare indietro di una view nello stack di viste
     signal goBack()
 
 
@@ -55,6 +55,7 @@ Rectangle {
     ShoeDetail {
         id: shoeDetail
         anchors.left: imagesList.right
+        anchors.leftMargin: 50 * scaleX
 
         //Anche ShoeDetail ha un signal onTouchEventOccurred; quando scatta, propago l'evento verso l'esterno
         onTouchEventOccurred: container.touchEventOccurred()
@@ -64,6 +65,11 @@ Rectangle {
     SimiliarShoesList {
         id: similiarShoesList
         anchors.left: shoeDetail.right
+        anchors.leftMargin: 150 * scaleX
+
+        anchors.top: parent.top
+        anchors.topMargin: 100 * scaleY
+
 
         //Anche SimiliarShoesList ha un signal onTouchEventOccurred; quando scatta, propago l'evento verso l'esterno
 //        onTouchEventOccurred: container.touchEventOccurred()
@@ -233,14 +239,14 @@ Rectangle {
 
         //Il modello della lista, contenente i path delle immagini da mostrare, è preso da C++ ed è uguale a quello della lista
         //contenente le thumbnail
-        model: myModel
+        model: imagesModel
 
         //Il delegate corrisponde ad una singola immagine per ogni item della lista
         delegate: Component {
             Image {
                 id: focusedImage
 //                source: "file:///" + model.modelData.source
-                source: model.modelData.source
+                source: modelData
 
                 height: parent.height
 

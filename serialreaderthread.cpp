@@ -25,12 +25,11 @@ SerialReaderThread::SerialReaderThread(QObject *parent) :
 }
 
 
-/* run() è il metodo che viene eseguito quando parte il thread. Corrisponde al main() del thread principale */
+/**
+ * @brief run() è il metodo che viene eseguito quando parte il thread. Corrisponde al main() del thread principale
+ */
 void SerialReaderThread::run()
 {
-    QTimer::singleShot(2000, this, SLOT(sendCode()));
-
-
     //Setto il nome della porta a cui è connesso l'RFID reader
     serialPort.setPort(QSerialPortInfo(SerialReaderThread::PORT_NAME));
 
@@ -165,10 +164,3 @@ bool SerialReaderThread::checkChecksum(char *buffer, char *code)
     return checksumCalcolated == checksumGiven;
 }
 
-
-/* Slot chiamato alla scadenza del timer, che si occupa di emettere il signal per avvertire il thread principale che è arivato un messaggio
- * NON SERVIRA' PIU' QUANDO ARRIVERA' L'RFID READER */
-void SerialReaderThread::sendCode()
-{
-    emit codeArrived("asdasd");
-}

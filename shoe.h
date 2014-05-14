@@ -28,7 +28,7 @@ class Shoe : public QObject
 
 public:
     //Costruttore
-    explicit Shoe(int id, const QString& brand, const QString& model, const QString& color, const QString& sex, float price, const QString& category, const QVariantMap& sizesAndQuantities, const QString& mediaPath);
+    explicit Shoe(int id, const QString& brand, const QString& model, const QString& color, const QString& sex, float price, const QString& category, const QVariantMap& sizesAndQuantities, const QString& mediaPath, const QString& RFIDcode);
 
     //Setter
     void setId(int id);
@@ -40,6 +40,7 @@ public:
     void setCategory(const QString& category);
     void setSizesAndQuantities(const QVariantMap& sizesAndQuantities);
     void setMediaPath(const QString& mediaPath);
+    void setRFIDcode(const QString& RFIDcode);
 
     //Getter
     int getId();
@@ -51,6 +52,7 @@ public:
     const QString& getCategory();
     const QVariantMap& getSizesAndQuantities();
     const QString& getMediaPath();
+    const QString& getRFIDcode();
 
     void toString();
 
@@ -65,6 +67,7 @@ private:
     QString category;
     QVariantMap sizesAndQuantities; //La map è da String a bool (ogni taglia ha associato un bool per indicare se è disponibile)
     QString mediaPath;
+    QString RFIDcode;
 
 signals:
 

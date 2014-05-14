@@ -186,6 +186,7 @@ Item
                 y = y + item.height + (10*scaleY);
             }
 
+
             //Di default si assume che la taglia sia disponibile; se non lo è, attivo lo stato relativo in modo che cambi il colore
             if(!sizes[size])
                 item.state = item.unavailable;

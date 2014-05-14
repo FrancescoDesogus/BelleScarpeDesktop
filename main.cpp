@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
 
 //    SerialReaderThread thread;
 
-//    QObject::connect(&thread, SIGNAL(codeArrived(char*)), view, SLOT(getCode(char*)));
+//    QObject::connect(&thread, SIGNAL(codeArrived(QString)), &view, SLOT(loadNewShoeView(QString)));
 
 //    thread.start();
 
