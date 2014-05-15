@@ -118,9 +118,9 @@ Rectangle {
                     id: highlight
                     width: thumbnailWidth
                     height: thumbnailHeight
-                    color: "#22000000" //Colore nero con opacità
+                    color: "#44ADB3C7" //Colore nero con opacità
 //                    radius: 5
-                    border.color: "red"
+                    border.color: "#BFC4D6"
                     border.width: 2.5 * scaleX
                     smooth: true
 
@@ -148,7 +148,7 @@ Rectangle {
                 //un margine per lasciare spazio alla scrollbar
                 anchors {
                     left: parent.left
-                    leftMargin: 15 * scaleX
+                    leftMargin: 20 * scaleX
                 }
 
 
@@ -302,6 +302,19 @@ Rectangle {
             ScrollBar {
                 id: verticalScrollBar
                 flickable: thumbnailList
+
+                onBarClicked: {
+                    //Rimetto l'opacità della barra al valore di default, qualora non fosse già così
+                    verticalScrollBar.barOpacity = verticalScrollBar.defaultOpacity
+
+                    //Termino il timer, qualora fosse in esecuzione
+                    fadeOutTimer.stop()
+                }
+
+                onBarReleased: {
+                    if(verticalScrollBar.visible)
+                        fadeOutTimer.restart()
+                }
             }
 
             //Timer che si occupa di far sparire la ScrollBar dopo un tot di tempo dal termine dell'input utente

@@ -195,6 +195,11 @@ Shoe* ShoeDatabase::getShoe(QString queryString)
             }
         }
 
+        //Aggiunge taglie manualmente per testare la visualizzazione su schermo
+//        for(int k = 48; k < 52; k++){
+//            sizesAndQuantities[QString::number(k)] = 23;
+//        }
+
         //Ora che ho tutti i dati, creo l'oggetto Shoe...
         Shoe* shoe = new Shoe(shoeId, brand, model, color, sex, price, category, sizesAndQuantities, mediaPath, RFIDcode);
 

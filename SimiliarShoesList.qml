@@ -31,137 +31,198 @@ Rectangle
 
 
     height: parent.height
-    width: 500 * scaleX
+    width: 600 * scaleX
+//    color: "red"
 
     FontLoader {
         id: metroFont;
         source: "qrc:segeo-wp.ttf"
     }
 
-    ListView {
-        id: similarList
+    Text {
+        id: title
+        text: "Scarpe Simili".toUpperCase()
+        font.family: metroFont.name
+        font.pointSize: 24
+        font.weight: Font.Normal
+        font.letterSpacing: 1.2
+        color: "#9FB7BF"
+//        height: 50 * scaleY
+        anchors.left: container.left
+        anchors.top: container.top
+        anchors.topMargin: 15 * scaleY
+    }
 
-        //La lista è grande quanto tutto lo schermo, quindi "riempie" tutto il parent
-        anchors.fill: parent
+    Rectangle {
+        id: separator
+        width: parent.width
+        height: 1 * scaleY
+        color: "#9FB7BF"
+        anchors.top: title.bottom
+        anchors.topMargin: 10 * scaleY
+    }
 
+    Rectangle {
+        id: listContainer
+        anchors.top: separator.bottom
+        height: 700 * scaleY
+        width: parent.width
 
-        /* Segnalo che la lista non deve seguire automaticamente l'elemento attualmente selezionato; senza questo booleano
-         * la lista si sposterebbe da sola (moooolto lentamente) verso l'elemento da visualizzare quando la lista diventa
-         * inizialmente visibile */
-        highlightFollowsCurrentItem: false
+        ListView {
+            id: similarList
 
-        //Il modello della lista, contenente i path delle immagini da mostrare, è preso da C++ ed è uguale a quello della lista
-        //contenente le thumbnail
-        model: similiarShoesModel
+            property int counter: 0;
 
-        //Il delegate corrisponde ad una singola immagine per ogni item della lista
-        delegate: Component {
+            //La lista è grande quanto tutto lo schermo, quindi "riempie" tutto il parent
+            anchors.fill: listContainer
 
-            Rectangle {
-                id: suggestionContainer
-                width: similarList.width
-                height: 190 * scaleY
-                color: container.backgroundColor
+            /* Segnalo che la lista non deve seguire automaticamente l'elemento attualmente selezionato; senza questo booleano
+             * la lista si sposterebbe da sola (moooolto lentamente) verso l'elemento da visualizzare quando la lista diventa
+             * inizialmente visibile */
+            highlightFollowsCurrentItem: false
 
-                Behavior on color { ColorAnimation { duration: 100 }}
+            //Il modello della lista, contenente i path delle immagini da mostrare, è preso da C++ ed è uguale a quello della lista
+            //contenente le thumbnail
+            model: similiarShoesModel
 
-                Image {
-                    id: similarThumbnail
-                    antialiasing: true
-                    source: modelData.thumbnail
-                    width: 200 * scaleX
-                    height: 170 * scaleY
-                    fillMode: Image.PreserveAspectFit
-                    anchors.right: suggestionContainer.right
-                    anchors.rightMargin: 5 * scaleX
-                    anchors.verticalCenter: suggestionContainer.verticalCenter
-                }
+            clip: true
 
-                Text {
-                    id: t1
-                    anchors.left: suggestionContainer.left
-//                    anchors.leftMargin: 50 * scaleX
-                    font.letterSpacing: 1.2
-                    color: "#9FB7BF"
-                    text: modelData.brand + " " + modelData.model
-                    font.family: metroFont.name
-                    font.pointSize: 16
-                    font.weight: Font.Light
-                }
-
-                Text {
-                    id: brand
-                    anchors.top: t1.bottom
-                    anchors.topMargin: 15 * scaleY
-                    text: modelData.brand
-                    font.family: metroFont.name
-                    font.pointSize: 14
-                    font.weight: Font.Light
-                }
-
-                Text {
-                    id: model
-                    anchors.top: brand.bottom
-                    anchors.topMargin: 15 * scaleY
-                    text: modelData.model
-                    font.family: metroFont.name
-                    font.pointSize: 14
-                    font.weight: Font.Light
-                }
-
-                Text {
-                    id: price
-                    anchors.top: model.bottom
-                    anchors.topMargin: 15 * scaleY
-                    text: modelData.price
-                    font.family: metroFont.name
-                    font.pointSize: 14
-                    font.weight: Font.Light
-                }
+            //Il delegate corrisponde ad una singola immagine per ogni item della lista
+            delegate: Component {
 
                 Rectangle {
-                    id: separator
-                    width: parent.width
-                    height: 1 * scaleY
-                    color: "#9FB7BF"
-                    anchors.bottom: suggestionContainer.bottom
-                }
+                    id: suggestionContainer
+                    width: similarList.width
+                    height: 170 * scaleY
+                    color: container.backgroundColor
 
-                MouseArea {
-                    anchors.fill: parent;
+                    Behavior on color { ColorAnimation { duration: 100 }}
+
+                    Image {
+                        id: similarThumbnail
+                        antialiasing: true
+                        source: modelData.thumbnail
+                        width: 150 * scaleX
+                        height: 120 * scaleY
+                        fillMode: Image.PreserveAspectFit
+                        anchors.right: suggestionContainer.right
+                        anchors.rightMargin: 5 * scaleX
+                        anchors.verticalCenter: suggestionContainer.verticalCenter
+                    }
+
+                    Text {
+                        id: t1
+                        anchors.left: suggestionContainer.left
+    //                    anchors.leftMargin: 50 * scaleX
+                        font.letterSpacing: 1.2
+                        color: "#9FB7BF"
+                        text: modelData.brand + " " + modelData.model
+                        font.family: metroFont.name
+                        font.pointSize: 14
+                        font.weight: Font.Light
+                    }
+
+                    Text {
+                        id: brand
+                        anchors.top: t1.bottom
+                        anchors.topMargin: 7 * scaleY
+                        text: modelData.brand
+                        font.family: metroFont.name
+                        font.pointSize: 12
+                        font.weight: Font.Light
+                    }
+
+                    Text {
+                        id: model
+                        anchors.top: brand.bottom
+                        anchors.topMargin: 7 * scaleY
+                        text: modelData.model
+                        font.family: metroFont.name
+                        font.pointSize: 12
+                        font.weight: Font.Light
+                    }
+
+                    Text {
+                        id: price
+                        anchors.top: model.bottom
+                        anchors.topMargin: 7 * scaleY
+                        text: modelData.price
+                        font.family: metroFont.name
+                        font.pointSize: 12
+                        font.weight: Font.Light
+                    }
+
+                    Rectangle {
+                        id: separator
+                        width: parent.width
+                        height: 1 * scaleY
+                        color: "#9FB7BF"
+                        anchors.bottom: suggestionContainer.bottom
+//                        visible: (similarList.counter == (similarList.count -1))
+                    }
+
+                    Component.onCompleted: {
+                        separator.visible = (similarList.counter != (similarList.count -1))
+                        similarList.counter++
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent;
 
 
-                    onClicked: {
-                        if(isClickable){
-                            suggestionContainer.color = "#DEDEDE"
-                            isClickable = false
-                            container.needShoeIntoContext(modelData.id)
+                        onClicked: {
+                            if(isClickable){
+                                suggestionContainer.color = "#DEDEDE"
+                                isClickable = false
+                                container.needShoeIntoContext(modelData.id)
+                            }
                         }
                     }
-                }
 
 
-                //Se la lista diventa invisible (e quindi tutto il component), riporto al colore di default tutti gli elementi
-                //della lista; questo è per riportare al colore normale eventuali elementi clickati quando si cambia schermata
-                onVisibleChanged: {
-                    if(!visible)
-                        suggestionContainer.color = container.backgroundColor
+                    //Se la lista diventa invisible (e quindi tutto il component), riporto al colore di default tutti gli elementi
+                    //della lista; questo è per riportare al colore normale eventuali elementi clickati quando si cambia schermata
+                    onVisibleChanged: {
+                        if(!visible)
+                            suggestionContainer.color = container.backgroundColor
+                    }
                 }
+            }
+
+            orientation: ListView.Vertical
+            spacing: 9
+
+
+            /* Per evitare il rischio di un utente che preme mille volte su una scarpa consigliata senza aspettare il termine della
+             * transizione alla nuova schermata (facendo creare quindi mille view), viene usato un booleano che diventa false e blocca
+             * la possibilità di aprire nuove schermate una volta premuta una scarpa; per far si però che quando si torni indietro
+             * in una schermata già vista sia possibile premere di nuovo su una scarpa, bisogna rimettere il booleano su true.
+             * Visto che il booleano va di pari passo con la visibilità della view, uso questo listener per disattivare/riattivare
+             * il booleano quando la view cambia visiblità; così facendo quando si rivista una view vecchia, il booleano ritorna true */
+            onVisibleChanged: {
+                container.isClickable = container.visible
             }
         }
 
-        orientation: ListView.Vertical
-        spacing: 20
+        Rectangle {
+            id: separatorList
+            width: parent.width
+            height: 1 * scaleY
+            color: "#9FB7BF"
+            anchors.top: listContainer.bottom
+//            visible: (!similarList.atYEnd || similarList.moving)
+        }
 
-
-        /* Per evitare il rischio di un utente che preme mille volte su una scarpa consigliata senza aspettare il termine della
-         * transizione alla nuova schermata (facendo creare quindi mille view), viene usato un booleano che diventa false e blocca
-         * la possibilità di aprire nuove schermate una volta premuta una scarpa; per far si però che quando si torni indietro
-         * in una schermata già vista sia possibile premere di nuovo su una scarpa, bisogna rimettere il booleano su true.
-         * Visto che il booleano va di pari passo con la visibilità della view, uso questo listener per disattivare/riattivare
-         * il booleano quando la view cambia visiblità; così facendo quando si rivista una view vecchia, il booleano ritorna true */
-        onVisibleChanged: {
-            container.isClickable = container.visible
+        Image {
+            id: qrCode
+            anchors.top: separatorList.bottom
+            anchors.left: parent.left
+            anchors.topMargin: 25 * scaleY
+            width: 250 * scaleX
+            height: 250 * scaleY
+            source: "qrc:///qml/qrcode.png"
+    //        anchors.horizontalCenter: parent.horizontalCenter
+    //        anchors.left: parent
         }
     }
 }

@@ -13,5 +13,12 @@
         <file>youtubePlayer.html</file>
         <file>SimiliarShoesList.qml</file>
         <file>segeo-wp.ttf</file>
+        <file>back_pressed_resized.png</file>
+        <file>back_enabled_resized.png</file>
+        <file>back_disabled_resized.png</file>
+        <file>back_pressed_mini.png</file>
+        <file>back_enabled_mini.png</file>
+        <file>back_disabled_mini.png</file>
+        <file>qrcode.png</file>
     </qresource>
 </RCC>

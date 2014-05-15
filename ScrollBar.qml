@@ -13,6 +13,9 @@ Item {
         margins: 0;
     }
 
+    signal barClicked();
+    signal barReleased();
+
     property Flickable flickable               : null;
     property int       handleSize              : 8;
 
@@ -121,7 +124,10 @@ Item {
             }
             anchors { fill: parent; }
             onClicked: { flickable.contentY = (mouse.y / groove.height * (flickable.contentHeight - flickable.height)); }
+            onPressed: barClicked()
+            onReleased: barReleased()
         }
+
         Item {
             id: handle;
             height: Math.max (20, (flickable.visibleArea.heightRatio * groove.height));
@@ -133,6 +139,7 @@ Item {
             Rectangle {
                 id: backHandle;
                 radius: 20
+                antialiasing: true
                 color: (clicker.pressed ? "blue" : "black");
 //                opacity: (flickable.moving ? 0.65 : 0.35);
                 opacity: defaultOpacity;

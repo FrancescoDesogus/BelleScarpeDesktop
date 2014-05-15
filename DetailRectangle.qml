@@ -9,11 +9,11 @@ Rectangle {
     property string evenColor: "#EBEBEB"
     property string oddColor: "#FCFCFC"
     property string defaultColor: "#00000000"
-    property int generalFontSize: 18
-    property int fontSize: 17
+    property int generalFontSize: 19
+    property int fontSize: 18
 
     property int sizeItemHeight: (15*scaleY) + (55 * scaleY)
-    property int defaultRectangleHeight: 80 * scaleY
+    property int defaultRectangleHeight: 110 * scaleY
 //    property int rectangleHeight: (numberOfSizeLines < 2) ? (defaultRectangleHeight + (sizeItemHeight/6)) : defaultRectangleHeight
 
     /** Proprietà variabili che potrebbero essere cambiate all'esterno **/
