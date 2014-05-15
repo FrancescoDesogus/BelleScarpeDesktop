@@ -8,7 +8,7 @@ Item
     height: parent.height
     anchors.leftMargin: 100 * scaleX
 
-    property int titleFontSize: 25
+    property int titleFontSize: 23
 
     /**
       Vai col vaneggio
@@ -37,7 +37,7 @@ Item
 
     Text {
         id: brand
-        text: shoe.brand
+        text: shoe.brand.toUpperCase()
         font.family: metroFont.name
         font.pointSize: titleFontSize
         font.weight: Font.Normal
@@ -46,7 +46,7 @@ Item
 //        height: 50 * scaleY
         anchors.left: parent.left
         anchors.top: parent.top
-        anchors.topMargin: 20 * scaleY
+        anchors.topMargin: 15 * scaleY
     }
 
     Rectangle {
@@ -116,9 +116,9 @@ Item
 
     Text {
         id: taglie
-        text: "Taglie Disponibili"
+        text: "Taglie Disponibili".toUpperCase()
         font.family: metroFont.name
-        font.pointSize: 23
+        font.pointSize: 21
         font.weight: Font.Normal
         font.letterSpacing: 1.2
         color: "#9FB7BF"
@@ -134,10 +134,8 @@ Item
         height: 1 * scaleY
         color: "#9FB7BF"
         anchors.top: taglie.bottom
-//        anchors.topMargin: 5 * scaleY
+        anchors.topMargin: 10 * scaleY
     }
-
-
 
     //Quando il component ha finito di caricare, inserisco gli oggetti per la taglia; dato che gli oggetti sono da caricare per forza
     //dinamicamente, bisogna farlo solo quando il component è stato completato
@@ -160,13 +158,13 @@ Item
 
         //Coordinate di ogni item; i loro valori incrementano
         var x = startingX;
-        var y = separatorTaglie.y + separatorTaglie.height + (24 * scaleY);
+        var y = separatorTaglie.y + separatorTaglie.height + (15 * scaleY);
 
         //Scorro tutti gli elementi contenuti nella map "sizes"; la map contiene, per ogni stringa della taglia, un booleano
         //che indica se quella taglia è attualmente disponibile o meno
         for(var size in sizes)
         {
-            //Creo l'istanza corrente del component e la inseriso all'interno di "container"
+            //Creo l'istanza corrente del component e la inserisco all'interno di "container"
             item = component.createObject(container);
 
             //Lo posiziono nella scena
@@ -174,7 +172,7 @@ Item
             item.y = y;
 
             //Incremento la coordinata, aggiungendo un margine di separazione tra un elemento e l'altro
-            x = x + item.width + (6*scaleX);
+            x = x + item.width + (10*scaleX);
 
             //Se la nuova x supera la larghezza disponibile del container...
             if(x > container.width)

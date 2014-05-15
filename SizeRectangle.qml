@@ -17,8 +17,8 @@ Rectangle {
     //String che rappresenta il nome dello stato del component quando la data taglia non è disponibile in negozio
     property bool isAvailable: true
 
-    width: 66 * scaleX
-    height: 52 * scaleY
+    width: 75 * scaleX
+    height: 60 * scaleY
 
     color:(isAvailable) ? "#DEDEDE" : "#F1F1F1"
 

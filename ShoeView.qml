@@ -65,10 +65,10 @@ Rectangle {
     SimiliarShoesList {
         id: similiarShoesList
         anchors.left: shoeDetail.right
-        anchors.leftMargin: 150 * scaleX
+        anchors.leftMargin: 90 * scaleX
 
         anchors.top: parent.top
-        anchors.topMargin: 100 * scaleY
+//        anchors.topMargin: 100 * scaleY
 
 
         //Anche SimiliarShoesList ha un signal onTouchEventOccurred; quando scatta, propago l'evento verso l'esterno
@@ -76,46 +76,71 @@ Rectangle {
         onNeedShoeIntoContext: container.needShoeIntoContext(id)
     }
 
-    Rectangle {
-        id: prova
-        x: 300
-
-        width: 200
-        height: 200
-
-        color: "lightgreen"
-
-        Text {
-            text: "Don't you dare click me"
-        }
+    Image {
+        id: backbutton
+        source: "qrc:///qml/back_enabled_mini.png"
+        width: 65 * scaleX
+        height: 65 * scaleY
+        fillMode: Image.PreserveAspectFit
+        antialiasing: true
+        x: 180 * scaleX
+        y: 10 * scaleY
 
         MouseArea {
             anchors.fill: parent
+            hoverEnabled: true
+            onPressed: backbutton.source =  "qrc:///qml/back_pressed_mini.png"
 
-            onClicked: container.needShoeIntoContext(Math.floor(Math.random() * (10 - 1 + 1)) + 1)
+            onClicked: container.goBack()
+
+            onReleased: backbutton.source =  "qrc:///qml/back_enabled_mini.png"
+
+            onEntered: backbutton.source =  "qrc:///qml/back_disabled_mini.png"
+
+            onExited: backbutton.source =  "qrc:///qml/back_enabled_mini.png"
         }
     }
 
+//    Rectangle {
+//        id: prova
+//        x: 300
 
-    Rectangle {
-        id: prova2
-        anchors.top: prova.bottom
+//        width: 200
+//        height: 200
 
-        width: 200
-        height: 200
+//        color: "lightgreen"
 
-        color: "lightblue"
+//        Text {
+//            text: "Don't you dare click me"
+//        }
 
-        Text {
-            text: "Go back"
-        }
+//        MouseArea {
+//            anchors.fill: parent
 
-        MouseArea {
-            anchors.fill: parent
+//            onClicked: container.needShoeIntoContext(Math.floor(Math.random() * (10 - 1 + 1)) + 1)
+//        }
+//    }
 
-            onClicked:{ container.goBack() }
-        }
-    }
+
+//    Rectangle {
+//        id: prova2
+//        anchors.top: prova.bottom
+
+//        width: 200
+//        height: 200
+
+//        color: "lightblue"
+
+//        Text {
+//            text: "Go back"
+//        }
+
+//        MouseArea {
+//            anchors.fill: parent
+
+//            onClicked:{ container.goBack() }
+//        }
+//    }
 
 
     //Rettangolo che funge da background oscurato per quando si preme su una thumbnail per mostrare l'immagine ingrandita
