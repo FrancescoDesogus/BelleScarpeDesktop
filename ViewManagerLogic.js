@@ -64,7 +64,6 @@ function showView(nextView)
             currentViewAnimationWithDestruction.running = true;
         }
 
-
         //Animazione per la view da mostrare
         nextViewAnimation.target = nextView;
         nextViewAnimation.to = 0;
@@ -75,6 +74,85 @@ function showView(nextView)
         //(infatti in tal caso è stata appena rimossa dallo stack, quindi non bisogna rimettercela)
         if(currentView && !isPreviousView)
             viewHistory.push(currentView);
+
+        //Terminato tutto, la view corrente diventa quindi la view che ora comparirà
+        currentView = nextView;
+    }
+}
+
+
+function showViewFlipable(nextView)
+{
+    /* Quando una view diventa visibile, la view precedentemente visibile diventa scompare, causando anch'essa una chiamata a questa funzione;
+     * quando ciò accade però, la funzione non deve fare nulla, in quanto la view che deve scomparire deve semplicemente diventare invisibile,
+     * senza fare altro (la view diventa invisibile solo al termine dell'animazione, come definito nell'apposita animazione in ViewManager.qml) */
+    if(nextView.visible)
+    {
+//        viewsContainer.back = nextView;
+//        viewsContainer.front = currentView;
+        flipableBack.nextView = nextView
+        flipableFront.currentView = currentView
+
+        viewsContainer.state = "flip"
+
+
+//        currentView.transformOrigin = Item.Top
+//        nextView.transformOrigin = Item.Bottom
+
+//        lol.angle = currentView.rotation;
+//        boh.angle = nextView.rotation;
+
+//        viewsContainer.currentView = currentView
+//        viewsContainer.nextView = nextView
+
+//        viewManager.state = "flip"
+
+
+
+
+//        /* Adesso devo preparare le animazioni. Se la view da mostrare è nuova, posiziono la view all'estremo destro del viewManager (che è
+//         * grande quanto la view che lo contiene; nel nostro caso tutto lo schermo). Se invece la view da mostrare era una view presa dallo stack,
+//         * moltiplico la larghezza per -1 per posizionare la view a sinistra dello schermo, visto che la transizione sarà "al contrario" */
+//        nextView.x = viewManager.width * (isPreviousView ? -1 : 1);
+
+//        //Se le animazioni erano già in atto (cioè se si sta cambiando view mentre c'era un cambiamento già in atto), le completo per poi riniziarle
+//        if(currentViewAnimation.running)
+//            currentViewAnimation.complete();
+
+//        if(currentViewAnimationWithDestruction.running)
+//            currentViewAnimationWithDestruction.complete();
+
+//        if(nextViewAnimation.running)
+//            nextViewAnimation.complete();
+
+
+//        if(!isPreviousView)
+//        {
+//            //Setto come target dell'animazione per la view che deve scomparire la view corrente, e la sposto fino all'estremo destro se la view1
+//            //da mostrare proveniva dallo stack, altrimento all'estremo sinistro. Fatto ciò, avvio l'animazione
+//            currentViewAnimation.target = currentView;
+//            currentViewAnimation.to = viewManager.width * (isPreviousView ? 1 : -1);
+//            currentViewAnimation.running = true;
+//        }
+//        else
+//        {
+//            //Stessa cosa di sopra, solo che se si sta tornando indietro ad una view precedente, la view attuale deve scomparire definitivamente
+//            //dalla memoria; chiamo quindi questa versione dell'animazione che distrugge la view al termine, invece di renderla solo invisibile
+//            currentViewAnimationWithDestruction.target = currentView;
+//            currentViewAnimationWithDestruction.to = viewManager.width * (isPreviousView ? 1 : -1);
+//            currentViewAnimationWithDestruction.running = true;
+//        }
+
+//        //Animazione per la view da mostrare
+//        nextViewAnimation.target = nextView;
+//        nextViewAnimation.to = 0;
+//        nextViewAnimation.running = true;
+
+
+        //Adesso currentView non è più visibile, quindi la devo inserire nello stack, ma solo se nextView non proveniva dallo stack
+        //(infatti in tal caso è stata appena rimossa dallo stack, quindi non bisogna rimettercela)
+//        if(currentView && !isPreviousView)
+//            viewHistory.push(currentView);
 
         //Terminato tutto, la view corrente diventa quindi la view che ora comparirà
         currentView = nextView;
@@ -124,7 +202,7 @@ function emptyViewStack()
 {
     //Dato che devo svuotare l'array, lo scorro per recuperare tutte le view in esso contenuto in modo da distruggerle
     //per liberare risorse
-    for(var i = 0; i < viewHistory.length - 1; i++)
+    for(var i = 0; i < viewHistory.length; i++)
         viewHistory[i].destroy();
 
     //Svuoto l'array
@@ -134,6 +212,6 @@ function emptyViewStack()
      * visibile e la funzione showView() venga eseguita, la ScreensaverView appaia nell'array dell'history provocando una transizione
      * stile "goBack()" dato che crederà che si sta semplicemente transizionando indietro di una view.
      * In questo momento, currentView conterrà l'ultima view visualizzata, che dovrà scomparire */
-    viewHistory.push(newView)
+//    viewHistory.push(newView)
 }
 

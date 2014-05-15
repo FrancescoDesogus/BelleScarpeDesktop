@@ -9,16 +9,217 @@ Rectangle {
     id: viewManager
     anchors.fill: parent
 
-    //Mettendo questa proprietà faccio si che quando si crea un oggetto di tipo ViewManager e si mettono al suo interno dei figli, questi
-    //diventino figli del viewContainer definito poco più in basso
+    //Mettendo questa proprietà faccio si che quando si crea un oggetto di tipo ViewManager e si mettono al suo interno dei figli,
+    //questi diventino figli del viewContainer definito poco più in basso
     default property alias content: viewsContainer.children
 
     clip: true
 
-    //Questo rectangle conterrà tutte le view che il viewManager gestirà
     Rectangle {
+        id: flipableFront
+
+        property Item currentView;
+    }
+
+   Rectangle {
+        id: flipableBack
+
+        property Item nextView;
+    }
+
+    //Questo rectangle conterrà tutte le view che il viewManager gestirà
+    Flipable {
         id: viewsContainer
         anchors.fill: parent
+
+
+        front: flipableFront
+
+        back: flipableBack
+
+        transform: Rotation {
+             id: rotation
+             origin.x: viewsContainer.width/2
+             origin.y: viewsContainer.height/2
+             axis.x: 0; axis.y: 1; axis.z: 0     // set axis.y to 1 to rotate around y-axis
+             angle: 0    // the default angle
+        }
+
+        states: State {
+             name: "flip"
+             PropertyChanges { target: rotation; angle: -180 }
+//             when: flipable.flipped
+         }
+
+         transitions: Transition {
+             NumberAnimation { target: rotation; property: "angle"; duration: 1500 }
+         }
+
+
+
+        property Item currentView;
+        property Item nextView;
+    }
+
+    Rotation { id: lol; origin.x: 0; origin.y: 0; axis {x:1; y:0; z:0} }
+    Rotation { id: boh; origin.x: 0; origin.y: 0; axis {x:1; y:0; z:0} }
+
+
+//    Component.onCompleted: {
+//        lol.angle = currentView.angle
+//    }
+
+//    Timer {
+//         interval: 30
+//         running: true
+//         repeat: true
+//         onTriggered: {
+//             myText.xAngle = myText.xAngle + 1;
+//             myText.yAngle = myText.yAngle + 1.5;
+//             myText.zAngle = myText.zAngle + 2.5
+//         }
+//    }
+
+
+    states: State {
+        name: "flip"
+
+        PropertyChanges {
+            target: viewsContainer.currentView;
+
+//            transformOrigin: Item.Left
+
+            transform: lol
+
+
+//            transform: [
+//                Rotation { origin.x: 300; origin.y: 80; axis {x:1; y:0; z:0} angle:myText.xAngle },
+//                Rotation { origin.x: 300; origin.y: 80; axis {x:0; y:1; z:0} angle:myText.yAngle },
+//                Rotation { origin.x: 300; origin.y: 80; axis {x:0; y:0; z:1} angle:myText.zAngle }
+//            ]
+        }
+
+        PropertyChanges {
+            target: viewsContainer.nextView;
+
+            transformOrigin: Item.Left
+
+            transform: boh
+        }
+    }
+
+    property double xAngle: 0
+    property double yAngle: 0
+    property double zAngle: 0
+
+
+//    Text {
+//         id: myText
+//         text: "Rotation"; font.pointSize: 100; color: "red"; x: 150; y: 100
+
+
+//    }
+//    Timer {
+//         interval: 30
+//         running: true
+//         repeat: true
+//         onTriggered: {
+//             myText.xAngle = myText.xAngle + 1;
+//             myText.yAngle = myText.yAngle + 1.5;
+//             myText.zAngle = myText.zAngle + 2.5
+//         }
+//    }
+
+
+
+    //Per avere un'animazione tra i cambi di stato creo delle transizioni
+    transitions: [
+        //Transizione per quando si passa dallo stato invisible allo stato visible
+        Transition {
+            from: "*"
+            to: "flip"
+
+
+            SequentialAnimation {
+                 PropertyAction {
+                     targets: viewsContainer.currentView, viewsContainer.nextView;
+                     property: "transformOrigin, transform"
+                 }
+
+                 //Per l'immagine si hanno 2 animazioni in contemporanea, quindi ci vuole una ParallelAnimation
+                 ParallelAnimation {
+
+                     //Animazione per l'opacità
+                     NumberAnimation {
+                         /* Il target dell'animazione è il currentItem; per questo è importante che prima del cambiamento di stato
+                          * sia settato correttamente il currentIndex con quello dell'immagine da mostrare, in modo che il
+                          * currentItem sia effettivamente aggiornato */
+                         target: viewsContainer.currentView
+
+                         properties: "rotation"
+                         duration: 1500
+
+                         from: 0
+                         to: 180
+//                         properties: "scale"
+//                         duration: 3000
+
+//                         from: 1
+//                         to: 0
+                     }
+
+                     //Animazione per il movimento sull'asse y
+                     NumberAnimation {
+                         target: viewsContainer.nextView
+
+                         properties: "rotation"
+                         duration: 1500
+
+                         from: -180
+                         to: 0
+
+//                         properties: "scale"
+//                         duration: 1500
+
+//                         from: 0
+//                         to: 1
+                     }
+                  }
+             }
+
+
+        }]
+
+    ParallelAnimation {
+
+        id: currentView
+
+
+
+         NumberAnimation {
+             id: prova1
+
+             properties: "scale";
+             from: 1;
+             duration: 0
+         }
+
+         onStopped: target.visible = false;
+    }
+
+    ParallelAnimation {
+
+        id: nextView
+
+
+
+         NumberAnimation {
+             id: prova2
+
+             properties: "scale";
+             from: 0;
+             duration: 1
+         }
     }
 
 
@@ -83,12 +284,17 @@ Rectangle {
     /* Questa funzione connette il signal per la visiblità cambiata di una view con la funzione che si occupa
      * di effettuare una transizione visiva; la funzione è messa qua e non in ViewManagerJs.js perchè deve
      * essere accessibile dall'esterno */
-    function connectViewEvents(view)
+    function connectViewEvents(view, isFlipable)
     {
-        //Quando la visibilità cambierà, scatterà il metodo showView() che gestirà il cambiamento di visibilità della view
-        view.visibleChanged.connect(function() {
-            ViewManagerJs.showView(view);
-        });
+        if(!isFlipable)
+            //Quando la visibilità cambierà, scatterà il metodo showView() che gestirà il cambiamento di visibilità della view
+            view.visibleChanged.connect(function() {
+                ViewManagerJs.showView(view);
+            });
+        else
+            view.visibleChanged.connect(function() {
+                ViewManagerJs.showViewFlipable(view);
+            });
     }
 
     /* Funzione che si occupa di tornare indietro di una view nello stack; la funzione è messa qua e non
