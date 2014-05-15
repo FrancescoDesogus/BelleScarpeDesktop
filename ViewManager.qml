@@ -28,38 +28,89 @@ Rectangle {
     }
 
     //Questo rectangle conterrà tutte le view che il viewManager gestirà
-    Flipable {
+    Rectangle {
         id: viewsContainer
         anchors.fill: parent
+    }
 
 
-        front: flipableFront
 
-        back: flipableBack
+    Rotation {
+         id: rotationNextView
+         origin.x: 0
+         origin.y: 0
+         axis.x: 0; axis.y: 1; axis.z: 0     // set axis.y to 1 to rotate around y-axis
+         angle: 0    // the default angle
+    }
 
-        transform: Rotation {
-             id: rotation
-             origin.x: viewsContainer.width/2
-             origin.y: viewsContainer.height/2
-             axis.x: 0; axis.y: 1; axis.z: 0     // set axis.y to 1 to rotate around y-axis
-             angle: 0    // the default angle
+    Rotation {
+         id: rotationCurrentView
+         origin.x: 0
+         origin.y: 0
+         axis.x: 0; axis.y: 1; axis.z: 0     // set axis.y to 1 to rotate around y-axis
+         angle: 0    // the default angle
+    }
+
+
+    State {
+        id: flipStateNextView
+         name: "flipNextView"
+         PropertyChanges { target: rotationNextView; angle: -180 }
+//             when: flipable.flipped
+    }
+    State {
+        id: flipStateCurrentView
+         name: "flipCurrentView"
+         PropertyChanges { target: rotationCurrentView; angle: 180 }
+        //             when: flipable.flipped
         }
 
-        states: State {
-             name: "flip"
-             PropertyChanges { target: rotation; angle: -180 }
-//             when: flipable.flipped
+     Transition {
+         id: flipTransitionNextView
+
+         to: "flip"
+
+         NumberAnimation {
+             target: rotationNextView;
+             property: "angle";
+             duration: 1000
+        }
+
+         onRunningChanged: {
+             console.log("ci sono?")
          }
-
-         transitions: Transition {
-             NumberAnimation { target: rotation; property: "angle"; duration: 1500 }
-         }
-
-
-
-        property Item currentView;
-        property Item nextView;
     }
+
+     Transition {
+         id: flipTransitionCurrentView
+
+         to: "flip"
+
+         NumberAnimation {
+             target: rotationCurrentView;
+             property: "angle";
+             duration: 1000
+        }
+
+         onRunningChanged: {
+             console.log("ci sono!")
+         }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     Rotation { id: lol; origin.x: 0; origin.y: 0; axis {x:1; y:0; z:0} }
     Rotation { id: boh; origin.x: 0; origin.y: 0; axis {x:1; y:0; z:0} }
@@ -81,114 +132,114 @@ Rectangle {
 //    }
 
 
-    states: State {
-        name: "flip"
+//    states: State {
+//        name: "flip"
 
-        PropertyChanges {
-            target: viewsContainer.currentView;
+//        PropertyChanges {
+//            target: viewsContainer.currentView;
+
+////            transformOrigin: Item.Left
+
+//            transform: lol
+
+
+////            transform: [
+////                Rotation { origin.x: 300; origin.y: 80; axis {x:1; y:0; z:0} angle:myText.xAngle },
+////                Rotation { origin.x: 300; origin.y: 80; axis {x:0; y:1; z:0} angle:myText.yAngle },
+////                Rotation { origin.x: 300; origin.y: 80; axis {x:0; y:0; z:1} angle:myText.zAngle }
+////            ]
+//        }
+
+//        PropertyChanges {
+//            target: viewsContainer.nextView;
 
 //            transformOrigin: Item.Left
 
-            transform: lol
-
-
-//            transform: [
-//                Rotation { origin.x: 300; origin.y: 80; axis {x:1; y:0; z:0} angle:myText.xAngle },
-//                Rotation { origin.x: 300; origin.y: 80; axis {x:0; y:1; z:0} angle:myText.yAngle },
-//                Rotation { origin.x: 300; origin.y: 80; axis {x:0; y:0; z:1} angle:myText.zAngle }
-//            ]
-        }
-
-        PropertyChanges {
-            target: viewsContainer.nextView;
-
-            transformOrigin: Item.Left
-
-            transform: boh
-        }
-    }
-
-    property double xAngle: 0
-    property double yAngle: 0
-    property double zAngle: 0
-
-
-//    Text {
-//         id: myText
-//         text: "Rotation"; font.pointSize: 100; color: "red"; x: 150; y: 100
-
-
-//    }
-//    Timer {
-//         interval: 30
-//         running: true
-//         repeat: true
-//         onTriggered: {
-//             myText.xAngle = myText.xAngle + 1;
-//             myText.yAngle = myText.yAngle + 1.5;
-//             myText.zAngle = myText.zAngle + 2.5
-//         }
+//            transform: boh
+//        }
 //    }
 
+//    property double xAngle: 0
+//    property double yAngle: 0
+//    property double zAngle: 0
 
 
-    //Per avere un'animazione tra i cambi di stato creo delle transizioni
-    transitions: [
-        //Transizione per quando si passa dallo stato invisible allo stato visible
-        Transition {
-            from: "*"
-            to: "flip"
+////    Text {
+////         id: myText
+////         text: "Rotation"; font.pointSize: 100; color: "red"; x: 150; y: 100
 
 
-            SequentialAnimation {
-                 PropertyAction {
-                     targets: viewsContainer.currentView, viewsContainer.nextView;
-                     property: "transformOrigin, transform"
-                 }
+////    }
+////    Timer {
+////         interval: 30
+////         running: true
+////         repeat: true
+////         onTriggered: {
+////             myText.xAngle = myText.xAngle + 1;
+////             myText.yAngle = myText.yAngle + 1.5;
+////             myText.zAngle = myText.zAngle + 2.5
+////         }
+////    }
 
-                 //Per l'immagine si hanno 2 animazioni in contemporanea, quindi ci vuole una ParallelAnimation
-                 ParallelAnimation {
 
-                     //Animazione per l'opacità
-                     NumberAnimation {
-                         /* Il target dell'animazione è il currentItem; per questo è importante che prima del cambiamento di stato
-                          * sia settato correttamente il currentIndex con quello dell'immagine da mostrare, in modo che il
-                          * currentItem sia effettivamente aggiornato */
-                         target: viewsContainer.currentView
 
-                         properties: "rotation"
-                         duration: 1500
+//    //Per avere un'animazione tra i cambi di stato creo delle transizioni
+//    transitions: [
+//        //Transizione per quando si passa dallo stato invisible allo stato visible
+//        Transition {
+//            from: "*"
+//            to: "flip"
 
-                         from: 0
-                         to: 180
-//                         properties: "scale"
-//                         duration: 3000
 
-//                         from: 1
-//                         to: 0
-                     }
+//            SequentialAnimation {
+//                 PropertyAction {
+//                     targets: viewsContainer.currentView, viewsContainer.nextView;
+//                     property: "transformOrigin, transform"
+//                 }
 
-                     //Animazione per il movimento sull'asse y
-                     NumberAnimation {
-                         target: viewsContainer.nextView
+//                 //Per l'immagine si hanno 2 animazioni in contemporanea, quindi ci vuole una ParallelAnimation
+//                 ParallelAnimation {
 
-                         properties: "rotation"
-                         duration: 1500
+//                     //Animazione per l'opacità
+//                     NumberAnimation {
+//                         /* Il target dell'animazione è il currentItem; per questo è importante che prima del cambiamento di stato
+//                          * sia settato correttamente il currentIndex con quello dell'immagine da mostrare, in modo che il
+//                          * currentItem sia effettivamente aggiornato */
+//                         target: viewsContainer.currentView
 
-                         from: -180
-                         to: 0
-
-//                         properties: "scale"
+//                         properties: "rotation"
 //                         duration: 1500
 
 //                         from: 0
-//                         to: 1
-                     }
-                  }
-             }
+//                         to: 180
+////                         properties: "scale"
+////                         duration: 3000
+
+////                         from: 1
+////                         to: 0
+//                     }
+
+//                     //Animazione per il movimento sull'asse y
+//                     NumberAnimation {
+//                         target: viewsContainer.nextView
+
+//                         properties: "rotation"
+//                         duration: 1500
+
+//                         from: -180
+//                         to: 0
+
+////                         properties: "scale"
+////                         duration: 1500
+
+////                         from: 0
+////                         to: 1
+//                     }
+//                  }
+//             }
 
 
-        }]
+//        }]
 
     ParallelAnimation {
 

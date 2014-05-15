@@ -91,7 +91,8 @@ Rectangle {
             hoverEnabled: true
             onPressed: backbutton.source =  "qrc:///qml/back_pressed_mini.png"
 
-            onClicked: container.goBack()
+//            onClicked: container.goBack()
+            onClicked: container.state = "flip"
 
             onReleased: backbutton.source =  "qrc:///qml/back_enabled_mini.png"
 
@@ -469,4 +470,155 @@ Rectangle {
          * un'animazione di transizione (mooolto lenta); messo su false, lo spostamento è istantaneo */
         onCurrentIndexChanged: imageFocusList.positionViewAtIndex(currentIndex, ListView.Contain)
     }
+
+    transform: [
+        Rotation {
+            id: rotationNextView
+//            origin.x: container.width
+//            origin.y: container.height
+            origin.x: 0
+            origin.y: container.height/2
+            axis.x: 0; axis.y: 1; axis.z: 0     // set axis.y to 1 to rotate around y-axis
+            angle: 0
+        },
+        Rotation {
+             id: rotationCurrentView
+//             origin.x: 0
+//             origin.y: 0
+             origin.x: 0
+             origin.y: container.height/2
+             axis.x: 0; axis.y: 1; axis.z: 0     // set axis.y to 1 to rotate around y-axis
+             angle: 0    // the default angle
+        }
+    ]
+
+    states: [
+        State {
+            id: flipStateNextView
+             name: "flipNextView"
+             PropertyChanges { target: rotationNextView; angle: 0 }
+             PropertyChanges { target: container; transformOrigin: Item.Left }
+        },
+
+        State {
+            id: flipStateCurrentView
+             name: "flipCurrentView"
+             PropertyChanges { target: rotationCurrentView; angle: -90 }
+        }
+    ]
+
+     transitions: [
+         Transition {
+             id: flipTransitionNextView
+
+             to: "flipNextView"
+
+             SequentialAnimation {
+                 PropertyAction {
+                      target: container
+                      property: "transformOrigin"
+                  }
+
+
+                 ParallelAnimation {
+                     NumberAnimation {
+                         target: rotationNextView;
+                         property: "angle";
+                         duration: 1000
+
+//                         from: -90
+                         from: 90
+
+                    }
+
+                     NumberAnimation {
+                         target: container;
+                         property: "scale";
+                         duration: 1000
+
+                         from: 0.5
+                         to: 1
+                    }
+
+                     NumberAnimation {
+                         target: container;
+                         property: "opacity";
+                         duration: 1000
+
+                         from: 0.25
+                         to: 1
+
+                    }
+                 }
+            }
+
+
+
+
+
+//             RotationAnimation {
+//                 target: container;
+//                 properties: "angle"
+//                  duration: 1000;
+//                  direction: RotationAnimation.Counterclockwise
+//             }
+
+             onRunningChanged: {
+                 console.log("ci sono?")
+             }
+        },
+
+         Transition {
+             id: flipTransitionCurrentView
+
+             to: "flipCurrentView"
+
+             ParallelAnimation {
+                 NumberAnimation {
+                     target: rotationCurrentView;
+                     property: "angle";
+                     duration: 500
+
+
+                     to: -90
+                }
+
+                 NumberAnimation {
+                     target: container;
+                     property: "scale";
+                     duration: 500
+
+                     from: 1
+                     to: 0.85
+
+                }
+
+                 NumberAnimation {
+                     target: container;
+                     property: "opacity";
+                     duration: 800
+
+                     from: 1
+                     to: 0.25
+
+
+                }
+             }
+
+             onRunningChanged: {
+                 if(!running)
+                 {
+                     container.destroy()
+                 }
+             }
+        }
+     ]
+
+
+    transformOrigin: Item.Left
+
+
+
+
+
 }

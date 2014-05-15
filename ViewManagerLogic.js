@@ -90,10 +90,54 @@ function showViewFlipable(nextView)
     {
 //        viewsContainer.back = nextView;
 //        viewsContainer.front = currentView;
-        flipableBack.nextView = nextView
-        flipableFront.currentView = currentView
+//        flipableBack.nextView = nextView
+//        flipableFront.currentView = currentView
 
-        viewsContainer.state = "flip"
+//        viewsContainer.state = "flip"
+
+
+
+
+//        //Carico il componente della view di timeout
+//        var component = Qt.createComponent("FlipableSurface.qml");
+
+//        //Creo una istanza di quel componente mettendola come figlia del view manager
+//        var flipableSurface = component.createObject(viewsContainer);
+
+
+//        flipableSurface.front = currentView
+//        flipableSurface.back = nextView
+
+//        nextView.z = 2;
+
+
+//        flipableSurface.state = "flip"
+
+        ////////////////
+
+////        currentView.states = flipStateCurrentView;
+////        currentView.transform = rotationCurrentView;
+////        currentView.transitions = flipTransition;
+
+//        nextView.states = flipStateNextView;
+//        nextView.transform = rotationNextView;
+//        nextView.transitions = flipTransitionNextView;
+
+
+
+
+        currentView.state = "flipCurrentView"
+        nextView.state = "flipNextView"
+
+        nextView.z = currentView.z
+        currentView.z = currentView.z + 1;
+
+//////////////////
+
+
+
+
+
 
 
 //        currentView.transformOrigin = Item.Top
