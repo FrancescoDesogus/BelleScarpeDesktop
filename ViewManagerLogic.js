@@ -105,7 +105,7 @@ function goBack()
 function reset(newView)
 {
     //Dato che devo svuotare l'array, lo scorro per recuperare tutte le view in esso contenuto in modo da distruggerle
-    //per liberare risorse
+    //per liberare risorse. Nota: cancello tutte tranne l'ultima, che serve ancora in vita per fare la transazione visiva
     for(var i = 0; i < viewHistory.length - 1; i++)
         viewHistory[i].destroy();
 
@@ -119,4 +119,21 @@ function reset(newView)
     viewHistory.push(newView)
 }
 
+
+function emptyViewStack()
+{
+    //Dato che devo svuotare l'array, lo scorro per recuperare tutte le view in esso contenuto in modo da distruggerle
+    //per liberare risorse
+    for(var i = 0; i < viewHistory.length - 1; i++)
+        viewHistory[i].destroy();
+
+    //Svuoto l'array
+    viewHistory.length = 0;
+
+    /* Inserisco esclusivamente la nuova view (la ScreensaverView) nell'array; lo faccio in modo tale che quando la view diventerà
+     * visibile e la funzione showView() venga eseguita, la ScreensaverView appaia nell'array dell'history provocando una transizione
+     * stile "goBack()" dato che crederà che si sta semplicemente transizionando indietro di una view.
+     * In questo momento, currentView conterrà l'ultima view visualizzata, che dovrà scomparire */
+    viewHistory.push(newView)
+}
 

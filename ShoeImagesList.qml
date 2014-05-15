@@ -293,7 +293,7 @@ Rectangle {
                 //che fa scomparire la scrollbar
                 onMovementEnded: {
                     if(verticalScrollBar.visible)
-                        fadeOutTimer.running = true
+                        fadeOutTimer.restart()
                 }
             }
 
@@ -413,11 +413,12 @@ Rectangle {
         }
     }
 
-    //Questo timer si occupa di cambiare la thumbnail attualmente selezionata dopo un tot di tempo che non si seleziona una thumbnail
+    //Questo timer si occupa di cambiare la thumbnail attualmente selezionata dopo un tot di tempo che non si seleziona una thumbnail.
+    //Il timer si avvia da solo non appena la view diventa visibile e si blocca quando diventa invisibile
     Timer {
         id: thumbnailMoverTimer
         interval: 6000 //6 secondi
-        running: true
+        running: false
         repeat: true
 
         //Quando scatta il timer, se si è raggiunta la fine della lista la riazzero, altrimenti incremento l'indice
@@ -434,6 +435,21 @@ Rectangle {
             }
         }
      }
+
+
+    //Quando la view diventa visible, avvio (o riavvio) il timer che scorre la lista delle thumbnail; quando diventa
+    //invisibile, lo blocco
+    onVisibleChanged: {
+        if(visible)
+        {
+            thumbnailMoverTimer.restart();
+
+            //Riporto anche l'indice della lista all'elemento iniziale
+            thumbnailList.currentIndex = 0;
+        }
+        else
+            thumbnailMoverTimer.stop();
+    }
 
 
     /*

@@ -104,4 +104,9 @@ Rectangle {
     {
         ViewManagerJs.reset(newView);
     }
+
+    function emptyViewStack()
+    {
+        ViewManagerJs.emptyViewStack();
+    }
 }

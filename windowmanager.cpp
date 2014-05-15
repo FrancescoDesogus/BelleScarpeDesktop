@@ -197,7 +197,7 @@ void WindowManager::loadShoe(Shoe *shoe)
        inputFile.close();
     }
     else
-        qDebug() << "Non è stato possibile aprire il file con i video";
+        qDebug() << "Non è stato possibile aprire il file con i video; il file potrebbe non essere presente";
 
 
 

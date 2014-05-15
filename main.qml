@@ -117,6 +117,27 @@ Rectangle {
     }
 
 
+    function emptyViewStack()
+    {
+        myViewManager
+
+        //Chiamo il metodo del ViewManager che riazzera lo stack di view, in modo che rimanga solo la ScreensaverView
+        //che si sta per mettere; passo al metodo la ScreensaverView, in modo che venga inserita nell'array
+        myViewManager.resetToView(newView);
+
+        //Connetto la visibilità della view con il metodo per gestire i cambi di view
+        myViewManager.connectViewEvents(newView);
+
+        //Adesso che la view è connessa col gestore, la rendo visibile. Questo farà si che la view corrente sparisca per lasciare
+        //spazio alla view appena aggiunta
+        newView.visible = true;
+
+
+        //Mi segno inoltre che ora la schermata attiva è quella dello screensaver
+        myViewManager.isScreensaverOn = true;
+    }
+
+
     /* Funzione che viene chiamata da C++ quando non è possibile recuperare una data scarpa dal database, riportnado
      * alla schermata principale (da aggiungere: messaggio di errore visivo) */
     function cantLoadShoe()
