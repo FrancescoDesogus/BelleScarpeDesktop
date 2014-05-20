@@ -21,7 +21,7 @@ Item {
     signal barReleased();
 
     property Flickable flickable               : null;
-    property int       handleSize              : 7;
+    property int       handleSize              : 9 * scaleX;
 
     //Proprietà che espone il timer che fa scomparire la barra dopo il termine dell'input u
     property alias barOpacity: backHandle.opacity

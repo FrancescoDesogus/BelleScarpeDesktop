@@ -255,7 +255,7 @@ Rectangle
             id: verticalScrollBar
             flickable: similarList
             position: "right"
-            handleSize: 6
+            handleSize: 8 * scaleX
 
             onBarClicked: {
                 //Rimetto l'opacità della barra al valore di default, qualora non fosse già così
