@@ -23,6 +23,9 @@ Rectangle
     //clickata una il booleano diventa false per evitare di poter premere molte volte di fila e creare mille schermate
     property bool isClickable: true
 
+    //Signal che scatta quando viene rilevato un qualsiasi evento touch nell'interfaccia; serve per riazzerare il timer
+    //che porta alla schermata di partenza dopo un tot di tempo di inattività
+    signal touchEventOccurred()
 
 
     /* Questo signal indica che è stata premuta una nuova scarpa e che bisogna creare una nuova view che la visualizzi;
@@ -137,6 +140,7 @@ Rectangle
 
             //La lista è grande quanto tutto il container
             anchors.fill: listContainer
+            anchors.rightMargin: verticalScrollBar.width + (1 * scaleX)
 
             //Il modello della lista, contenente i path delle immagini da mostrare, è preso da C++ ed è uguale a quello della lista
             //contenente le thumbnail
@@ -188,6 +192,11 @@ Rectangle
                             //Infine emitto il signal che avverte che c'è bisogno di caricare una nuova scarpa, passando anche
                             //il flipable come parametro in modo che possa essere usato in ShoeView
                             container.needShoeIntoContext(modelData.id, shoeSelectedFlipable)
+
+
+                            /// Sezione Timer ///
+                            //Cambio l'indice della lista; automaticamente verrà cambiata anche la mainImage
+                            similarList.currentIndex = index
                         }
                     }
 
@@ -219,9 +228,59 @@ Rectangle
             onVisibleChanged: {
                 container.isClickable = container.visible
             }
+
+            //Quando inizia il movimento della lista da parte dell'utente devo bloccare il timer che fa scomparire la scrollbar
+            onMovementStarted: {
+                //Eseguo il codice solo se la barra è visibile
+                if(verticalScrollBar.visible)
+                {
+                    //Rimetto l'opacità della barra al valore di default, qualora non fosse già così
+                    verticalScrollBar.barOpacity = verticalScrollBar.defaultOpacity
+
+                    //Termino il timer, qualora fosse in esecuzione
+                    fadeOutTimer.stop()
+                }
+            }
+
+            //Quando finisce il movimento della lista da parte dell'utente devo mandare in esecuzione il timer
+            //che fa scomparire la scrollbar
+            onMovementEnded: {
+                if(verticalScrollBar.visible)
+                    fadeOutTimer.restart()
+            }
         }
 
+        //La scrollbar è definita in un file a parte e compare solo se l'altezza della lista supera l'altezza dello schermo
+        ScrollBar {
+            id: verticalScrollBar
+            flickable: similarList
+            position: "right"
+            handleSize: 6
 
+            onBarClicked: {
+                //Rimetto l'opacità della barra al valore di default, qualora non fosse già così
+                verticalScrollBar.barOpacity = verticalScrollBar.defaultOpacity
+
+                //Termino il timer, qualora fosse in esecuzione
+                fadeOutTimer.stop()
+            }
+
+            onBarReleased: {
+                if(verticalScrollBar.visible)
+                    fadeOutTimer.restart()
+            }
+        }
+
+        //Timer che si occupa di far sparire la ScrollBar dopo un tot di tempo dal termine dell'input utente
+        Timer {
+            id: fadeOutTimer
+            interval: 2000 //1 secondo
+            running: true //Faccio partire il timer all'inizio del programma
+            repeat: false
+
+            //Quando scatta il timer, porto l'opacità della barra a zero
+            onTriggered: verticalScrollBar.barOpacity = 0
+        }
 
         Rectangle {
             id: separatorList

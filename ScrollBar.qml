@@ -1,6 +1,9 @@
 import QtQuick 2.0;
 
 Item {
+
+    property string position                   : "left";
+
     id: scrollbar;
     width: (handleSize + 2 * (backScrollbar.border.width +1));
 //    visible: (flickable.visibleArea.heightRatio < 1.0);
@@ -8,7 +11,8 @@ Item {
 
     anchors {
         top: flickable.top;
-        left: flickable.parent.left;
+        left: (position === "left") ? flickable.parent.left : undefined;
+        right: (position === "right") ? flickable.parent.right : undefined;
         bottom: flickable.bottom;
         margins: 0;
     }
@@ -17,7 +21,7 @@ Item {
     signal barReleased();
 
     property Flickable flickable               : null;
-    property int       handleSize              : 8;
+    property int       handleSize              : 7;
 
     //Proprietà che espone il timer che fa scomparire la barra dopo il termine dell'input u
     property alias barOpacity: backHandle.opacity

@@ -148,7 +148,7 @@ Rectangle {
                 //un margine per lasciare spazio alla scrollbar
                 anchors {
                     left: parent.left
-                    leftMargin: 20 * scaleX
+                    leftMargin: verticalScrollBar.width + (2 * scaleX)
                 }
 
 
@@ -302,6 +302,7 @@ Rectangle {
             ScrollBar {
                 id: verticalScrollBar
                 flickable: thumbnailList
+                position: "left"
 
                 onBarClicked: {
                     //Rimetto l'opacità della barra al valore di default, qualora non fosse già così
