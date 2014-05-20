@@ -232,7 +232,8 @@ Rectangle {
                     to: 0
                 }
 
-                //Animazione di spostamento sull'asse x del backContainer
+                //Animazione di spostamento sull'asse x del backContainer (attualmente non in uso perchè il backContainer
+                //è ancorato al frontContainer e quindi si muove con quello
 //                NumberAnimation {
 //                    target: backContainer;
 
@@ -246,7 +247,8 @@ Rectangle {
 //                    to: 0
 //                }
 
-//                //Animazione di spostamento sull'asse y del backContainer
+//                //Animazione di spostamento sull'asse x del backContainer (attualmente non in uso perchè il backContainer
+                  //è ancorato al frontContainer e quindi si muove con quello
 //                NumberAnimation {
 //                    target: backContainer;
 

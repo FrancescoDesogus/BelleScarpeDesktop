@@ -23,6 +23,9 @@ Rectangle {
     property FlipableSurface flipableSurface;
 
 
+
+    property bool isClickAllowed: true
+
     //Signal che scatta quando viene rilevato un qualsiasi evento touch nell'interfaccia; serve per riazzerare il timer
     //che porta alla schermata di partenza dopo un tot di tempo di inattività
     signal touchEventOccurred()
@@ -74,13 +77,16 @@ Rectangle {
          * un focus sull'immagine. Il signal riceve come parametro l'indice della lista di thumbnail che indica
          * quale immagine della contenente le immagini ingrandite deve essere mostrata per prima */
         onMainImageClicked: {
-            //Quando il signal scatta, cambio lo stato del rettangolo che oscura lo schermo
-            mainImageFocusBackground.state = "visible";
+            if(isClickAllowed)
+            {
+                //Quando il signal scatta, cambio lo stato del rettangolo che oscura lo schermo
+                mainImageFocusBackground.state = "visible";
 
-            //Cambio l'indice della lista contenente le immagini ingrandite in base all'indice ricevuto dal signal; dopodichè
-            //rendo visibile la lista stessa
-            imageFocusList.currentIndex = listIndex
-            imageFocusList.state = "visible"
+                //Cambio l'indice della lista contenente le immagini ingrandite in base all'indice ricevuto dal signal; dopodichè
+                //rendo visibile la lista stessa
+                imageFocusList.currentIndex = listIndex
+                imageFocusList.state = "visible"
+            }
         }
 
         //Anche ShoeImagesList ha un signal onTouchEventOccurred; quando scatta, propago l'evento verso l'esterno
@@ -116,8 +122,9 @@ Rectangle {
 
     SimiliarShoesList {
         id: similiarShoesList
-        anchors.left: shoeDetail.right
-        anchors.leftMargin: 90 * scaleX
+        anchors.right: parent.right
+//        anchors.left: shoeDetail.right
+//        anchors.leftMargin: 90 * scaleX
 
         anchors.top: parent.top
 
@@ -175,6 +182,8 @@ Rectangle {
                 shoeDetail.opacity = 0
                 similiarShoesList.opacity = 0
                 backButton.opacity = 0
+
+                isClickAllowed = false;
             }
     }
 
@@ -370,7 +379,6 @@ Rectangle {
         delegate: Component {
             Image {
                 id: focusedImage
-//                source: "file:///" + model.modelData.source
                 source: modelData
 
                 height: parent.height
@@ -579,6 +587,8 @@ Rectangle {
             shoeDetail.opacity = 1
             similiarShoesList.opacity = 1
             backButton.opacity = 1
+
+            isClickAllowed = true
         }
     }
 

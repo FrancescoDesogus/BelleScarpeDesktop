@@ -284,6 +284,40 @@ vector<Shoe*> ShoeDatabase::getSimiliarShoes(int shoeId, QString sex, QString ca
             shoeList.push_back(shoe);
         }
 
+        Shoe* shoe1 = this->getShoeFromId(1);
+        Shoe* shoe2 = this->getShoeFromId(3);
+        Shoe* shoe3 = this->getShoeFromId(4);
+        Shoe* shoe4 = this->getShoeFromId(8);
+
+        QDir path = QDir::currentPath() + "/debug/shoes_media/" + shoe1->getMediaPath() + "/thumbnail/";
+
+
+        QStringList nameFilter;
+        nameFilter << "*.png" << "*.jpg" << "*.gif";
+
+        QString thumbnailPath = "file:///" + path.entryInfoList(nameFilter, QDir::Files, QDir::Name).first().absoluteFilePath();
+
+        shoe1->setThumbnailPath(thumbnailPath);
+
+
+        path = QDir::currentPath() + "/debug/shoes_media/" + shoe2->getMediaPath() + "/thumbnail/";
+        thumbnailPath = "file:///" + path.entryInfoList(nameFilter, QDir::Files, QDir::Name).first().absoluteFilePath();
+        shoe2->setThumbnailPath(thumbnailPath);
+
+        path = QDir::currentPath() + "/debug/shoes_media/" + shoe3->getMediaPath() + "/thumbnail/";
+        thumbnailPath = "file:///" + path.entryInfoList(nameFilter, QDir::Files, QDir::Name).first().absoluteFilePath();
+        shoe3->setThumbnailPath(thumbnailPath);
+
+        path = QDir::currentPath() + "/debug/shoes_media/" + shoe4->getMediaPath() + "/thumbnail/";
+        thumbnailPath = "file:///" + path.entryInfoList(nameFilter, QDir::Files, QDir::Name).first().absoluteFilePath();
+        shoe4->setThumbnailPath(thumbnailPath);
+
+
+        shoeList.push_back(shoe1);
+        shoeList.push_back(shoe2);
+        shoeList.push_back(shoe3);
+        shoeList.push_back(shoe4);
+
         return shoeList;
     }
     else
