@@ -146,6 +146,19 @@ Item
         anchors.horizontalCenter: parent.horizontalCenter
         radius: 6
 
+        Behavior on y {
+            NumberAnimation {
+                duration: 500
+            }
+        }
+
+        Rectangle {
+            anchors.bottom: parent.bottom
+            width: parent.width
+            height: 10
+            color: parent.color
+        }
+
         Text {
             text: "<"
             rotation: 90
@@ -160,19 +173,23 @@ Item
             anchors.horizontalCenter: parent.horizontalCenter
         }
 
-        Rectangle {
-            anchors.bottom: parent.bottom
-            width: parent.width
-            height: 5
-            color: parent.color
-        }
-
         MouseArea{
             id: cliccabile
-            anchors.fill: parent
+            anchors.fill: filterPanel
 
             drag.target: filterPanel
-            drag.axis: Drag.XandYAxis
+            drag.axis: Drag.YAxis
+
+            onPressed: {
+                filterPanel.anchors.bottom = undefined
+                filterPanel.anchors.horizontalCenter = undefined
+            }
+
+            onReleased: {
+                filterPanel.anchors.bottom = container.bottom
+                filterPanel.anchors.horizontalCenter = container.horizontalCenter
+            }
+
         }
     }
 
