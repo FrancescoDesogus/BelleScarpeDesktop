@@ -128,7 +128,8 @@ Shoe* ShoeDatabase::getShoeFromId(int shoeId)
 Shoe* ShoeDatabase::getShoeFromId(QString RFIDcode)
 {
     //Preparo la query vera e propria da eseguire in base al codice RFID passato
-    QString queryString = "SELECT * FROM " + ShoeDatabase::SHOE_TABLE_NAME + " WHERE " + ShoeDatabase::SHOE_RFID_CODE_COLUMN + " = " + RFIDcode;
+    QString queryString = "SELECT * FROM " + ShoeDatabase::SHOE_TABLE_NAME + " "+
+                          "WHERE " + ShoeDatabase::SHOE_RFID_CODE_COLUMN + " = " + "'" + RFIDcode + "'";
 
     //Chiamo il metodo che si occuperà di eseguire la query vera e propria e di restituire la scarpa trovata
     return getShoe(queryString);
@@ -208,7 +209,12 @@ Shoe* ShoeDatabase::getShoe(QString queryString)
     }
     else
     {
-        qDebug() << query.lastError();
+        if(query.size() == 0)
+            qDebug() << "ShoeDatabase::getShoe: nessuna scarpa è stata trovata";
+        else
+            qDebug() << "ShoeDatabase::getShoe: c'è stato un errore nella query: " << query.lastError();
+
+//        qDebug() << query.lastError();
 
         return NULL;
     }

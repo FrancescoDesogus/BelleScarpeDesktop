@@ -22,11 +22,12 @@ private:
     //Database dal quale recuperare informazioni sulle scarpe
     ShoeDatabase database;
 
-    void loadShoe(Shoe *shoe);
+    void loadShoe(Shoe *shoe, bool isFromRFID);
 
 public slots:
     void loadNewShoeView(int id);
     void loadNewShoeView(QString RFIDcode);
+    void prova();
 };
 
 #endif // WINDOWMANAGER_H

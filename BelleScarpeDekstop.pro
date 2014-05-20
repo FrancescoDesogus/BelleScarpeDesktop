@@ -7,7 +7,12 @@ QT = core gui serialport quick declarative qml sql # I moduli QT da usare per l'
 
 QTPLUGIN += QSQLMYSQL # Plugin dedicato a SQL
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets # Riga messa per supportare altre versioni di QT (?)
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets # Riga messa per supportare altre versioni di QT
+
+
+# Cartelle dentro la cartella del progetto in cui cercare i file (attualmente non in uso
+VPATH += sources headers qml
+
 
 # Qua sotto c'è l'elenco dei file usati nel progetto. Se non sono riportati qua, non vengono visualizzati nell'albero del progetto
 # a sinistra in QT Creator, però comunque vengono usati dall'applicazione
@@ -28,6 +33,11 @@ HEADERS += \
     arduino.h \
     dataobject.h
 
+# This variable contains the list of all directories to look
+# in to resolve dependencies. This will be used when crawling
+# through included files.
+DEPENDPATH += HEADERS
+
 RESOURCES += \
     resources.qrc
 
@@ -44,4 +54,6 @@ OTHER_FILES += \
     DetailRectangle.qml \
     ScreensaverView.qml \
     youtubePlayer.html \
-    SimiliarShoesList.qml
+    SimiliarShoesList.qml \
+    FlipableSurface.qml \
+    SimilarShoesDelegate.qml

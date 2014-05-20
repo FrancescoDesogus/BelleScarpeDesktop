@@ -48,10 +48,6 @@ WindowManager::WindowManager(QQuickView *parent) :
 
 void WindowManager::setupScreen()
 {
-    //Preparo il database
-    this->database;
-
-
     /* Aggiungo al contesto dell'engile qml una proprietà che corrisponde all'istanza di questa classe. In questo modo nei file qml
      * che si chiameranno sarà nota la proprietà "firstWindow", e si potranno chiamare i metodi definiti Q_INVOKABLE nell'header
      * della classe, oltre che i membri definiti con Q_PROPERTY (in questo caso però di questi non ce ne sono) */
@@ -84,11 +80,11 @@ void WindowManager::setupScreen()
     //posso mettere la finestra in fullscreen e la parte fatta in QML si adatterà automaticamente
     this->setResizeMode(QQuickView::SizeRootObjectToView);
 
-
+    //Infine mando in esecuzione a tutto schermo
     this->showFullScreen();
 
-    //Appena avviato carico una scarpa per provare
-    loadNewShoeView(2);
+    //Appena avviato carico una scarpa per provare, simulando l'arrivo di un codice RFID
+    loadNewShoeView("asd");
 }
 
 
@@ -110,7 +106,7 @@ void WindowManager::loadNewShoeView(QString RFIDcode)
     Shoe *shoe = database.getShoeFromId(RFIDcode);
 
     //Chiamo il metodo che si occupa effettivamente di recuperare il resto delle informazioni, di creare la nuova view ecc...
-    loadShoe(shoe);
+    loadShoe(shoe, true);
 }
 
 
@@ -132,12 +128,12 @@ void WindowManager::loadNewShoeView(int id)
     Shoe *shoe = database.getShoeFromId(id);
 
     //Chiamo il metodo che si occupa effettivamente di recuperare il resto delle informazioni, di creare la nuova view ecc...
-    loadShoe(shoe);
+    loadShoe(shoe, false);
 }
 
 
 
-void WindowManager::loadShoe(Shoe *shoe)
+void WindowManager::loadShoe(Shoe *shoe, bool isFromRFID)
 {
     //Se shoe è uguale a null, c'è stato qualche problema con il recupero della scarpa dal db, quindi bisogna gestirlo
     if(shoe == NULL)
@@ -263,9 +259,97 @@ void WindowManager::loadShoe(Shoe *shoe)
     newView->setParentItem(qobject_cast<QQuickItem*>(viewManager));
 
 
+
+
     /* Il processo di creazione della nuova view non è finito. Bisogna connettere la nuova view a eventi, signals e cose varie
      * che sono visibili e accessibili solo dalla parte QML, quindi quello che faccio è chiamare una funzione contenuta nel
      * file main.qml (che corrisponte ora a qmlRoot) che si occuperà di questi collegamenti, e le passo la nuova view
      * appena aggiunta. Dopo l'esecuzione di quella funzione, la nuova view verrà mostrata */
-    QMetaObject::invokeMethod(qmlRoot, "connectNewViewEvents", Q_ARG(QVariant, QVariant::fromValue(newView)));
+    QMetaObject::invokeMethod(qmlRoot, "connectNewViewEvents", Q_ARG(QVariant, QVariant::fromValue(newView)), Q_ARG(QVariant, QVariant::fromValue(isFromRFID)));
+}
+
+
+void WindowManager::prova()
+{
+    database.open();
+
+    Shoe *shoe = database.getShoeFromId(1);
+
+    if(shoe == NULL)
+    {
+        QObject *qmlRoot = this->rootObject();
+
+        QMetaObject::invokeMethod(qmlRoot, "cantLoadShoe");
+
+        database.close();
+
+        return;
+    }
+
+    QDir path = QDir::currentPath() + "/debug/shoes_media/" + shoe->getMediaPath() + "/";
+
+
+    QStringList imagesAndVideoPathsModel;
+    QStringList imagesOnlyPathsModel;
+
+    QStringList nameFilter;
+    nameFilter << "*.png" << "*.jpg" << "*.gif";
+
+    foreach (QFileInfo fInfo, path.entryInfoList(nameFilter, QDir::Files, QDir::Name))
+        imagesAndVideoPathsModel.append("file:///" + fInfo.absoluteFilePath());
+
+    imagesOnlyPathsModel = imagesAndVideoPathsModel;
+
+    QFile inputFile(path.absolutePath() + "/video_links.txt");
+
+    if(inputFile.open(QIODevice::ReadOnly))
+    {
+       QTextStream in(&inputFile);
+
+       while(!in.atEnd())
+       {
+          imagesAndVideoPathsModel.append(in.readLine());
+       }
+
+       inputFile.close();
+    }
+    else
+        qDebug() << "Non è stato possibile aprire il file con i video; il file potrebbe non essere presente";
+
+
+    QList<QObject*> similiarShoesModel;
+
+    vector<Shoe*> similiarShoes = database.getSimiliarShoes(shoe->getId(), shoe->getSex(), shoe->getCategory());
+
+    for(int i = 0; i < similiarShoes.size(); i++)
+       similiarShoesModel.append(similiarShoes[i]);
+
+    database.close();
+
+
+    QQmlContext *context = new QQmlContext(this->rootContext());
+
+
+    context->setContextProperty("shoe", shoe);
+    context->setContextProperty("thumbnailModel", QVariant::fromValue(imagesAndVideoPathsModel));
+    context->setContextProperty("imagesModel", QVariant::fromValue(imagesOnlyPathsModel));
+    context->setContextProperty("similiarShoesModel", QVariant::fromValue(similiarShoesModel));
+
+
+    QQmlComponent component(this->engine(), QUrl("qrc:/qml/ShoeView.qml"));
+
+    QQuickItem *newView = qobject_cast<QQuickItem*>(component.create(context));
+
+//    QDeclarativeEngine::setObjectOwnership(newView, QDeclarativeEngine::JavaScriptOwnership);
+
+
+//    QObject *qmlRoot = this->rootObject();
+
+
+//    QObject *viewManager = qmlRoot->findChild<QObject*>("myViewManager");
+
+//    newView->setParentItem(qobject_cast<QQuickItem*>(viewManager));
+
+
+//    QMetaObject::invokeMethod(qmlRoot, "connectNewViewEvents", Q_ARG(QVariant, QVariant::fromValue(newView)), Q_ARG(QVariant, QVariant::fromValue(true)));
 }

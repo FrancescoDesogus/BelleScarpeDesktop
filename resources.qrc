@@ -20,5 +20,7 @@
         <file>back_enabled_mini.png</file>
         <file>back_disabled_mini.png</file>
         <file>qrcode.png</file>
+        <file>FlipableSurface.qml</file>
+        <file>SimilarShoesDelegate.qml</file>
     </qresource>
 </RCC>

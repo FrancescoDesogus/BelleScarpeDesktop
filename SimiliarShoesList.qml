@@ -24,15 +24,16 @@ Rectangle
     property bool isClickable: true
 
 
-    //Questo signal indica che è stata premuta una nuova scarpa e che bisogna creare una nuova view che la visualizzi;
-    //passa come parametro l'id della scarpa toccata
-    signal needShoeIntoContext(int id)
+
+    /* Questo signal indica che è stata premuta una nuova scarpa e che bisogna creare una nuova view che la visualizzi;
+     * passa come parametro l'id della scarpa toccata e il riferimento alla FlipableSurface che corrisponde alla scarpa
+     * selezionata (è una copia visiva della list entry selezionata) */
+    signal needShoeIntoContext(int id, variant shoeSelectedFlipable)
 
 
 
     height: parent.height
     width: 600 * scaleX
-//    color: "red"
 
     FontLoader {
         id: metroFont;
@@ -51,6 +52,7 @@ Rectangle
         anchors.left: container.left
         anchors.top: container.top
         anchors.topMargin: 15 * scaleY
+
     }
 
     Rectangle {
@@ -61,6 +63,66 @@ Rectangle
         anchors.top: title.bottom
         anchors.topMargin: 10 * scaleY
     }
+
+
+
+    /* Questa FlipableSurface è usata per mostrare la transizione di spinning quando si seleziona una scarpa. Inizialmente l'idea
+     * era di rendere ogni entry della lista come FlipableSurface, ma per eseguire la transizione era necessario spostare l'entry
+     * e cambiarne il padre, di fatto rimuovendola in un modo non convenzionale dalla lista; questo rendeva impossibile reinserirla
+     * nuovamente quando si faceva il reflip. Di conseguenza questa flipableSurface si occupa di "imitare" l'entry selezionata,
+     * nel senso che ne diventa una copia visiva per la durata della transizione e "fa finta di essere lei". Quando si seleziona
+     * un'altra scarpa, imita quell'altra e così via */
+    FlipableSurface {
+        id: flipableSurface
+
+        //Di default la flipableSurface non è visibile; diventa tale solo durante le transizioni
+        visible: false
+
+        /* Stabilisco come front lo stesso tipo di component che uso nel delegate della lista, solo che inizialmente è vuoto
+         * di elementi. Quando si selezionerà una scarpa della lista, sarà questo front a diventare la copia dell'entry clickata,
+         * recuperando tutte le informazioni che servono */
+        front: SimilarShoesDelegate {
+            id: delegateCopy
+
+            //Inizialmente setto solo dei valori costanti, indipendenti dalla scarpa e uguali per ogni entry della lista
+            width: similarList.width
+            textFont: metroFont
+            color: container.backgroundColor
+        }
+
+
+        /* Questa funzione viene chiamata dall'entry della lista clickata, e si occupa di popolare la copia in modo che diventi
+         * tale e quale all'entry */
+        function createCopy(toCopy)
+        {
+            //Ne prendo il colore (se è cambiato quando l'entry è stata clickata...
+            delegateCopy.color = toCopy.color
+
+            //...e tutte le altre informazioni che cambiano da scarpa a scarpa
+            delegateCopy.thumbnailSource = toCopy.thumbnailSource
+            delegateCopy.modelText = toCopy.modelText
+            delegateCopy.brandText = toCopy.brandText
+            delegateCopy.priceText = toCopy.priceText
+
+
+            /* Adesso devo settare le coordinate del flipable (non tocco quelle di delegateCopy in quanto è incollata al flipable e
+             * non serve). Per farlo, recupero le coordinate locali a SimilarShoesList dell'entry della lista con la funzione
+             * mapToItem(), in quanto toCopy contiene le coordinate dell'entry rispetto al padre, non rispetto al container
+             * di SimilarShoesList (per dire, la y avrebe un valore inferiore perchè non terrebbe conto del titolo che c'è in alto).
+             * Serve avere le coordinate locali "giuste" per usare di nuovo il metodo mapToItem() dentro  ShoeView in modo da
+             * ottenere le coordinate globali dell'entry della lista. Servono quelle globali in quanto durante le transizioni
+             * il flipable prende come padre il container di ShoeView, che è grande appunto tutto lo schermo */
+            var localCoordinates = toCopy.mapToItem(container, 0, 0)
+
+            //Recuperate le coordinate locali a tutto il component SimilarShoesList, le assegno al flipable
+            flipableSurface.x = localCoordinates.x
+            flipableSurface.y = localCoordinates.y
+
+            //Restituisco quindi il flipable, il cui front è adesso una copia visiva dell'entry della lista clickata
+            return flipableSurface;
+        }
+    }
+
 
     Rectangle {
         id: listContainer
@@ -73,13 +135,8 @@ Rectangle
 
             property int counter: 0;
 
-            //La lista è grande quanto tutto lo schermo, quindi "riempie" tutto il parent
+            //La lista è grande quanto tutto il container
             anchors.fill: listContainer
-
-            /* Segnalo che la lista non deve seguire automaticamente l'elemento attualmente selezionato; senza questo booleano
-             * la lista si sposterebbe da sola (moooolto lentamente) verso l'elemento da visualizzare quando la lista diventa
-             * inizialmente visibile */
-            highlightFollowsCurrentItem: false
 
             //Il modello della lista, contenente i path delle immagini da mostrare, è preso da C++ ed è uguale a quello della lista
             //contenente le thumbnail
@@ -87,105 +144,65 @@ Rectangle
 
             clip: true
 
-            //Il delegate corrisponde ad una singola immagine per ogni item della lista
-            delegate: Component {
+            //Il delegate usa un component creato ad hoc
+            delegate: SimilarShoesDelegate {
+                id: suggestionContainer
 
-                Rectangle {
-                    id: suggestionContainer
-                    width: similarList.width
-                    height: 170 * scaleY
-                    color: container.backgroundColor
+                width: similarList.width
+                textFont: metroFont
+                color: container.backgroundColor
 
-                    Behavior on color { ColorAnimation { duration: 100 }}
-
-                    Image {
-                        id: similarThumbnail
-                        antialiasing: true
-                        source: modelData.thumbnail
-                        width: 150 * scaleX
-                        height: 120 * scaleY
-                        fillMode: Image.PreserveAspectFit
-                        anchors.right: suggestionContainer.right
-                        anchors.rightMargin: 5 * scaleX
-                        anchors.verticalCenter: suggestionContainer.verticalCenter
-                    }
-
-                    Text {
-                        id: t1
-                        anchors.left: suggestionContainer.left
-    //                    anchors.leftMargin: 50 * scaleX
-                        font.letterSpacing: 1.2
-                        color: "#9FB7BF"
-                        text: modelData.brand + " " + modelData.model
-                        font.family: metroFont.name
-                        font.pointSize: 14
-                        font.weight: Font.Light
-                    }
-
-                    Text {
-                        id: brand
-                        anchors.top: t1.bottom
-                        anchors.topMargin: 7 * scaleY
-                        text: modelData.brand
-                        font.family: metroFont.name
-                        font.pointSize: 12
-                        font.weight: Font.Light
-                    }
-
-                    Text {
-                        id: model
-                        anchors.top: brand.bottom
-                        anchors.topMargin: 7 * scaleY
-                        text: modelData.model
-                        font.family: metroFont.name
-                        font.pointSize: 12
-                        font.weight: Font.Light
-                    }
-
-                    Text {
-                        id: price
-                        anchors.top: model.bottom
-                        anchors.topMargin: 7 * scaleY
-                        text: modelData.price
-                        font.family: metroFont.name
-                        font.pointSize: 12
-                        font.weight: Font.Light
-                    }
-
-                    Rectangle {
-                        id: separator
-                        width: parent.width
-                        height: 1 * scaleY
-                        color: "#9FB7BF"
-                        anchors.bottom: suggestionContainer.bottom
-//                        visible: (similarList.counter == (similarList.count -1))
-                    }
-
-                    Component.onCompleted: {
-                        separator.visible = (similarList.counter != (similarList.count -1))
-                        similarList.counter++
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent;
+                //Setto le varie proprietà della scarpa in questione
+                thumbnailSource: modelData.thumbnail
+                modelText: modelData.model
+                brandText: modelData.brand
+                priceText: modelData.price
 
 
-                        onClicked: {
-                            if(isClickable){
-                                suggestionContainer.color = "#DEDEDE"
-                                isClickable = false
-                                container.needShoeIntoContext(modelData.id)
-                            }
+                MouseArea {
+                    anchors.fill: parent;
+
+                    onClicked: {
+                        if(isClickable){
+                            suggestionContainer.color = "#DEDEDE"
+
+                            isClickable = false
+
+
+                            //Creo una copia dell'entry della lista clickata , in modo che appaia una FlipableSurface al
+                            //suo posto per la transizione visiva che porta al cambio di schermata
+                            var shoeSelectedFlipable = flipableSurface.createCopy(suggestionContainer)
+
+                            //Salvo nel flipable il riferimento all'entry della lista clickata, per farla scomparire/ricomparire
+                            //quando iniziano/finiscono le transizioni
+                            shoeSelectedFlipable.frontListItem = suggestionContainer
+
+                            /* Faccio diventare padre del flipable il container di SimilarShoesList, nel caso non lo fosse già;
+                             * questo perchè durante la transizione il flipable prende come padre il container di ShoeView, e nel
+                             * caso in cui si prema su una scarpa e poi si trni indietro, il flipable avrebbe ancora quel padre;
+                             * bisogna riportare come padre quello originario (il container di SimilarShoesList), altrimenti
+                             * il flipable apparirebbe per un attimo nella parte sbagliata dello schermo in quanto userebbe
+                             * un sistema di coordinate diverso da quello che dovrebbe usare */
+                            shoeSelectedFlipable.parent = container
+
+                            //Infine emitto il signal che avverte che c'è bisogno di caricare una nuova scarpa, passando anche
+                            //il flipable come parametro in modo che possa essere usato in ShoeView
+                            container.needShoeIntoContext(modelData.id, shoeSelectedFlipable)
                         }
                     }
 
+                }
 
-                    //Se la lista diventa invisible (e quindi tutto il component), riporto al colore di default tutti gli elementi
-                    //della lista; questo è per riportare al colore normale eventuali elementi clickati quando si cambia schermata
-                    onVisibleChanged: {
-                        if(!visible)
-                            suggestionContainer.color = container.backgroundColor
-                    }
+                Component.onCompleted: {
+                    suggestionContainer.separator.visible = (similarList.counter != (similarList.count -1))
+                    similarList.counter++
+                }
+
+                //Se la lista diventa invisible (e quindi tutto il component), riporto al colore di default tutti gli elementi
+                //della lista; questo è per riportare al colore normale eventuali elementi clickati quando si cambia schermata
+                onVisibleChanged: {
+                    if(!visible)
+                        suggestionContainer.color = container.backgroundColor
                 }
             }
 
@@ -204,13 +221,14 @@ Rectangle
             }
         }
 
+
+
         Rectangle {
             id: separatorList
             width: parent.width
             height: 1 * scaleY
             color: "#9FB7BF"
             anchors.top: listContainer.bottom
-//            visible: (!similarList.atYEnd || similarList.moving)
         }
 
         Image {

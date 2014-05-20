@@ -10,6 +10,19 @@ Rectangle {
     width: TARGET_RESOLUTION_WIDTH * scaleX
     height: TARGET_RESOLUTION_HEIGHT * scaleY
 
+
+    //Costanti che contengono la durata di fading verso il bianco che si hanno quando la ShoeView appare/scompare dopo una
+    //transizione con un'altra ShoeView sotto input utente diretto
+    property int fadingInDuration: 300
+    property int fadingOutDuration: 400
+
+
+    /* Quando si effettuano transizioni tra due ShoeView (senza aver di mezzo l'RFID reader) si effettua una transizione usando
+     * una FlipableSurface. Mantengo quindi il riferimento della FlipableSurface da usare in modo che sia accessibile dall'esterno
+     * (cioè dal file ViewManagerLogic.js in particolare) in modo che possa essere eseguita la transizione quando serve */
+    property FlipableSurface flipableSurface;
+
+
     //Signal che scatta quando viene rilevato un qualsiasi evento touch nell'interfaccia; serve per riazzerare il timer
     //che porta alla schermata di partenza dopo un tot di tempo di inattività
     signal touchEventOccurred()
@@ -20,6 +33,29 @@ Rectangle {
 
     //Signal che indica che bisogna tornare indietro di una view nello stack di viste
     signal goBack()
+
+
+
+    /* Questa proprietà permette di inserire una Rotation, che da' più libertà di rotazione per il container (la cui proprietà
+     * "rotation" permette di ruotare solo intorno all'asse z). La Rotation è usata per fare una rotazione intorno all'asse y
+     * quando si avvia l'animazione di transizione in seguito ad una nuova view dovuta da un messaggio dell'RFID reader.
+     * Nota: le Transform inserite qua dentro sono SEMPRE applicate all'oggetto, non solo durante animazioni o cose simili */
+    transform: Rotation {
+        //Stabilisco la posizione del punto cardine da cui fare l'animazione; il punto è a sinistra del container, centrato in altezza
+        origin.x: 0
+        origin.y: container.height/2
+
+        //Stabilisco intorno a quali assi effettuare la rotazione; in questo caso solo intorno all'asse y
+        axis.x: 0
+        axis.y: 1
+        axis.z: 0
+
+        /* Stabilisco l'angolo di default. Mettere un valore diverso da 0 farebbe si che tutta la ShoeView avesse quell'angolo
+         * costantemente così, non solo durante l'animazione, che non è quello che si vuole. L'angolo è cambiato solo durante
+         * l'animazione, poi è riportato a zero */
+        angle: 0
+    }
+
 
 
     //L'intero container ha associata una MouseArea che ha il solo scopo di emettere il signal touchEventOccurred(), in modo
@@ -49,6 +85,13 @@ Rectangle {
 
         //Anche ShoeImagesList ha un signal onTouchEventOccurred; quando scatta, propago l'evento verso l'esterno
         onTouchEventOccurred: container.touchEventOccurred()
+
+        //Per fare il fade in/out effect, utilizzo un Behavior che esegue l'animazione nel tempo stabilito quando l'opacità cambia
+        Behavior on opacity {
+            NumberAnimation {
+                duration: imagesList.opacity == 0 ? fadingOutDuration  : fadingInDuration
+            }
+        }
     }
 
     //Component contenente le informazioni sulla scarpa
@@ -59,7 +102,16 @@ Rectangle {
 
         //Anche ShoeDetail ha un signal onTouchEventOccurred; quando scatta, propago l'evento verso l'esterno
         onTouchEventOccurred: container.touchEventOccurred()
+
+
+        //Per fare il fade in/out effect, utilizzo un Behavior che esegue l'animazione nel tempo stabilito quando l'opacità cambia
+        Behavior on opacity {
+            NumberAnimation {
+                duration: shoeDetail.opacity == 0 ? fadingOutDuration  : fadingInDuration
+            }
+        }
     }
+
 
 
     SimiliarShoesList {
@@ -68,80 +120,126 @@ Rectangle {
         anchors.leftMargin: 90 * scaleX
 
         anchors.top: parent.top
-//        anchors.topMargin: 100 * scaleY
+
+
+        //Per fare il fade in/out effect, utilizzo un Behavior che esegue l'animazione nel tempo stabilito quando l'opacità cambia
+        Behavior on opacity {
+            NumberAnimation {
+                duration: similiarShoesList.opacity == 0 ? fadingOutDuration  : fadingInDuration
+            }
+
+        }
 
 
         //Anche SimiliarShoesList ha un signal onTouchEventOccurred; quando scatta, propago l'evento verso l'esterno
 //        onTouchEventOccurred: container.touchEventOccurred()
-        onNeedShoeIntoContext: container.needShoeIntoContext(id)
+
+
+        //Signal che viene emesso quando si preme su una scarpa consigliata e bisogna cambiare transizione. Il signal passa
+            //come parametri l'id della scarpa da caricare e la FlipableSurface da usare per la transizione visiva
+            onNeedShoeIntoContext: {
+                //Recupero la FlipableSurface che dovrà essere usata per la transizione
+                flipableSurface = shoeSelectedFlipable
+
+                /* Le coordinate attuali di flipableSurface sono relative al suo vecchio padre, il container di SimilarShoesList.
+                 * Dato che ora cambierà padre, e quindi sistema di coordinate, recupero le sue coordinate globali in base al
+                 * container di ShoeView usando la funzione mapToItem().
+                 * Nota: affinchè le coordinate globali vengano calcolate correttamente con questa funzione, le coordinate locali
+                 * del flipable devono essere prese localmente a tutto il container di SimilarShoesList */
+                var globalCoordinates = flipableSurface.mapToItem(container.parent, 0, 0)
+
+                /* A questo punto dell'esecuzione, il flipable ha come padre SimilarShoesList; questo vuol dire che le sue coordinate
+                 * sono locali a quel component, e non può neanche andare oltre i suoi limiti visivi. Dato che la FlipableSurface dovrà
+                 * muoversi per tutto lo schermo, occorre far diventare la ShoeView in questione padre del flipable, cosicchè non sia
+                 * più vincolato a muoversi dentro SimilarShoesList */
+                flipableSurface.parent = container
+
+                //Le coordinate appena prese servono per sapere da dove partire con l'animazione di flip, ed eventualmente dove tornare
+                //quando si preme il tasto back. Salvo quindi le coordinate nelle rispettive proprietà del flipable
+                flipableSurface.initialX = globalCoordinates.x
+                flipableSurface.initialY = globalCoordinates.y
+
+                //Salvo anche il riferimento dell'intera ShoeView. In realtà lo avrei già, essendo la ShoeView il padre di
+                //flipableSurface, ma per evitare ambiguità ho preferito creare una proprietà a posta
+                flipableSurface.frontShoeView = container
+
+
+                //Pronto il flipable, emitto il signal che chiamerà il rispettivo slot di C++ che si occuperà di caricare la scarpa,
+                //creare la nuova view e attivare l'animazione del flipable inserendo la nuova view come "back" della FlipableSurface
+                container.needShoeIntoContext(id)
+
+
+                //Infine porto a zero l'opacità di tutti i componenti "che contano" di ShoeView; grazie alla proprietà
+                //Behavior on opacity che hanno tutti questi, verrà avviata l'animazione di fade out
+                imagesList.opacity = 0
+                shoeDetail.opacity = 0
+                similiarShoesList.opacity = 0
+                backButton.opacity = 0
+            }
     }
 
     Image {
-        id: backbutton
-        source: "qrc:///qml/back_enabled_mini.png"
+        id: backButton
+
+        //Proprietà che indica se il bottone è disabilitato o meno; lo è quando non ci sono schermate verso cui tornare indietro
+        property bool isDisabled: false;
+
+        //Se il bottone è disabilitato, carico l'immagine apposita, altrimenti quella normale
+        source: isDisabled ? "qrc:///qml/back_disabled_mini.png" : "qrc:///qml/back_enabled_mini.png"
+
         width: 65 * scaleX
         height: 65 * scaleY
+
         fillMode: Image.PreserveAspectFit
+
         antialiasing: true
+
         x: 180 * scaleX
         y: 10 * scaleY
 
+        Behavior on opacity {
+            NumberAnimation {
+                duration: backButton.opacity == 0 ? fadingOutDuration  : fadingInDuration
+            }
+        }
+
         MouseArea {
             anchors.fill: parent
+
             hoverEnabled: true
-            onPressed: backbutton.source =  "qrc:///qml/back_pressed_mini.png"
 
-//            onClicked: container.goBack()
-            onClicked: container.state = "flip"
+            onPressed: {
+                if(!backButton.isDisabled)
+                    backButton.source =  "qrc:///qml/back_pressed_mini.png"
+            }
 
-            onReleased: backbutton.source =  "qrc:///qml/back_enabled_mini.png"
+            onClicked: {
+                if(!backButton.isDisabled)
+                {
+                    container.goBack()
+//                    console.log("old state: " + flipableSurface.state)
 
-            onEntered: backbutton.source =  "qrc:///qml/back_disabled_mini.png"
+//                    flipableSurface.reflip()
+//                    console.log("new state: " + flipableSurface.state)
+                }
+            }
 
-            onExited: backbutton.source =  "qrc:///qml/back_enabled_mini.png"
+            onReleased: {
+                if(!backButton.isDisabled)
+                    backButton.source = "qrc:///qml/back_enabled_mini.png"
+            }
+
+            onEntered: {
+                if(!backButton.isDisabled)
+                    backButton.source = "qrc:///qml/back_disabled_mini.png"
+            }
+
+            onExited: {
+                if(!backButton.isDisabled)
+                    backButton.source = "qrc:///qml/back_enabled_mini.png"
+            }
         }
     }
-
-//    Rectangle {
-//        id: prova
-//        x: 300
-
-//        width: 200
-//        height: 200
-
-//        color: "lightgreen"
-
-//        Text {
-//            text: "Don't you dare click me"
-//        }
-
-//        MouseArea {
-//            anchors.fill: parent
-
-//            onClicked: container.needShoeIntoContext(Math.floor(Math.random() * (10 - 1 + 1)) + 1)
-//        }
-//    }
-
-
-//    Rectangle {
-//        id: prova2
-//        anchors.top: prova.bottom
-
-//        width: 200
-//        height: 200
-
-//        color: "lightblue"
-
-//        Text {
-//            text: "Go back"
-//        }
-
-//        MouseArea {
-//            anchors.fill: parent
-
-//            onClicked:{ container.goBack() }
-//        }
-//    }
 
 
     //Rettangolo che funge da background oscurato per quando si preme su una thumbnail per mostrare l'immagine ingrandita
@@ -153,7 +251,7 @@ Rectangle {
         state: "invisible" //Stabilisco che lo stato iniziale è invisible, definito più sotto
 
 
-        //Aggiungo due state, uno per quando è visibile e uno per quando non lo è
+        //Aggiungo due stati, uno per quando è visibile e uno per quando non lo è
         states: [
             //Stato per quando il rettangolo è visibile
             State {
@@ -471,154 +569,24 @@ Rectangle {
         onCurrentIndexChanged: imageFocusList.positionViewAtIndex(currentIndex, ListView.Contain)
     }
 
-    transform: [
-        Rotation {
-            id: rotationNextView
-//            origin.x: container.width
-//            origin.y: container.height
-            origin.x: 0
-            origin.y: container.height/2
-            axis.x: 0; axis.y: 1; axis.z: 0     // set axis.y to 1 to rotate around y-axis
-            angle: 0
-        },
-        Rotation {
-             id: rotationCurrentView
-//             origin.x: 0
-//             origin.y: 0
-             origin.x: 0
-             origin.y: container.height/2
-             axis.x: 0; axis.y: 1; axis.z: 0     // set axis.y to 1 to rotate around y-axis
-             angle: 0    // the default angle
+
+    //Ascolto per quando la ShoeView diventa visibile; in quel momento infatti porto l'opacità di tutti i component "che contano"
+    //a 1, qualora fosse stata messa a 0 in seguito ad una transizione
+    onVisibleChanged: {
+        if(visible)
+        {
+            imagesList.opacity = 1
+            shoeDetail.opacity = 1
+            similiarShoesList.opacity = 1
+            backButton.opacity = 1
         }
-    ]
-
-    states: [
-        State {
-            id: flipStateNextView
-             name: "flipNextView"
-             PropertyChanges { target: rotationNextView; angle: 0 }
-             PropertyChanges { target: container; transformOrigin: Item.Left }
-        },
-
-        State {
-            id: flipStateCurrentView
-             name: "flipCurrentView"
-             PropertyChanges { target: rotationCurrentView; angle: -90 }
-        }
-    ]
-
-     transitions: [
-         Transition {
-             id: flipTransitionNextView
-
-             to: "flipNextView"
-
-             SequentialAnimation {
-                 PropertyAction {
-                      target: container
-                      property: "transformOrigin"
-                  }
+    }
 
 
-                 ParallelAnimation {
-                     NumberAnimation {
-                         target: rotationNextView;
-                         property: "angle";
-                         duration: 1000
-
-//                         from: -90
-                         from: 90
-
-                    }
-
-                     NumberAnimation {
-                         target: container;
-                         property: "scale";
-                         duration: 1000
-
-                         from: 0.5
-                         to: 1
-                    }
-
-                     NumberAnimation {
-                         target: container;
-                         property: "opacity";
-                         duration: 1000
-
-                         from: 0.25
-                         to: 1
-
-                    }
-                 }
-            }
-
-
-
-
-
-//             RotationAnimation {
-//                 target: container;
-//                 properties: "angle"
-//                  duration: 1000;
-//                  direction: RotationAnimation.Counterclockwise
-//             }
-
-             onRunningChanged: {
-                 console.log("ci sono?")
-             }
-        },
-
-         Transition {
-             id: flipTransitionCurrentView
-
-             to: "flipCurrentView"
-
-             ParallelAnimation {
-                 NumberAnimation {
-                     target: rotationCurrentView;
-                     property: "angle";
-                     duration: 500
-
-
-                     to: -90
-                }
-
-                 NumberAnimation {
-                     target: container;
-                     property: "scale";
-                     duration: 500
-
-                     from: 1
-                     to: 0.85
-
-                }
-
-                 NumberAnimation {
-                     target: container;
-                     property: "opacity";
-                     duration: 800
-
-                     from: 1
-                     to: 0.25
-
-
-                }
-             }
-
-             onRunningChanged: {
-                 if(!running)
-                 {
-                     container.destroy()
-                 }
-             }
-        }
-     ]
-
-
-    transformOrigin: Item.Left
-
-
-
-
-
+    /* Funzione per disabilitare il bottone per tornare indietro di schermata; è chiamata da connectNewViewEvents() nel main.qml
+     * quando la ShoeView è la "prima della lista" */
+    function disableBackButton()
+    {
+        backButton.isDisabled = true;
+    }
 }
