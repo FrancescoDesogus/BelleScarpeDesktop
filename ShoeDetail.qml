@@ -137,6 +137,45 @@ Item
         anchors.topMargin: 10 * scaleY
     }
 
+    Rectangle {
+        id: filterPanel
+        width: 300
+        height: 25
+        color: "red"
+        anchors.bottom: parent.bottom
+        anchors.horizontalCenter: parent.horizontalCenter
+        radius: 6
+
+        Text {
+            text: "<"
+            rotation: 90
+            anchors.top: parent.top
+            anchors.horizontalCenter: parent.horizontalCenter
+        }
+
+        Text {
+            text: "Filtra Scarpe"
+            anchors.bottom: parent.bottom
+//            anchors.bottomMargin: 2
+            anchors.horizontalCenter: parent.horizontalCenter
+        }
+
+        Rectangle {
+            anchors.bottom: parent.bottom
+            width: parent.width
+            height: 5
+            color: parent.color
+        }
+
+        MouseArea{
+            id: cliccabile
+            anchors.fill: parent
+
+            drag.target: filterPanel
+            drag.axis: Drag.XandYAxis
+        }
+    }
+
     //Quando il component ha finito di caricare, inserisco gli oggetti per la taglia; dato che gli oggetti sono da caricare per forza
     //dinamicamente, bisogna farlo solo quando il component è stato completato
     Component.onCompleted: showSizes(shoe.sizes)
