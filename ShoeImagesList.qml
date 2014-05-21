@@ -310,6 +310,9 @@ Rectangle {
 
                     //Termino il timer, qualora fosse in esecuzione
                     fadeOutTimer.stop()
+
+                    //Notifico l'esterno che è avvenuto un click
+                    container.touchEventOccurred()
                 }
 
                 onBarReleased: {

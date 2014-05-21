@@ -1,5 +1,8 @@
 import QtQuick 2.0
 
+/*
+ * Questo component contiene tutta la parte destra della schermata
+ */
 Rectangle
 {
     id: container
@@ -23,10 +26,14 @@ Rectangle
     //clickata una il booleano diventa false per evitare di poter premere molte volte di fila e creare mille schermate
     property bool isClickable: true
 
+
+    /**************************************************************
+     * Signal emessi verso l'esterno
+     **************************************************************/
+
     //Signal che scatta quando viene rilevato un qualsiasi evento touch nell'interfaccia; serve per riazzerare il timer
     //che porta alla schermata di partenza dopo un tot di tempo di inattività
     signal touchEventOccurred()
-
 
     /* Questo signal indica che è stata premuta una nuova scarpa e che bisogna creare una nuova view che la visualizzi;
      * passa come parametro l'id della scarpa toccata e il riferimento alla FlipableSurface che corrisponde alla scarpa
@@ -38,6 +45,16 @@ Rectangle
     height: parent.height
     width: 600 * scaleX
 
+
+    //L'intero container ha associata una MouseArea che ha il solo scopo di emettere il signal touchEventOccurred(), in modo
+    //da avvisare chi userà il component ShoeImagesList che è stato ricevuto un touch event
+    MouseArea {
+        anchors.fill: parent
+        onClicked: container.touchEventOccurred()
+    }
+
+
+    //Font da usare per le scritte
     FontLoader {
         id: metroFont;
         source: "qrc:segeo-wp.ttf"
@@ -173,14 +190,24 @@ Rectangle
                 priceText: modelData.price
 
 
+                //Al click bisogna apire la nuova schermata con la scarpa clickata
                 MouseArea {
                     anchors.fill: parent;
 
                     onClicked: {
+                        //Procedo con la creazione della nuova schermata solo se non è già stata premuta un'altra scarpa, per evitare
+                        //la creazione di più schermate insiem
                         if(isClickable){
-                            suggestionContainer.color = "#DEDEDE"
 
+                            //Notifico che non è più possibile clickare
                             isClickable = false
+
+                            //Notifico l'esterno che è avvenuto un click
+                            container.touchEventOccurred();
+
+                            //Sposto la lista in modo che si veda l'elemento, in modo che se fosse stata premuta un'entry
+                            //parzialmente visibile adesso si veda del tutto
+                            similarList.positionViewAtIndex(index, ListView.Contain)
 
 
                             //Creo una copia dell'entry della lista clickata , in modo che appaia una FlipableSurface al
@@ -273,6 +300,9 @@ Rectangle
 
                 //Termino il timer, qualora fosse in esecuzione
                 fadeOutTimer.stop()
+
+                //Notifico l'esterno che è avvenuto un click
+                container.touchEventOccurred()
             }
 
             onBarReleased: {
@@ -323,5 +353,4 @@ Rectangle
             }
         }
     }
-
 }

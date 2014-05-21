@@ -4,7 +4,7 @@ import QtQuick 2.0
  * Questo component rappresenta un singolo elemento visivo della lista di SimilarShoesList. E' stato necessario creare un file solo
  * per questo per poter creare una copia visiva degli elementi selezionati della lista (più info in SimilarShoesList.qml).
  * Qua dentro sono stabilite le proprietà generali, mentre quelle dipendenti da fattori esterni sono dichiarati al momento dell'uso
- * di questo component.
+ * di questo component
  */
 Rectangle {
     id: suggestionContainer
@@ -24,8 +24,6 @@ Rectangle {
     //Dato che deve essere possibile accedere al separator da fuori, uso un alias
     property alias separator: separator
 
-
-    Behavior on color { ColorAnimation { duration: 100 }}
 
     Image {
         id: similarThumbnail
@@ -87,5 +85,4 @@ Rectangle {
         color: "#9FB7BF"
         anchors.bottom: suggestionContainer.bottom
     }
-
 }

@@ -60,9 +60,8 @@ void WindowManager::setupScreen()
 
 
     //Recupero informazioni sulla grandezza dello schermo vera e propria, in modo da visualizzare la view in fullscreen correttamente
-    QDesktopWidget widget;
-    QRect mainScreenSize = widget.screenGeometry(widget.primaryScreen());
-
+    QDesktopWidget desktopWidget;
+    QRect mainScreenSize = desktopWidget.screenGeometry(desktopWidget.primaryScreen());
 
 
     /* Definisco nel contesto dell'engine qml altre due proprietà, che sono i valori per cui bisogna moltiplicare ogni coordinata di larghezza
@@ -80,8 +79,21 @@ void WindowManager::setupScreen()
     //posso mettere la finestra in fullscreen e la parte fatta in QML si adatterà automaticamente
     this->setResizeMode(QQuickView::SizeRootObjectToView);
 
-    //Infine mando in esecuzione a tutto schermo
+
+    //Mando in esecuzione a tutto schermo
     this->showFullScreen();
+
+
+    //Una volta mandato a tutto schermo, controllo se ci sono più monitor attaccati; nel caso sposto la finestra nel secondo
+    if(desktopWidget.screenCount() > 1)
+    {
+        //Recupero le informazioni sul secondo screen attaccato
+        QRect secondaryScreenGeometry = desktopWidget.screenGeometry(desktopWidget.primaryScreen() + 1);
+
+        //Setto la nuova geometria della finestra in base a quella del nuovo monitor
+        this->setGeometry(secondaryScreenGeometry);
+    }
+
 
     //Appena avviato carico una scarpa per provare, simulando l'arrivo di un codice RFID
     loadNewShoeView("asd");

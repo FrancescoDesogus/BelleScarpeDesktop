@@ -123,8 +123,6 @@ Rectangle {
     SimiliarShoesList {
         id: similiarShoesList
         anchors.right: parent.right
-//        anchors.left: shoeDetail.right
-//        anchors.leftMargin: 90 * scaleX
 
         anchors.top: parent.top
 
@@ -139,7 +137,7 @@ Rectangle {
 
 
         //Anche SimiliarShoesList ha un signal onTouchEventOccurred; quando scatta, propago l'evento verso l'esterno
-//        onTouchEventOccurred: container.touchEventOccurred()
+        onTouchEventOccurred: container.touchEventOccurred()
 
 
         //Signal che viene emesso quando si preme su una scarpa consigliata e bisogna cambiare transizione. Il signal passa
@@ -187,10 +185,6 @@ Rectangle {
             }
     }
 
-    ShoeFilter {
-
-    }
-
     Image {
         id: backButton
 
@@ -222,11 +216,15 @@ Rectangle {
             hoverEnabled: true
 
             onPressed: {
+                container.touchEventOccurred()
+
                 if(!backButton.isDisabled)
                     backButton.source =  "qrc:///qml/back_pressed_mini.png"
             }
 
             onClicked: {
+                container.touchEventOccurred()
+
                 if(!backButton.isDisabled)
                     container.goBack()
             }
@@ -574,6 +572,14 @@ Rectangle {
          * un'animazione di transizione (mooolto lenta); messo su false, lo spostamento è istantaneo */
         onCurrentIndexChanged: imageFocusList.positionViewAtIndex(currentIndex, ListView.Contain)
     }
+
+
+    ShoeFilter {
+        backgroundRectangle: mainImageFocusBackground
+        anchors.bottom: parent.bottom
+        anchors.horizontalCenter: parent.horizontalCenter
+    }
+
 
 
     //Ascolto per quando la ShoeView diventa visibile; in quel momento infatti porto l'opacità di tutti i component "che contano"
