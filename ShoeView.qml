@@ -187,6 +187,10 @@ Rectangle {
             }
     }
 
+    ShoeFilter {
+
+    }
+
     Image {
         id: backButton
 
@@ -224,13 +228,7 @@ Rectangle {
 
             onClicked: {
                 if(!backButton.isDisabled)
-                {
                     container.goBack()
-//                    console.log("old state: " + flipableSurface.state)
-
-//                    flipableSurface.reflip()
-//                    console.log("new state: " + flipableSurface.state)
-                }
             }
 
             onReleased: {

@@ -137,61 +137,6 @@ Item
         anchors.topMargin: 10 * scaleY
     }
 
-    Rectangle {
-        id: filterPanel
-        width: 300
-        height: 25
-        color: "red"
-        anchors.bottom: parent.bottom
-        anchors.horizontalCenter: parent.horizontalCenter
-        radius: 6
-
-        Behavior on y {
-            NumberAnimation {
-                duration: 500
-            }
-        }
-
-        Rectangle {
-            anchors.bottom: parent.bottom
-            width: parent.width
-            height: 10
-            color: parent.color
-        }
-
-        Text {
-            text: "<"
-            rotation: 90
-            anchors.top: parent.top
-            anchors.horizontalCenter: parent.horizontalCenter
-        }
-
-        Text {
-            text: "Filtra Scarpe"
-            anchors.bottom: parent.bottom
-//            anchors.bottomMargin: 2
-            anchors.horizontalCenter: parent.horizontalCenter
-        }
-
-        MouseArea{
-            id: cliccabile
-            anchors.fill: filterPanel
-
-            drag.target: filterPanel
-            drag.axis: Drag.YAxis
-
-            onPressed: {
-                filterPanel.anchors.bottom = undefined
-                filterPanel.anchors.horizontalCenter = undefined
-            }
-
-            onReleased: {
-                filterPanel.anchors.bottom = container.bottom
-                filterPanel.anchors.horizontalCenter = container.horizontalCenter
-            }
-
-        }
-    }
 
     //Quando il component ha finito di caricare, inserisco gli oggetti per la taglia; dato che gli oggetti sono da caricare per forza
     //dinamicamente, bisogna farlo solo quando il component è stato completato

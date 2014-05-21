@@ -22,5 +22,6 @@
         <file>qrcode.png</file>
         <file>FlipableSurface.qml</file>
         <file>SimilarShoesDelegate.qml</file>
+        <file>ShoeFilter.qml</file>
     </qresource>
 </RCC>

@@ -56,4 +56,5 @@ OTHER_FILES += \
     youtubePlayer.html \
     SimiliarShoesList.qml \
     FlipableSurface.qml \
-    SimilarShoesDelegate.qml
+    SimilarShoesDelegate.qml \
+    ShoeFilter.qml

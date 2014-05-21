@@ -54,6 +54,12 @@ Rectangle {
     property real initialY
 
 
+
+    /* Signal che indica a chi userà la FlipableSurface se le è permesso effettuare click; i click vengono bloccati quando le
+     * transizioni iniziano, e viene sbloccato quando finiscono */
+    signal clickAllowed(bool isAllowed)
+
+
     //Al completamento del caricamento, faccio diventare il front figlio dell'apposito container; si assume quindi che il front
     //sia definito da subito, a differenza del back che può essere aggiunto in seguito
     Component.onCompleted: {
@@ -306,6 +312,9 @@ Rectangle {
                     back.parent = oldBackParent
 
                     frontShoeView.visible = false
+
+                    //Emitto anche il signal per indicare che ora è permesso effettuare click, visto che la transizione è finita
+                    clickAllowed(true)
                 }
             }
         },
@@ -431,10 +440,13 @@ Rectangle {
                      * la ShoeView in cui stava) */
                     frontContainer.parent = flipable
 
-
                     //Ripristinato il padre, rendo invisibile il flipable (che era la copia). Senza ripristinare il padre non
                     //sarebbe scomparso
                     flipable.visible = false
+
+
+                    //Emitto anche il signal per indicare che ora è permesso effettuare click, visto che la transizione è finita
+                    clickAllowed(true)
                 }
             }
         }
@@ -468,6 +480,11 @@ Rectangle {
         flipable.visible = true
 
 
+
+        //Emitto anche il signal indicando che non è permesso clickare, visto che la transizione sta' per iniziare
+        clickAllowed(false)
+
+
         //Terminate le preparazioni, cambio lo stato per far partire la transizione
         flipable.state = "flip"
     }
@@ -482,6 +499,10 @@ Rectangle {
 
         //Rendo inoltre visibile la ShoeView che ora apparirà, che è quella che contiene il front della FlipableSurface
         frontShoeView.visible = true
+
+
+        //Emitto anche il signal indicando che non è permesso clickare, visto che la transizione sta' per iniziare
+        clickAllowed(false)
 
 
         //Terminate le preparazioni, cambio lo stato per far partire la transizione

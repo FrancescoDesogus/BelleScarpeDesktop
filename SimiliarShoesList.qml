@@ -94,6 +94,12 @@ Rectangle
         }
 
 
+        /* Il flipable avverte anche se è possibile effettuare click utente (non è possibile quando le transizioni sono in atto).
+         * Il signal clickAllowed passa come parametro il booleano isAllowed. La proprietà isClickAllowed è esterna, appartiene
+         * alla ShoeView in cui sta' questo component; non è molto corretto accederci da qua, ma è per evitare di usare troppi signal */
+        onClickAllowed: isClickAllowed = isAllowed
+
+
         /* Questa funzione viene chiamata dall'entry della lista clickata, e si occupa di popolare la copia in modo che diventi
          * tale e quale all'entry */
         function createCopy(toCopy)
@@ -132,6 +138,10 @@ Rectangle
         anchors.top: separator.bottom
         height: 700 * scaleY
         width: parent.width
+
+        //Abilito lo scorrimento della lista solo se è permesso fare click (la proprietà isClickAllowed è esterna, ricevuta
+        //dalla ShoeView in cui sta' questo component)
+        enabled: isClickAllowed
 
         ListView {
             id: similarList
@@ -203,7 +213,7 @@ Rectangle
                 }
 
                 Component.onCompleted: {
-                    suggestionContainer.separator.visible = (similarList.counter != (similarList.count -1))
+                    suggestionContainer.separator.visible = (similarList.counter != (similarList.count - 1))
                     similarList.counter++
                 }
 
@@ -255,7 +265,7 @@ Rectangle
             id: verticalScrollBar
             flickable: similarList
             position: "right"
-            handleSize: 8 * scaleX
+            handleSize: 6
 
             onBarClicked: {
                 //Rimetto l'opacità della barra al valore di default, qualora non fosse già così
@@ -282,6 +292,7 @@ Rectangle
             onTriggered: verticalScrollBar.barOpacity = 0
         }
 
+
         Rectangle {
             id: separatorList
             width: parent.width
@@ -301,5 +312,16 @@ Rectangle
     //        anchors.horizontalCenter: parent.horizontalCenter
     //        anchors.left: parent
         }
+
+        //Quando la lista diventa visibile, faccio comparire la scrollbar e riavvio il timer che la fa scomparire; in questo modo
+        //quando si torna ad una ShoeView precedentemente visitata, la barra compare subito
+        onVisibleChanged: {
+            if(visible)
+            {
+                verticalScrollBar.barOpacity = verticalScrollBar.defaultOpacity;
+                fadeOutTimer.restart();
+            }
+        }
     }
+
 }
