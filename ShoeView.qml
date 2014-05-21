@@ -568,7 +568,7 @@ Rectangle {
 
 
         /* Faccio si che quando cambi l'indice della lista, la lista visualizzi l'elemento attualmente selezionato.
-         * Nota: se highlightFollowsCurrentItem fosse stato true la chiamata a positionViewAtIndex avrebbe provocato
+         * Nota: se highlightFolloswsCurrentItem fosse stato true la chiamata a positionViewAtIndex avrebbe provocato
          * un'animazione di transizione (mooolto lenta); messo su false, lo spostamento è istantaneo */
         onCurrentIndexChanged: imageFocusList.positionViewAtIndex(currentIndex, ListView.Contain)
     }
