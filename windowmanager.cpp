@@ -222,9 +222,22 @@ void WindowManager::loadShoe(Shoe *shoe, bool isFromRFID)
        similiarShoesModel.append(similiarShoes[i]);
 
 
+
+
+
+    //Modello Di prova
+    QList<QObject*> similiarShoesModelProva;
+
+    for(int i = 0; i < 1; i++)
+       similiarShoesModelProva.append(similiarShoes[i]);
+
+
+
+
+
+
     //Dato che ho prelevato tutto quello che mi serviva dal db, posso chiuderlo
     database.close();
-
 
 
     /* Adesso la parte importante: bisogna epsorre le cose appena recuperate in modo che siano accessibili da QML.
@@ -245,6 +258,12 @@ void WindowManager::loadShoe(Shoe *shoe, bool isFromRFID)
     context->setContextProperty("thumbnailModel", QVariant::fromValue(imagesAndVideoPathsModel));
     context->setContextProperty("imagesModel", QVariant::fromValue(imagesOnlyPathsModel));
     context->setContextProperty("similiarShoesModel", QVariant::fromValue(similiarShoesModel));
+
+
+
+
+    context->setContextProperty("similiarShoesModelProva", QVariant::fromValue(similiarShoesModelProva));
+
 
 
     //Terminata la creazione e l'arricchimento del context, creo un nuovo component con il file che è la view della scarpa
