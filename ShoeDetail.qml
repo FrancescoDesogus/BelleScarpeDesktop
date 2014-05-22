@@ -47,6 +47,8 @@ Item
         anchors.left: parent.left
         anchors.top: parent.top
         anchors.topMargin: 15 * scaleY
+        width: container.width - (10 * scaleX)
+        elide: Text.ElideRight
     }
 
     Rectangle {
