@@ -112,7 +112,7 @@ Rectangle {
 
     Rectangle {
         id: separator
-        width: filtered ? (parent.width - (9 * scaleX)) : parent.width
+        width: filtered ? (parent.width - (15 * scaleX)) : parent.width
         height: (1 * scaleY)
         color: filtered ? "#AEAEAE" : "#9FB7BF"
         anchors.bottom: suggestionContainer.bottom
@@ -122,7 +122,7 @@ Rectangle {
 
     Rectangle {
         id: separatorFiltered
-        height: parent.height - (10 * scaleY)
+        height: parent.height - (11 * scaleY)
         width: 1 * scaleX
         color: "#AEAEAE"
         anchors.right: suggestionContainer.right

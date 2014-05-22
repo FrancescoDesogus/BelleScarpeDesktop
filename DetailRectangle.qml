@@ -55,6 +55,8 @@ Rectangle {
         anchors.top: container.top
 //        anchors.topMargin: 5 * scaleY
         anchors.left: container.left
+        width: container.width - (10 * scaleX)
+        elide: Text.ElideRight
     }
 
     Text {
@@ -67,5 +69,7 @@ Rectangle {
         anchors.left: generalText.left
         anchors.top: generalText.bottom
 //        anchors.topMargin: 5 * scaleY
+        width: container.width - (10 * scaleX)
+        elide: Text.ElideRight
     }
 }

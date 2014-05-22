@@ -5,10 +5,10 @@ Rectangle {
     id: container
 
     property real filterPanelWidth: 1920 * scaleX
-    property real filterPanelHeight: 300 * scaleY
+    property real filterPanelHeight: 330 * scaleY
 
-    property real draggingRectangleWidth: 300 * scaleX
-    property real draggingRectangleHeight: 30 * scaleY
+    property real draggingRectangleWidth: 350 * scaleX
+    property real draggingRectangleHeight: 41 * scaleY
 
     property int startY: 0
 
@@ -23,7 +23,7 @@ Rectangle {
         width: draggingRectangleWidth
         height: draggingRectangleHeight
 
-        color: "#E8E8E8"
+        color: "#FA525252"
         radius: 6
 
         anchors.bottom: container.bottom
@@ -38,29 +38,41 @@ Rectangle {
 
         onYChanged:  {
             //L'opacità varia in base alla y del mouse, dopo la pressione
-            backgroundRectangle.opacity = Math.abs((draggingRectangle.y / filterPanelHeight)/(3))
+            backgroundRectangle.opacity = Math.abs((draggingRectangle.y / filterPanelHeight)/(15))
         }
 
         Rectangle {
             anchors.bottom: draggingRectangle.bottom
             width: parent.width
             height: 10 * scaleY
-            color: parent.color
+            color: draggingRectangle.color
+            opacity: draggingRectangle.color
         }
 
         Text {
             id: arrow
-            text: "<"
+            text: "«"
+            font.family: metroFont.name
+            font.pointSize: 16
+
             rotation: 90
             anchors.top: parent.top
+            anchors.topMargin: -9 * scaleY
             anchors.horizontalCenter: parent.horizontalCenter
+
+            color: filteredShoesTitle.color
         }
 
         Text {
-            text: "Filtra Scarpe"
+            text: "Filtra Scarpe"            
+            font.family: metroFont.name
+            font.pointSize: 9
+            font.letterSpacing: 1.2
+
             anchors.bottom: parent.bottom
-    //            anchors.bottomMargin: 2
+//          anchors.bottomMargin: 2
             anchors.horizontalCenter: parent.horizontalCenter
+            color: filteredShoesTitle.color
         }
 
         MouseArea {
@@ -88,14 +100,14 @@ Rectangle {
                 //Accenno il movimento verso il basso
                 if(startY == - (Math.floor(filterPanelHeight))){
                     if(startY <= Math.round(draggingRectangle.y) + 1){
-                        arrow.text = "<"
+                        arrow.text = "«"
                         draggingRectangle.y = -draggingRectangle.height
 
                         //Faccio scomparire il rettangolo scuro sullo sfondo
                         backgroundRectangle.visible = false
                         backgroundRectangle.opacity = 0
                     }else{
-                        arrow.text = ">"
+                        arrow.text = "»"
                         draggingRectangle.y = 0 - filterPanelHeight
                     }
                 }
@@ -104,7 +116,7 @@ Rectangle {
                 if(startY == - (Math.floor(draggingRectangle.height))){
                     if(startY < Math.round(draggingRectangle.y)){
                         //se non ho sollevato il rettangolo, riabbasso il pannello
-                        arrow.text = "<"
+                        arrow.text = "«"
                         draggingRectangle.y = -draggingRectangle.height
 
                         //Faccio scomparire il rettangolo scuro sullo sfondo
@@ -112,7 +124,7 @@ Rectangle {
                         backgroundRectangle.opacity = 0
                     }else if(startY >= Math.round(draggingRectangle.y)){
                         //Se invece la y iniziale è maggiore di quella attuale (e quindi il rettangolo è più in alto, sollevo il pannello
-                        arrow.text = ">"
+                        arrow.text = "»"
                         draggingRectangle.y = 0 - filterPanelHeight
                     }
                 }
@@ -129,7 +141,7 @@ Rectangle {
 //        x: 100
 //        y: 100
 
-        color: "#E8E8E8"
+        color: draggingRectangle.color
 
         anchors.top: draggingRectangle.bottom
         anchors.horizontalCenter: container.horizontalCenter
@@ -137,11 +149,12 @@ Rectangle {
         Rectangle {
             id: listContainer
             anchors.right: filterPanel.right
-            anchors.verticalCenter: filterPanel.verticalCenter
+            anchors.bottom: filterPanel.bottom
+            anchors.bottomMargin: 50 * scaleY
             width: 1150 * scaleX
             height: 180 * scaleY
 
-            color: "#E8E8E8"
+            color: filterPanel.color
 
             ListView {
                 id: filteredList
@@ -161,10 +174,9 @@ Rectangle {
                 delegate: SimilarShoesDelegate {
                     id: filteredContainer
 
-                    height: filteredList.height - 2
+                    height: filteredList.height - (2 * scaleY)
                     width: 350 * scaleX
                     textFont: metroFont
-//                    color: listContainer.color
 
                     //Setto le varie proprietà della scarpa in questione
                     thumbnailSource: modelData.thumbnail
@@ -283,7 +295,7 @@ Rectangle {
             opacity: filteredList.atXBeginning ? 0 : 1
 
             gradient: Gradient {
-                     GradientStop { position: 0.0; color: "#E8E8E8" }
+                     GradientStop { position: 0.0; color: filterPanel.color }
                      GradientStop { position: 1.0; color: "#00000000" }
                  }
 
@@ -306,7 +318,7 @@ Rectangle {
             opacity: filteredList.atXEnd ? 0 : 1
 
             gradient: Gradient {
-                     GradientStop { position: 0.0; color: "#E8E8E8" }
+                     GradientStop { position: 0.0; color: filterPanel.color }
                      GradientStop { position: 1.0; color: "#00000000" }
                  }
 
@@ -316,6 +328,33 @@ Rectangle {
                     easing.type: Easing.OutQuad
                 }
             }
+        }
+
+        Text {
+            id: filteredShoesTitle
+
+            text: "Scarpe Filtrate"
+            font.family: metroFont.name
+            font.pointSize: 24
+            font.letterSpacing: 1.3
+            font.weight: Font.Bold
+            color: "#EDEDED"
+
+            anchors.bottom: listContainer.top
+            anchors.bottomMargin: 34 * scaleY
+            anchors.horizontalCenter: listContainer.horizontalCenter
+        }
+
+        Rectangle {
+            id: titleUnderline
+
+            height: 2 * scaleY
+            width: listContainer.width
+            anchors.bottom: filteredShoesTitle.bottom
+            anchors.bottomMargin: - (15 * scaleY)
+            anchors.horizontalCenter: listContainer.horizontalCenter
+
+            color: filteredShoesTitle.color
         }
     }
 }
