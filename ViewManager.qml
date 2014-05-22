@@ -141,10 +141,24 @@ Rectangle {
             }
         }
 
-        //Quando TUTTE le animazioni finiscono, distruggo la view che è sparita, per salvare memoria
         onRunningChanged: {
-            if(!running)
-                rfidTransition.currentViewContainer.destroy()
+
+            //Quando parte la transizione disabilito i click utente nelle view coinvolte nell'animazione, in modo che non
+            //si possa premere durante la transizione
+            if(running)
+            {
+                rfidTransition.currentViewContainer.disableClicks();
+
+                rfidTransition.nextViewContainer.disableClicks();
+            }
+            //Quando la transizione finisce, distruggo la view che è sparita, per salvare memoria. Inoltre abilito i click utente
+            //per la view che ora è visibile
+            else
+            {
+                rfidTransition.currentViewContainer.destroy();
+
+                rfidTransition.nextViewContainer.enableClicks();
+            }
         }
     }
 
@@ -168,8 +182,13 @@ Rectangle {
         property: "x"
         easing.type: Easing.InQuad
 
-        //Distruggo la view che ha usato l'animazione al termine
-        onStopped: target.destroy()
+        //Quando l'animazione parte disabilito i click nella view che è stata targettata; al termine la distruggo
+        onRunningChanged: {
+            if(running)
+                target.disableClicks();
+            else
+                target.destroy();
+        }
     }
 
     //Animazione per lo slide verso sinistra per la view corrente, che deve sparire (attualmente questa animazione non è più usata)

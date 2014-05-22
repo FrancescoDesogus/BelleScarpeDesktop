@@ -8,6 +8,9 @@ Rectangle
     height: parent.height
 
 
+    property bool isClickAllowed: true
+
+
 
     Text {
         text: "I'm a timeout screen, pleased to make your acquaintance."
@@ -25,5 +28,10 @@ Rectangle
         axis.z: 0
 
         angle: 0
+    }
+
+    function disableClicks()
+    {
+        isClickAllowed = false;
     }
 }

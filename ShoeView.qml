@@ -13,20 +13,30 @@ Rectangle {
     height: TARGET_RESOLUTION_HEIGHT * scaleY
 
 
+    /**************************************************************
+     * Costanti usate per definire le grandezze dei vari elementi
+     **************************************************************/
+
     //Costanti che contengono la durata di fading verso il bianco che si hanno quando la ShoeView appare/scompare dopo una
     //transizione con un'altra ShoeView sotto input utente diretto
     property int fadingInDuration: 300
     property int fadingOutDuration: 400
-
 
     /* Quando si effettuano transizioni tra due ShoeView (senza aver di mezzo l'RFID reader) si effettua una transizione usando
      * una FlipableSurface. Mantengo quindi il riferimento della FlipableSurface da usare in modo che sia accessibile dall'esterno
      * (cioè dal file ViewManagerLogic.js in particolare) in modo che possa essere eseguita la transizione quando serve */
     property FlipableSurface flipableSurface;
 
-
-
+    /* Booleano per indicare se l'utente può interagire con la maggior parte dei componenti dell'interfaccia. Durante le transizioni
+     * tra una schermata e l'altra non è permesso premere su alcuni componenti per evitare problemi, ma di default lo
+     * si deve poter fare (così se per caso una transizione non dovesse capitare per qualche motivo ma la nuova schermata appare
+     * lo stesso si potrebbe interagire comunque) */
     property bool isClickAllowed: true
+
+
+    /**************************************************************
+     * Signal emessi verso l'esterno
+     **************************************************************/
 
     //Signal che scatta quando viene rilevato un qualsiasi evento touch nell'interfaccia; serve per riazzerare il timer
     //che porta alla schermata di partenza dopo un tot di tempo di inattività
@@ -79,7 +89,9 @@ Rectangle {
          * un focus sull'immagine. Il signal riceve come parametro l'indice della lista di thumbnail che indica
          * quale immagine della contenente le immagini ingrandite deve essere mostrata per prima */
         onMainImageClicked: {
-            if(isClickAllowed)
+            console.log("id: " + shoe.id + "; isClickAllowed == " + container.isClickAllowed)
+
+            if(container.isClickAllowed)
             {
                 //Quando il signal scatta, cambio lo stato del rettangolo che oscura lo schermo
                 mainImageFocusBackground.state = "visible";
@@ -522,13 +534,19 @@ Rectangle {
            color: imageFocusList.atXEnd ? "green" : "blue"
         }
 
+        property real startingContentX;
+
+        onMovementStarted: startingContentX = contentX
 
         onMovementEnded: {
-            console.log("imageFocusList.horizontalVelocity " + imageFocusList.horizontalVelocity);
+            console.log("imageFocusList.horizontalVelocity " + Number(imageFocusList.horizontalVelocity).toFixed(5));
 
-            console.log(imageFocusList.flicking)
+            //Number((6.688689).toFixed(1))
 
-            if(imageFocusList.horizontalVelocity < 0)
+            if(imageFocusList.contentX == imageFocusList.startingContentX)
+                console.log("didn't move");
+            else if(imageFocusList.horizontalVelocity < 0)
+//            else if(Number(imageFocusList.horizontalVelocity).toFixed(5) < 0)
                  console.log("moved left");
             else
                  console.log("moved right");
@@ -676,8 +694,6 @@ Rectangle {
             shoeDetail.opacity = 1
             similiarShoesList.opacity = 1
             backButton.opacity = 1
-
-            isClickAllowed = true
         }
     }
 
@@ -688,4 +704,19 @@ Rectangle {
     {
         backButton.isDisabled = true;
     }
+
+    /* Funzione chiamata dall'esterno per disabilitare i click utente nell'interfaccia; è chiamata all'inizio delle transizioni
+     * tra una schermata e l'altra per evitare problemi */
+    function disableClicks()
+    {
+        container.isClickAllowed = false;
+    }
+
+    /* Funzione chiamata dall'esterno per riabilitare i click utente nell'interfaccia; è chiamata al termine delle transizioni
+     * tra una schermata e l'altra*/
+    function enableClicks()
+    {
+        container.isClickAllowed = true;
+    }
+
 }

@@ -40,7 +40,7 @@ Rectangle {
 
 
     //Durata della transizione di flip e di reflip
-    property int transitionDuration: 7000
+    property int transitionDuration: 700
 
 
     /* Coordinate iniziali in cui era situato il front al momento del flip. Dato che la transizione del flip avviene lungo tutto
@@ -314,7 +314,10 @@ Rectangle {
                     frontShoeView.visible = false
 
                     //Emitto anche il signal per indicare che ora è permesso effettuare click, visto che la transizione è finita
-                    clickAllowed(true)
+//                    clickAllowed(true)
+
+                    back.enableClicks()
+                    frontShoeView.enableClicks()
                 }
             }
         },
@@ -446,7 +449,11 @@ Rectangle {
 
 
                     //Emitto anche il signal per indicare che ora è permesso effettuare click, visto che la transizione è finita
-                    clickAllowed(true)
+//                    clickAllowed(true)
+
+
+                    back.enableClicks()
+                    frontShoeView.enableClicks()
                 }
             }
         }
@@ -482,7 +489,11 @@ Rectangle {
 
 
         //Emitto anche il signal indicando che non è permesso clickare, visto che la transizione sta' per iniziare
-        clickAllowed(false)
+//        clickAllowed(false)
+
+
+        back.disableClicks()
+        frontShoeView.disableClicks()
 
 
         //Terminate le preparazioni, cambio lo stato per far partire la transizione
@@ -502,11 +513,14 @@ Rectangle {
 
 
         //Emitto anche il signal indicando che non è permesso clickare, visto che la transizione sta' per iniziare
-        clickAllowed(false)
+//        clickAllowed(false)
 
 
         //Terminate le preparazioni, cambio lo stato per far partire la transizione
         flipable.state = "reflip"
+
+        back.disableClicks()
+        frontShoeView.disableClicks()
     }
 }
 
