@@ -161,7 +161,7 @@ Rectangle {
                 delegate: SimilarShoesDelegate {
                     id: filteredContainer
 
-                    height: filteredList.height - 1
+                    height: filteredList.height - 2
                     width: 350 * scaleX
                     textFont: metroFont
 //                    color: listContainer.color

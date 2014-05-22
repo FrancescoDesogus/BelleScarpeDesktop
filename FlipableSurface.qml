@@ -40,7 +40,7 @@ Rectangle {
 
 
     //Durata della transizione di flip e di reflip
-    property int transitionDuration: 700
+    property int transitionDuration: 7000
 
 
     /* Coordinate iniziali in cui era situato il front al momento del flip. Dato che la transizione del flip avviene lungo tutto

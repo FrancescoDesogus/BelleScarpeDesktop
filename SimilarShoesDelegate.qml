@@ -116,17 +116,17 @@ Rectangle {
         height: (1 * scaleY)
         color: filtered ? "#AEAEAE" : "#9FB7BF"
         anchors.bottom: suggestionContainer.bottom
-        anchors.bottomMargin: -(1.5 * scaleY)
+        anchors.bottomMargin: -(1 * scaleY)
         anchors.right: filtered ? suggestionContainer.right : undefined
     }
 
     Rectangle {
         id: separatorFiltered
-        height: parent.height - (9 * scaleY)
+        height: parent.height - (10 * scaleY)
         width: 1 * scaleX
         color: "#AEAEAE"
         anchors.right: suggestionContainer.right
-        anchors.rightMargin: -(1.5 * scaleX)
+        anchors.rightMargin: -(1 * scaleX)
         anchors.bottom: suggestionContainer.bottom
         visible: filtered
     }

@@ -106,6 +106,7 @@ Rectangle
 
             //Inizialmente setto solo dei valori costanti, indipendenti dalla scarpa e uguali per ogni entry della lista
             width: similarList.width
+            height: 170 * scaleY
             textFont: metroFont
             color: container.backgroundColor
         }
