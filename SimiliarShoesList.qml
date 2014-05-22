@@ -179,6 +179,7 @@ Rectangle
             delegate: SimilarShoesDelegate {
                 id: suggestionContainer
 
+                height: 170 * scaleY
                 width: similarList.width
                 textFont: metroFont
                 color: container.backgroundColor
@@ -253,7 +254,7 @@ Rectangle
             }
 
             orientation: ListView.Vertical
-            spacing: 9
+            spacing: 9 * scaleY
 
 
             /* Per evitare il rischio di un utente che preme mille volte su una scarpa consigliata senza aspettare il termine della
