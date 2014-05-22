@@ -6,9 +6,11 @@ Rectangle {
 
     property real filterPanelWidth: 1920 * scaleX
     property real filterPanelHeight: 330 * scaleY
+    property string filterPanelbackgroundColor: "#FA626262"
 
     property real draggingRectangleWidth: 350 * scaleX
     property real draggingRectangleHeight: 41 * scaleY
+    property string draggingRectanglebackgroundColor: "#646464"
 
     property int startY: 0
 
@@ -23,7 +25,7 @@ Rectangle {
         width: draggingRectangleWidth
         height: draggingRectangleHeight
 
-        color: "#FA525252"
+        color: draggingRectanglebackgroundColor
         radius: 6
 
         anchors.bottom: container.bottom
@@ -46,7 +48,6 @@ Rectangle {
             width: parent.width
             height: 10 * scaleY
             color: draggingRectangle.color
-            opacity: draggingRectangle.color
         }
 
         Text {
@@ -141,7 +142,7 @@ Rectangle {
 //        x: 100
 //        y: 100
 
-        color: draggingRectangle.color
+        color: filterPanelbackgroundColor
 
         anchors.top: draggingRectangle.bottom
         anchors.horizontalCenter: container.horizontalCenter
@@ -154,7 +155,7 @@ Rectangle {
             width: 1150 * scaleX
             height: 180 * scaleY
 
-            color: filterPanel.color
+            color: "#00000000"
 
             ListView {
                 id: filteredList
