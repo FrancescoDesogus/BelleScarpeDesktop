@@ -1,5 +1,7 @@
 import QtQuick 2.0
 import QtWebKit 3.0
+//import  QtMultimedia 5.0
+
 
 //Contenitore principale della view
 Rectangle {
@@ -394,6 +396,8 @@ Rectangle {
                     onClicked: container.touchEventOccurred()
                 }
 
+
+
                 //Per far si che si nasconda la lista quando si preme al di fuori dell'immagine creo due MouseArea da posizionare
                 //in modo che siano una a sinistra dell'immagine e una alla sua destra; inizio con la MouseArea di sinistra
                 MouseArea {
@@ -447,6 +451,15 @@ Rectangle {
                     onClicked: container.touchEventOccurred()
                 }
 
+//                MouseArea {
+//                    anchors.fill: parent
+//                    propagateComposedEvents: true;
+
+//                    onClicked: console.log("yolo")
+//                }
+
+//                onXChanged: console.log("index: " + index + "; x: " + focusedImage.x)
+
 //                //La PinchArea permette lo zoom... però non fa a provarlo senza schermo touch
 //                PinchArea {
 //                    anchors.fill: parent
@@ -459,6 +472,68 @@ Rectangle {
 
             }
         }
+
+//        Rectangle {
+//            height: parent.height
+//            width: 1
+
+//            color: "green"
+
+//            x: 1080/2
+//        }
+
+//        Rectangle {
+//            height: parent.height
+//            width: 1
+
+//            color: "green"
+
+//            x: 1080 - 1080/3
+//        }
+
+        Rectangle {
+
+           width: 50
+           height: 50
+           radius: 20
+
+           y:  10
+           x: 1800
+
+           color: imageFocusList.atXBeginning ? "green" : "blue"
+
+           MouseArea {
+               anchors.fill: parent
+
+               onClicked: imageFocusList.atXBeginning ? imageFocusList.decrementCurrentIndex() : "blue"
+           }
+        }
+
+
+        Rectangle {
+
+           width: 50
+           height: 50
+           radius: 20
+
+           y: 1080/2 - 25
+           x: 1800
+
+           color: imageFocusList.atXEnd ? "green" : "blue"
+        }
+
+
+        onMovementEnded: {
+            console.log("imageFocusList.horizontalVelocity " + imageFocusList.horizontalVelocity);
+
+            console.log(imageFocusList.flicking)
+
+            if(imageFocusList.horizontalVelocity < 0)
+                 console.log("moved left");
+            else
+                 console.log("moved right");
+        }
+
 
         orientation: ListView.Horizontal
 
@@ -580,6 +655,16 @@ Rectangle {
         anchors.horizontalCenter: parent.horizontalCenter
     }
 
+//    Video {
+
+//        width: 200
+//        height: 200
+
+//        x: 100
+//        y: 100
+
+//        source: "https://www.youtube.com/watch?v=xydR7A6EP7U"
+//    }
 
 
     //Ascolto per quando la ShoeView diventa visibile; in quel momento infatti porto l'opacità di tutti i component "che contano"
