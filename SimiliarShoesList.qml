@@ -112,12 +112,6 @@ Rectangle
         }
 
 
-        /* Il flipable avverte anche se è possibile effettuare click utente (non è possibile quando le transizioni sono in atto).
-         * Il signal clickAllowed passa come parametro il booleano isAllowed. La proprietà isClickAllowed è esterna, appartiene
-         * alla ShoeView in cui sta' questo component; non è molto corretto accederci da qua, ma è per evitare di usare troppi signal */
-        onClickAllowed: isClickAllowed = isAllowed
-
-
         /* Questa funzione viene chiamata dall'entry della lista clickata, e si occupa di popolare la copia in modo che diventi
          * tale e quale all'entry */
         function createCopy(toCopy)
@@ -241,6 +235,8 @@ Rectangle
 
                 }
 
+                //Quando l'elemento della lista ha finito di caricare, controllo se è l'ultimo della lista; in tal caso
+                //nascondo il separatore che sta' sotto ogni entry della lista, altrimenti incremento il counter
                 Component.onCompleted: {
                     suggestionContainer.separator.visible = (similarList.counter != (similarList.count - 1))
                     similarList.counter++

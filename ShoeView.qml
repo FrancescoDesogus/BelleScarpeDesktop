@@ -89,17 +89,23 @@ Rectangle {
          * un focus sull'immagine. Il signal riceve come parametro l'indice della lista di thumbnail che indica
          * quale immagine della contenente le immagini ingrandite deve essere mostrata per prima */
         onMainImageClicked: {
-            console.log("id: " + shoe.id + "; isClickAllowed == " + container.isClickAllowed)
-
             if(container.isClickAllowed)
             {
                 //Quando il signal scatta, cambio lo stato del rettangolo che oscura lo schermo
                 mainImageFocusBackground.state = "visible";
 
+                imageFocusList.dotsArray[imageFocusList.currentIndex].opacity = 1
+
                 //Cambio l'indice della lista contenente le immagini ingrandite in base all'indice ricevuto dal signal; dopodichè
                 //rendo visibile la lista stessa
                 imageFocusList.currentIndex = listIndex
                 imageFocusList.state = "visible"
+
+                //Rendo invisibile il rettangolo per aprire il pannello dei filtri
+                filterPanel.visible = false
+
+
+                imageFocusList.dotsArray[listIndex].opacity = 0.5
             }
         }
 
@@ -370,6 +376,12 @@ Rectangle {
     ListView {
         id: imageFocusList
 
+        property real startingContentX;
+
+
+        property var dotsArray: new Array();
+
+
         //La lista è grande quanto tutto lo schermo, quindi "filla" tutto il parent
         anchors.fill: parent
 
@@ -406,6 +418,8 @@ Rectangle {
                 MouseArea {
                     anchors.fill: parent
                     onClicked: container.touchEventOccurred()
+
+                    onPressed: imageFocusList.startingContentX = imageFocusList.contentX
                 }
 
 
@@ -439,6 +453,8 @@ Rectangle {
 
                     //Al click avviso che c'è stato un touch event
                     onClicked: container.touchEventOccurred()
+
+                    onPressed: imageFocusList.startingContentX = imageFocusList.contentX
                 }
 
                 //MouseArea per la parte destra dell'immagine
@@ -461,16 +477,9 @@ Rectangle {
                     }
 
                     onClicked: container.touchEventOccurred()
+
+                    onPressed: imageFocusList.startingContentX = imageFocusList.contentX
                 }
-
-//                MouseArea {
-//                    anchors.fill: parent
-//                    propagateComposedEvents: true;
-
-//                    onClicked: console.log("yolo")
-//                }
-
-//                onXChanged: console.log("index: " + index + "; x: " + focusedImage.x)
 
 //                //La PinchArea permette lo zoom... però non fa a provarlo senza schermo touch
 //                PinchArea {
@@ -485,71 +494,106 @@ Rectangle {
             }
         }
 
-//        Rectangle {
-//            height: parent.height
-//            width: 1
-
-//            color: "green"
-
-//            x: 1080/2
-//        }
-
-//        Rectangle {
-//            height: parent.height
-//            width: 1
-
-//            color: "green"
-
-//            x: 1080 - 1080/3
-//        }
-
-        Rectangle {
-
-           width: 50
-           height: 50
-           radius: 20
-
-           y:  10
-           x: 1800
-
-           color: imageFocusList.atXBeginning ? "green" : "blue"
-
-           MouseArea {
-               anchors.fill: parent
-
-               onClicked: imageFocusList.atXBeginning ? imageFocusList.decrementCurrentIndex() : "blue"
-           }
-        }
-
-
-        Rectangle {
-
-           width: 50
-           height: 50
-           radius: 20
-
-           y: 1080/2 - 25
-           x: 1800
-
-           color: imageFocusList.atXEnd ? "green" : "blue"
-        }
-
-        property real startingContentX;
-
-        onMovementStarted: startingContentX = contentX
 
         onMovementEnded: {
-            console.log("imageFocusList.horizontalVelocity " + Number(imageFocusList.horizontalVelocity).toFixed(5));
 
-            //Number((6.688689).toFixed(1))
+//            console.log("contentX: " + imageFocusList.contentX)
+
 
             if(imageFocusList.contentX == imageFocusList.startingContentX)
                 console.log("didn't move");
-            else if(imageFocusList.horizontalVelocity < 0)
-//            else if(Number(imageFocusList.horizontalVelocity).toFixed(5) < 0)
-                 console.log("moved left");
+            else if(imageFocusList.contentX < imageFocusList.startingContentX)
+            {
+                imageFocusList.dotsArray[imageFocusList.currentIndex].opacity = 1;
+
+
+                var index = imageFocusList.contentX / 1920;
+
+                imageFocusList.currentIndex = index
+
+                imageFocusList.dotsArray[index].opacity = 0.5;
+
+                console.log("moved left");
+            }
             else
-                 console.log("moved right");
+            {
+                imageFocusList.dotsArray[imageFocusList.currentIndex].opacity = 1;
+
+
+
+                index = imageFocusList.contentX / 1920;
+
+                imageFocusList.currentIndex = index
+
+                imageFocusList.dotsArray[index].opacity = 0.5;
+
+
+                console.log("moved right");
+            }
+        }
+
+        Component {
+            id: listDot
+
+            Rectangle {
+
+                width: 20
+                height: 20
+
+                color: "#807a7a"
+
+                radius: 20
+            }
+        }
+
+        Item {
+            id: listDotsContainer
+
+            y: imageFocusList.height - 75 * scaleY
+
+
+            anchors.horizontalCenter: imageFocusList.horizontalCenter
+        }
+
+
+
+        function createDots(sizes)
+        {
+            //Variabile che conterrà una singola istanza di "component"
+            var item;
+
+            //Coordinate di ogni item; i loro valori incrementano
+            var x = 0;
+            var y = 0;
+
+            var dotsSpacing = 5 * scaleX;
+
+
+            var dotsCount = imageFocusList.count
+
+            var dotWidth = 20 * scaleX
+
+            var totalWidth = (dotsCount - 1) * (dotWidth + dotsSpacing) + dotWidth
+
+
+            listDotsContainer.width = totalWidth
+
+
+            //Creo tanti punti quanti sono gli elementi della lista
+            for(var i = 0; i < dotsCount; i++)
+            {
+                //Creo l'istanza corrente del component e la inserisco all'interno del container per i punti
+                item = listDot.createObject(listDotsContainer);
+
+                //Lo posiziono nella scena
+                item.x = x;
+                item.y = y;
+
+                //Incremento la x, aggiungendo un margine di separazione tra un elemento e l'altro
+                x = x + item.width + dotsSpacing;
+
+                imageFocusList.dotsArray[i] = item
+            }
         }
 
 
@@ -649,6 +693,9 @@ Rectangle {
                         //Quando l'animazione termina, oltre a rendere invisible la lista rimetto l'opacità a 1 all'elemento
                         //correntemente selezionato nella lista, in quanto con l'animazione era svanito
                         imageFocusList.currentItem.opacity = 1
+
+                        //Rendo anche nuovamente visibile il rettangolo per aprire il pannello dei filtri
+                        filterPanel.visible = true
                     }
                 }
             }
@@ -657,6 +704,8 @@ Rectangle {
         //Quando il component è stato caricato, setto la sua visibilità su false per non farlo vedere inizialmente
         Component.onCompleted: {
             imageFocusList.visible = false
+
+            createDots()
         }
 
 
@@ -668,6 +717,8 @@ Rectangle {
 
 
     ShoeFilter {
+        id: filterPanel
+
         backgroundRectangle: mainImageFocusBackground
         anchors.bottom: parent.bottom
         anchors.horizontalCenter: parent.horizontalCenter

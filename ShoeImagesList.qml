@@ -469,6 +469,10 @@ Rectangle {
     }
 
 
+    //Quando si crea una view dopo un codice RFID, il metodo onVisibleChanged non è chiamato, quindi inizialmente il timer non
+    //si riavvia da solo; per questo motivo appena il component finisce di caricare lo avvio
+    Component.onCompleted: thumbnailMoverTimer.restart();
+
     /*
      * Funzione che calcola l'altezza della ListView. Serve per dare il giusto spazio alla lista delle thumbnail, in modo
      * che la lista occupi lo spazio assolutamente necessario per contenerla e basta, in modo che il clipping quando si scorre

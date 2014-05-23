@@ -313,9 +313,8 @@ Rectangle {
 
                     frontShoeView.visible = false
 
-                    //Emitto anche il signal per indicare che ora è permesso effettuare click, visto che la transizione è finita
-//                    clickAllowed(true)
 
+                    //Riabilito i click nelle ShoeView coinvolte nella transizione
                     back.enableClicks()
                     frontShoeView.enableClicks()
                 }
@@ -448,10 +447,7 @@ Rectangle {
                     flipable.visible = false
 
 
-                    //Emitto anche il signal per indicare che ora è permesso effettuare click, visto che la transizione è finita
-//                    clickAllowed(true)
-
-
+                    //Riabilito i click nelle ShoeView coinvolte nella transizione
                     back.enableClicks()
                     frontShoeView.enableClicks()
                 }
@@ -487,11 +483,7 @@ Rectangle {
         flipable.visible = true
 
 
-
-        //Emitto anche il signal indicando che non è permesso clickare, visto che la transizione sta' per iniziare
-//        clickAllowed(false)
-
-
+        //Disabilito i click nelle ShoeView coinvolte nella transizione
         back.disableClicks()
         frontShoeView.disableClicks()
 
@@ -512,15 +504,13 @@ Rectangle {
         frontShoeView.visible = true
 
 
-        //Emitto anche il signal indicando che non è permesso clickare, visto che la transizione sta' per iniziare
-//        clickAllowed(false)
+        //Disabilito i click nelle ShoeView coinvolte nella transizione
+        back.disableClicks()
+        frontShoeView.disableClicks()
 
 
         //Terminate le preparazioni, cambio lo stato per far partire la transizione
         flipable.state = "reflip"
-
-        back.disableClicks()
-        frontShoeView.disableClicks()
     }
 }
 
