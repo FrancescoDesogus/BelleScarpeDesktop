@@ -49,6 +49,12 @@ Rectangle {
     //Signal che indica che bisogna tornare indietro di una view nello stack di viste
     signal goBack()
 
+    //Signal per indicare l'inizio/fine dei vari tipi di transizione (dovuta a RFID o dovuta a input utente diretto).
+    //Questi signal sono emessi dall'esterno (dal ViewManager) e sono "ascoltati" dentro ShoeView
+    signal transitionFromRFIDStarted()
+    signal transitionFromRFIDEnded()
+    signal transitionStarted()
+    signal transitionEnded()
 
 
     /* Questa proprietà permette di inserire una Rotation, che da' più libertà di rotazione per il container (la cui proprietà
@@ -94,6 +100,8 @@ Rectangle {
                 //Quando il signal scatta, cambio lo stato del rettangolo che oscura lo schermo
                 mainImageFocusBackground.state = "visible";
 
+                //Rendo "normale" il dot corrispondende all'index della lista che era stato precedentemente visualizzato,
+                //qualora esistesse
                 imageFocusList.dotsArray[imageFocusList.currentIndex].opacity = 1
 
                 //Cambio l'indice della lista contenente le immagini ingrandite in base all'indice ricevuto dal signal; dopodichè
@@ -101,11 +109,11 @@ Rectangle {
                 imageFocusList.currentIndex = listIndex
                 imageFocusList.state = "visible"
 
-                //Rendo invisibile il rettangolo per aprire il pannello dei filtri
-                filterPanel.visible = false
-
-
+                //Rendo "attivo" il dot corrispondente all'index della lista che verrà visualizzato
                 imageFocusList.dotsArray[listIndex].opacity = 0.5
+
+                //Rendo invisibile il rettangolo per aprire il pannello dei filtri
+                filterPanel.state = "hidden"
             }
         }
 
@@ -129,7 +137,6 @@ Rectangle {
         //Anche ShoeDetail ha un signal onTouchEventOccurred; quando scatta, propago l'evento verso l'esterno
         onTouchEventOccurred: container.touchEventOccurred()
 
-
         //Per fare il fade in/out effect, utilizzo un Behavior che esegue l'animazione nel tempo stabilito quando l'opacità cambia
         Behavior on opacity {
             NumberAnimation {
@@ -139,70 +146,65 @@ Rectangle {
     }
 
 
-
+    //Component la lista delle scarpe simili
     SimiliarShoesList {
         id: similiarShoesList
         anchors.right: parent.right
 
         anchors.top: parent.top
 
-
         //Per fare il fade in/out effect, utilizzo un Behavior che esegue l'animazione nel tempo stabilito quando l'opacità cambia
         Behavior on opacity {
             NumberAnimation {
                 duration: similiarShoesList.opacity == 0 ? fadingOutDuration  : fadingInDuration
             }
-
         }
-
 
         //Anche SimiliarShoesList ha un signal onTouchEventOccurred; quando scatta, propago l'evento verso l'esterno
         onTouchEventOccurred: container.touchEventOccurred()
 
 
         //Signal che viene emesso quando si preme su una scarpa consigliata e bisogna cambiare transizione. Il signal passa
-            //come parametri l'id della scarpa da caricare e la FlipableSurface da usare per la transizione visiva
-            onNeedShoeIntoContext: {
-                //Recupero la FlipableSurface che dovrà essere usata per la transizione
-                flipableSurface = shoeSelectedFlipable
+        //come parametri l'id della scarpa da caricare e la FlipableSurface da usare per la transizione visiva
+        onNeedShoeIntoContext: {
+            //Recupero la FlipableSurface che dovrà essere usata per la transizione
+            flipableSurface = shoeSelectedFlipable
 
-                /* Le coordinate attuali di flipableSurface sono relative al suo vecchio padre, il container di SimilarShoesList.
-                 * Dato che ora cambierà padre, e quindi sistema di coordinate, recupero le sue coordinate globali in base al
-                 * container di ShoeView usando la funzione mapToItem().
-                 * Nota: affinchè le coordinate globali vengano calcolate correttamente con questa funzione, le coordinate locali
-                 * del flipable devono essere prese localmente a tutto il container di SimilarShoesList */
-                var globalCoordinates = flipableSurface.mapToItem(container.parent, 0, 0)
+            /* Le coordinate attuali di flipableSurface sono relative al suo vecchio padre, il container di SimilarShoesList.
+             * Dato che ora cambierà padre, e quindi sistema di coordinate, recupero le sue coordinate globali in base al
+             * container di ShoeView usando la funzione mapToItem().
+             * Nota: affinchè le coordinate globali vengano calcolate correttamente con questa funzione, le coordinate locali
+             * del flipable devono essere prese localmente a tutto il container di SimilarShoesList */
+            var globalCoordinates = flipableSurface.mapToItem(container.parent, 0, 0)
 
-                /* A questo punto dell'esecuzione, il flipable ha come padre SimilarShoesList; questo vuol dire che le sue coordinate
-                 * sono locali a quel component, e non può neanche andare oltre i suoi limiti visivi. Dato che la FlipableSurface dovrà
-                 * muoversi per tutto lo schermo, occorre far diventare la ShoeView in questione padre del flipable, cosicchè non sia
-                 * più vincolato a muoversi dentro SimilarShoesList */
-                flipableSurface.parent = container
+            /* A questo punto dell'esecuzione, il flipable ha come padre SimilarShoesList; questo vuol dire che le sue coordinate
+             * sono locali a quel component, e non può neanche andare oltre i suoi limiti visivi. Dato che la FlipableSurface dovrà
+             * muoversi per tutto lo schermo, occorre far diventare la ShoeView in questione padre del flipable, cosicchè non sia
+             * più vincolato a muoversi dentro SimilarShoesList */
+            flipableSurface.parent = container
 
-                //Le coordinate appena prese servono per sapere da dove partire con l'animazione di flip, ed eventualmente dove tornare
-                //quando si preme il tasto back. Salvo quindi le coordinate nelle rispettive proprietà del flipable
-                flipableSurface.initialX = globalCoordinates.x
-                flipableSurface.initialY = globalCoordinates.y
+            //Le coordinate appena prese servono per sapere da dove partire con l'animazione di flip, ed eventualmente dove tornare
+            //quando si preme il tasto back. Salvo quindi le coordinate nelle rispettive proprietà del flipable
+            flipableSurface.initialX = globalCoordinates.x
+            flipableSurface.initialY = globalCoordinates.y
 
-                //Salvo anche il riferimento dell'intera ShoeView. In realtà lo avrei già, essendo la ShoeView il padre di
-                //flipableSurface, ma per evitare ambiguità ho preferito creare una proprietà a posta
-                flipableSurface.frontShoeView = container
-
-
-                //Pronto il flipable, emitto il signal che chiamerà il rispettivo slot di C++ che si occuperà di caricare la scarpa,
-                //creare la nuova view e attivare l'animazione del flipable inserendo la nuova view come "back" della FlipableSurface
-                container.needShoeIntoContext(id)
+            //Salvo anche il riferimento dell'intera ShoeView. In realtà lo avrei già, essendo la ShoeView il padre di
+            //flipableSurface, ma per evitare ambiguità ho preferito creare una proprietà a posta
+            flipableSurface.frontShoeView = container
 
 
-                //Infine porto a zero l'opacità di tutti i componenti "che contano" di ShoeView; grazie alla proprietà
-                //Behavior on opacity che hanno tutti questi, verrà avviata l'animazione di fade out
-                imagesList.opacity = 0
-                shoeDetail.opacity = 0
-                similiarShoesList.opacity = 0
-                backButton.opacity = 0
+            //Pronto il flipable, emitto il signal che chiamerà il rispettivo slot di C++ che si occuperà di caricare la scarpa,
+            //creare la nuova view e attivare l'animazione del flipable inserendo la nuova view come "back" della FlipableSurface
+            container.needShoeIntoContext(id)
 
-                isClickAllowed = false;
-            }
+
+            //Infine porto a zero l'opacità di tutti i componenti "che contano" di ShoeView; grazie alla proprietà
+            //Behavior on opacity che hanno tutti questi, verrà avviata l'animazione di fade out
+            imagesList.opacity = 0
+            shoeDetail.opacity = 0
+            similiarShoesList.opacity = 0
+            backButton.opacity = 0
+        }
     }
 
     Image {
@@ -322,7 +324,6 @@ Rectangle {
                 from: "invisible"
                 to: "visible"
 
-
                 //Creo una NumberAnimation, usata per definire animazioni che cambiano proprietà con valori numerici
                 NumberAnimation {
                     //Definisco che il target dell'animazione è il background
@@ -376,13 +377,15 @@ Rectangle {
     ListView {
         id: imageFocusList
 
+        //Questa proprietà contiene il valore del contentX della lista al momento in cui si preme per effettuare uno scroll. Il
+        //contentX rappresenta la posizione dell'elemento visualizzato all'interno della lista; è usato per far funzionare i dot
         property real startingContentX;
 
-
+        //Array che contiene tutti i dot della lista
         property var dotsArray: new Array();
 
 
-        //La lista è grande quanto tutto lo schermo, quindi "filla" tutto il parent
+        //La lista è grande quanto tutto lo schermo, quindi occupa tutto il parent
         anchors.fill: parent
 
         //Inizialmente lo stato è invisibile
@@ -392,6 +395,15 @@ Rectangle {
          * la lista si sposterebbe da sola (moooolto lentamente) verso l'elemento da visualizzare quando la lista diventa
          * inizialmente visibile */
         highlightFollowsCurrentItem: false
+
+        //Incrementare il valore della decelerazione fa si che si scrolli tra una imagine e l'altra più velocemente
+        flickDeceleration: 10000
+
+        orientation: ListView.Horizontal
+
+        //Lo snapMode messo in questo modo fa si che si possa scorrere un solo elemento della lista per volta
+        snapMode: ListView.SnapOneItem
+
 
         //Il modello della lista, contenente i path delle immagini da mostrare, è preso da C++ ed è uguale a quello della lista
         //contenente le thumbnail
@@ -413,15 +425,12 @@ Rectangle {
                 fillMode: Image.PreserveAspectFit
 
 
-                //L'immagine ha associata una MouseArea che ha il solo scopo di emettere il signal touchEventOccurred(), in modo
-                //da avvisare chi userà il component ShowView che è stato ricevuto un touch event
+                //L'immagine ha associata una MouseArea che ha il solo scopo di emettere il signal touchEventOccurred(),
+                //in modo da avvisare chi userà il component ShowView che è stato ricevuto un touch event
                 MouseArea {
                     anchors.fill: parent
                     onClicked: container.touchEventOccurred()
-
-                    onPressed: imageFocusList.startingContentX = imageFocusList.contentX
                 }
-
 
 
                 //Per far si che si nasconda la lista quando si preme al di fuori dell'immagine creo due MouseArea da posizionare
@@ -449,12 +458,13 @@ Rectangle {
 
                         //Avviso anche che c'è stato un touch event
                         container.touchEventOccurred();
+
+                        //Rendo anche nuovamente visibile il pannello per i filtri cambiandone lo stato
+                        filterPanel.state = "visible"
                     }
 
                     //Al click avviso che c'è stato un touch event
                     onClicked: container.touchEventOccurred()
-
-                    onPressed: imageFocusList.startingContentX = imageFocusList.contentX
                 }
 
                 //MouseArea per la parte destra dell'immagine
@@ -474,11 +484,11 @@ Rectangle {
                         mainImageFocusBackground.state = "invisible";
 
                         container.touchEventOccurred();
+
+                        filterPanel.state = "visible"
                     }
 
                     onClicked: container.touchEventOccurred()
-
-                    onPressed: imageFocusList.startingContentX = imageFocusList.contentX
                 }
 
 //                //La PinchArea permette lo zoom... però non fa a provarlo senza schermo touch
@@ -495,50 +505,14 @@ Rectangle {
         }
 
 
-        onMovementEnded: {
-
-//            console.log("contentX: " + imageFocusList.contentX)
-
-
-            if(imageFocusList.contentX == imageFocusList.startingContentX)
-                console.log("didn't move");
-            else if(imageFocusList.contentX < imageFocusList.startingContentX)
-            {
-                imageFocusList.dotsArray[imageFocusList.currentIndex].opacity = 1;
-
-
-                var index = imageFocusList.contentX / 1920;
-
-                imageFocusList.currentIndex = index
-
-                imageFocusList.dotsArray[index].opacity = 0.5;
-
-                console.log("moved left");
-            }
-            else
-            {
-                imageFocusList.dotsArray[imageFocusList.currentIndex].opacity = 1;
-
-
-
-                index = imageFocusList.contentX / 1920;
-
-                imageFocusList.currentIndex = index
-
-                imageFocusList.dotsArray[index].opacity = 0.5;
-
-
-                console.log("moved right");
-            }
-        }
-
+        //Component per i dot della lista. E' dichiarato come Component in modo tale che sia possibile crarne istanze via JavaScript
         Component {
             id: listDot
 
+            //Il dot vero e proprio è questo rettangolo con radius per farlo sembrare un cerchio
             Rectangle {
-
-                width: 20
-                height: 20
+                width: 20 * scaleX
+                height: 20 * scaleY
 
                 color: "#807a7a"
 
@@ -546,61 +520,142 @@ Rectangle {
             }
         }
 
+
+        /* Contenitore dei dot della lista. Per far si che siano sempre centrati orizzontalmente, quando vengono creati
+         * dinamicamente vengono inseriti in questo container in modo che sia posizionato in modo che i dot siano messi bene
+         * (utilizzo un Item e non un Rectangle come container in modo che non si veda lo sfondo del rettangolo dietro) */
         Item {
             id: listDotsContainer
 
+            //Coordinata y in cui appariranno i dot
             y: imageFocusList.height - 75 * scaleY
 
-
+            //Anchor per centrare orizzontalmente i dot
             anchors.horizontalCenter: imageFocusList.horizontalCenter
         }
 
 
-
+        /* Questa funzione è chiamata al termine del caricamento della lista (quindi una sola volta) e serve a creare
+         * dinamicamente i dot degli elementi della lista */
         function createDots(sizes)
         {
-            //Variabile che conterrà una singola istanza di "component"
+            //Variabile che conterrà una singola istanza del Component "listDot" creato poco più sopra
             var item;
 
-            //Coordinate di ogni item; i loro valori incrementano
+            //Coordinata x iniziale per il primo dot; il valore della x incrementerà (la y è sempre a 0)
             var x = 0;
-            var y = 0;
 
+            //Spazio tra un dot e l'altro
             var dotsSpacing = 5 * scaleX;
 
-
+            //Numero di dot da creare
             var dotsCount = imageFocusList.count
 
+            //Larghezza di un singolo dot; deve essere uguale a quella definita nel Component "listDot"
             var dotWidth = 20 * scaleX
 
+            //Dato che i dot dovranno essere inseriti nel contenitore listDotsContainer, bisogna dare una larghezza ad esso.
+            //Calcolo quindi la lunghezza totale che deve avere...
             var totalWidth = (dotsCount - 1) * (dotWidth + dotsSpacing) + dotWidth
 
-
+            //...e la assegno al container
             listDotsContainer.width = totalWidth
 
 
-            //Creo tanti punti quanti sono gli elementi della lista
+            //Creo tanti dot quanti sono gli elementi della lista
             for(var i = 0; i < dotsCount; i++)
             {
-                //Creo l'istanza corrente del component e la inserisco all'interno del container per i punti
+                //Creo una istanza del Component listDot e la inserisco all'interno del container per i dot
                 item = listDot.createObject(listDotsContainer);
 
-                //Lo posiziono nella scena
+                //La posiziono nella scena
                 item.x = x;
-                item.y = y;
+                item.y = 0;
 
                 //Incremento la x, aggiungendo un margine di separazione tra un elemento e l'altro
                 x = x + item.width + dotsSpacing;
 
-                imageFocusList.dotsArray[i] = item
+                //Infine salvo l'item appena inserito nell'array, in modo da poterci accedere in seguito
+                dotsArray[i] = item
             }
         }
 
 
-        orientation: ListView.Horizontal
+        //Per far si che quando si scorra la lista i dot in basso cambino in relazione all'elemento visualizzato,
+        //quando si preme inizia un flick utente bisogna fare alcune cose
+        onFlickStarted: {
+            /* Quando si scorre velocemente la lista si eseguono molti flick di fila. Per far si che i dot cambino seguendo
+             * l'immagine attualmente visibile, ad ogni flick aggiorno il valore del punto iniziale e confronto il punto
+             * attuale con quello precedentemente salvato; se il contentX attuale è minore di quello salvato inizialmente,
+             * allora ci si è spostati verso sinistra */
+            if(contentX < startingContentX)
+            {
+                //Aggiorno il punto iniziale, in modo che eventuali altri flick eseguiti velocemente dopo questo
+                //utilizzino questo punto di riferimento per il confronto
+                startingContentX = contentX
 
-        //Lo snapMode messo in questo modo fa si che si possa scorrere un solo elemento della lista per volta
-        snapMode: ListView.SnapOneItem
+                /* Calcolo a quale indice si è arrivati nello scorrimento. Per farlo mi baso sul fatto che tutti gli item della
+                 * lista hanno la stessa larghezza (tutto lo schermo), quindi per capire a quale indice si è basta recuperare
+                 * la posizione attuale all'interno della lista e dividerla per la larghezza; arrotondo il numero in quanto
+                 * durante un flick la posizione del contentX sta' variando e quindi non sempre ha un valore intero */
+                var index = Math.round(contentX / container.width);
+
+                //Controllo se si è arrivati al limite della lista, e nel caso mi fermo
+                if(index == count - 1)
+                    return
+
+                //Riporto il dot precedente (cioè quello con index maggiore) allo stato "normale", e "attivo" il nuovo
+                dotsArray[index+1].opacity = 1
+                dotsArray[index].opacity = 0.5
+
+            }
+            //Caso in cui ci si è spostati verso destra; il funzionamento è analogo all'altro
+            else
+            {
+                startingContentX = contentX
+
+                index = Math.round(contentX / container.width);
+
+                if(index == 0)
+                    return
+
+                dotsArray[index-1].opacity = 1
+                dotsArray[index].opacity = 0.5
+            }
+        }
+
+
+        //Quando la view si ferma in seguito ad uno scroll, devo controllare se l'immagine attualmente visibile è cambiata; in
+        //tal caso, bisogna aggiornare il dot attualmente attivo
+        onMovementEnded: {
+            /* Per capire se ci si è spostati, controllo se il contentX salvato al momento in cui il flick è iniziato è uguale
+             * a quello attuale. Se sono uguali, vuol dire che non ci si è spostati, quindi non bisogna fare niente */
+            if(contentX == startingContentX)
+                return;
+
+            //Caso in cui ci si è spostati verso sinistra; funzionamento analogo a quello presente in onFlickStarted
+            if(contentX < startingContentX)
+            {
+                var index = contentX / container.width;
+
+                if(index == count - 1)
+                    return
+
+                dotsArray[index+1].opacity = 1;
+                dotsArray[index].opacity = 0.5;
+            }
+            //Caso in cui ci si è spostati verso destra
+            else
+            {
+                index = contentX / container.width;
+
+                if(index == 0)
+                    return
+
+                dotsArray[index-1].opacity = 1;
+                dotsArray[index].opacity = 0.5;
+            }
+        }
 
 
         //Aggiungo due stati, uno per quando la lista è visibile e uno per quando non lo è; il funzionamento è identico
@@ -636,7 +691,6 @@ Rectangle {
                 from: "invisible"
                 to: "visible"
 
-
                 //Per l'immagine si hanno 2 animazioni in contemporanea, quindi ci vuole una ParallelAnimation
                 ParallelAnimation {
 
@@ -665,8 +719,19 @@ Rectangle {
                         properties: "y";
                         duration: 500
 
-                        from: -150
+                        from: -150 * scaleY
                         to: 0
+                    }
+
+                    //Animazione per i dot della lista
+                    NumberAnimation {
+                        target: listDotsContainer
+
+                        properties: "opacity"
+                        duration: 250
+
+                        from: 0
+                        to: 1
                     }
                  }
             },
@@ -685,6 +750,28 @@ Rectangle {
                     to: 0
                 }
 
+                NumberAnimation {
+                    target: imageFocusList.currentItem
+
+                    easing.type: Easing.OutCirc
+
+                    properties: "y";
+                    duration: 500
+
+                    from: 0
+                    to: -50 * scaleY
+                }
+
+                NumberAnimation {
+                    target: listDotsContainer
+
+                    properties: "opacity"
+                    duration: 250
+
+                    from: 1
+                    to:0
+                }
+
                 onRunningChanged: {
                     if(!running)
                     {
@@ -693,15 +780,13 @@ Rectangle {
                         //Quando l'animazione termina, oltre a rendere invisible la lista rimetto l'opacità a 1 all'elemento
                         //correntemente selezionato nella lista, in quanto con l'animazione era svanito
                         imageFocusList.currentItem.opacity = 1
-
-                        //Rendo anche nuovamente visibile il rettangolo per aprire il pannello dei filtri
-                        filterPanel.visible = true
                     }
                 }
             }
         ]
 
-        //Quando il component è stato caricato, setto la sua visibilità su false per non farlo vedere inizialmente
+        //Quando il component è stato caricato, setto la sua visibilità su false per non farlo vedere inizialmente. Creo
+        //anche i dot della lista chiamando la funzione apposita
         Component.onCompleted: {
             imageFocusList.visible = false
 
@@ -710,30 +795,179 @@ Rectangle {
 
 
         /* Faccio si che quando cambi l'indice della lista, la lista visualizzi l'elemento attualmente selezionato.
-         * Nota: se highlightFolloswsCurrentItem fosse stato true la chiamata a positionViewAtIndex avrebbe provocato
+         * Nota: se highlightFollowsCurrentItem fosse stato true la chiamata a positionViewAtIndex avrebbe provocato
          * un'animazione di transizione (mooolto lenta); messo su false, lo spostamento è istantaneo */
         onCurrentIndexChanged: imageFocusList.positionViewAtIndex(currentIndex, ListView.Contain)
     }
 
 
+    //Component contenente il pannello per filtrare
     ShoeFilter {
         id: filterPanel
 
+        //Inizialmente il pannello è invisibile; apparirà in seguito alla fine della transizione che mostrerà la ShoeView
+        visible: false
+
+        //Rettangolo per scuro per il background, riciclato dalla ShoeView
         backgroundRectangle: mainImageFocusBackground
+
+        //Fisso il pannello in basso al centro dello schermo
         anchors.bottom: parent.bottom
         anchors.horizontalCenter: parent.horizontalCenter
+
+
+        //Dichiaro alcuni stati che servono meramente per attivare determinate transizioni
+        states: [
+            State {
+                name: "hidden"
+            },
+
+            State {
+                name: "visible"
+            },
+
+            State {
+                name: "hiddenAndOpen"
+            },
+
+            State {
+                name: "visibleAndOpen"
+            }
+        ]
+
+
+        transitions: [            
+            //Transizione per quando si passa allo stato visibile mentre il pannello è chiuso
+            Transition {
+                to: "visible"
+
+                //Animazione per il movimento sull'asse y
+                NumberAnimation {
+                    target: filterPanel
+
+                    easing.type: Easing.OutCirc
+
+                    properties: "y";
+                    duration: 300
+
+                    to: container.height
+                }
+
+                onRunningChanged: {
+                    //All'avvio dell'animazione rendo visibile il pannello qualora non lo fosse
+                    if(running)
+                        filterPanel.visible = true
+                    //Al termine, reinserisco l'anchor che si assume fosse stato tolto in precedenza (altrimenti non si potrebbe
+                    //spostare verso l'alto)
+                    else
+                        filterPanel.anchors.bottom = container.bottom
+                }
+            },
+
+            //Transizione per quando si passa allo stato invisibile mentre il pannello è chiuso
+            Transition {
+                to: "hidden"
+
+                NumberAnimation {
+                    target: filterPanel
+
+                    properties: "y";
+                    duration: 300
+
+                    to: container.height + filterPanel.draggingRectangleHeight
+                }
+
+                onRunningChanged: {
+                    //All'avvio dell'animazione rimuovo l'anchor che tiene il pannello in basso, altrimenti l'animazione
+                    //non avrebbe alcun effetto
+                    if(running)
+                        filterPanel.anchors.bottom = undefined
+                    //Al termine rendo invisibile il pannello
+                    else
+                        filterPanel.visible = false
+                }
+            },
+
+            //Transizione di fade in per quando si passa allo stato visibile mentre il pannello è aperto
+            Transition {
+                to: "visibleAndOpen"
+
+                NumberAnimation {
+                    target: filterPanel
+
+                    properties: "opacity"
+                    duration: fadingOutDuration
+
+                    to: 1
+                }
+
+                onRunningChanged: {
+                    //All'avvio dell'animazione rendo visibile il pannello qualora non lo fosse
+                    if(running)
+                        filterPanel.visible = true
+                }
+            },
+
+            //Transizione di fade out per quando si passa allo stato invisibile mentre il pannello è aperto
+            Transition {
+                to: "hiddenAndOpen"
+
+                NumberAnimation {
+                    target: filterPanel
+
+                    properties: "opacity"
+                    duration: fadingInDuration
+
+                    to: 0
+                }
+
+                onRunningChanged: {
+                    //Al termine dell'animazione rendo invisibile il pannello
+                    if(!running)
+                        filterPanel.visible = false
+                }
+            }
+        ]
     }
 
-//    Video {
+    //Ascolto il signal che indica l'inizio di una transizione da RFID
+    onTransitionFromRFIDStarted: {
+        //Durante la transizione, non deve essere permesso clickare sullo schermo per far apparire nuove schermate, quindi
+        //rendo false il booleano apposito
+        container.isClickAllowed = false;
 
-//        width: 200
-//        height: 200
+        //Nascondo il pannello per i filtri
+        filterPanel.state = "hidden"
+    }
 
-//        x: 100
-//        y: 100
+    //Ascolto il signal che indica la fine di una transizione da RFID
+    onTransitionFromRFIDEnded: {
+        //Riabilito i click utente
+        container.isClickAllowed = true;
 
-//        source: "https://www.youtube.com/watch?v=xydR7A6EP7U"
-//    }
+        //Rendo visibile il pannello
+        filterPanel.state = "visible"
+    }
+
+    //Ascolto il signal che indica l'inizio di una transizione normale causata dall'input utente diretto
+    onTransitionStarted: {
+        //Disabilito i click utente durante la transizione
+        container.isClickAllowed = false;
+
+        //Se il pannello dei filtri non era aperto, lo faccio scomparire
+        if(!filterPanel.isOpen)
+            filterPanel.state = "hidden"
+    }
+
+    //Ascolto il signal che indica il termine di una transizione normale causata dall'input utente diretto
+    onTransitionEnded: {
+        //Riabilito i click utente
+        container.isClickAllowed = true;
+
+        //Se il pannello dei filtri non era aperto, lo faccio ricomparire
+        if(!filterPanel.isOpen)
+            filterPanel.state = "visible"
+    }
 
 
     //Ascolto per quando la ShoeView diventa visibile; in quel momento infatti porto l'opacità di tutti i component "che contano"
@@ -745,8 +979,22 @@ Rectangle {
             shoeDetail.opacity = 1
             similiarShoesList.opacity = 1
             backButton.opacity = 1
+            filterPanel.opacity = 1
         }
     }
+
+
+
+    //    Video {
+
+    //        width: 200
+    //        height: 200
+
+    //        x: 100
+    //        y: 100
+
+    //        source: "https://www.youtube.com/watch?v=xydR7A6EP7U"
+    //    }
 
 
     /* Funzione per disabilitare il bottone per tornare indietro di schermata; è chiamata da connectNewViewEvents() nel main.qml
@@ -755,19 +1003,4 @@ Rectangle {
     {
         backButton.isDisabled = true;
     }
-
-    /* Funzione chiamata dall'esterno per disabilitare i click utente nell'interfaccia; è chiamata all'inizio delle transizioni
-     * tra una schermata e l'altra per evitare problemi */
-    function disableClicks()
-    {
-        container.isClickAllowed = false;
-    }
-
-    /* Funzione chiamata dall'esterno per riabilitare i click utente nell'interfaccia; è chiamata al termine delle transizioni
-     * tra una schermata e l'altra*/
-    function enableClicks()
-    {
-        container.isClickAllowed = true;
-    }
-
 }

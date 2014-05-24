@@ -54,18 +54,11 @@ Rectangle {
     property real initialY
 
 
-
-    /* Signal che indica a chi userà la FlipableSurface se le è permesso effettuare click; i click vengono bloccati quando le
-     * transizioni iniziano, e viene sbloccato quando finiscono */
-    signal clickAllowed(bool isAllowed)
-
-
     //Al completamento del caricamento, faccio diventare il front figlio dell'apposito container; si assume quindi che il front
     //sia definito da subito, a differenza del back che può essere aggiunto in seguito
     Component.onCompleted: {
         front.parent = frontContainer
     }
-
 
     //Transform per il frontContainer. Serve per poterlo ruotare intorno ad assi diversi da quello di default (asse z). E'
     //definito al di fuori del frontContainer per poterci accedere direttamente da "flipable" durante le animazioni definite sotto
@@ -313,10 +306,8 @@ Rectangle {
 
                     frontShoeView.visible = false
 
-
-                    //Riabilito i click nelle ShoeView coinvolte nella transizione
-                    back.enableClicks()
-                    frontShoeView.enableClicks()
+                    //Emitto il signal che indica alla ShoeView che è apparsa che è finita la transizione
+                    back.transitionEnded()
                 }
             }
         },
@@ -446,10 +437,8 @@ Rectangle {
                     //sarebbe scomparso
                     flipable.visible = false
 
-
-                    //Riabilito i click nelle ShoeView coinvolte nella transizione
-                    back.enableClicks()
-                    frontShoeView.enableClicks()
+                    //Emitto il signal che indica alla ShoeView che è apparsa che è finita la transizione
+                    frontShoeView.transitionEnded()
                 }
             }
         }
@@ -483,9 +472,10 @@ Rectangle {
         flipable.visible = true
 
 
-        //Disabilito i click nelle ShoeView coinvolte nella transizione
-        back.disableClicks()
-        frontShoeView.disableClicks()
+        //Emitto i signal che indicano alle ShoeView coinvolte che è iniziata la transizione, in modo che possano disabilitare
+        //i click utente e quant'altro
+        frontShoeView.transitionStarted()
+        back.transitionStarted()
 
 
         //Terminate le preparazioni, cambio lo stato per far partire la transizione
@@ -504,9 +494,10 @@ Rectangle {
         frontShoeView.visible = true
 
 
-        //Disabilito i click nelle ShoeView coinvolte nella transizione
-        back.disableClicks()
-        frontShoeView.disableClicks()
+        //Emitto i signal che indicano alle ShoeView coinvolte che è iniziata la transizione, in modo che possano disabilitare
+        //i click utente e quant'altro
+        frontShoeView.transitionStarted()
+        back.transitionStarted()
 
 
         //Terminate le preparazioni, cambio lo stato per far partire la transizione

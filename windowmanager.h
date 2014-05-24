@@ -27,7 +27,6 @@ private:
 public slots:
     void loadNewShoeView(int id);
     void loadNewShoeView(QString RFIDcode);
-    void prova();
 };
 
 #endif // WINDOWMANAGER_H

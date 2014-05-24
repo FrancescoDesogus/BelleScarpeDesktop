@@ -142,22 +142,20 @@ Rectangle {
         }
 
         onRunningChanged: {
-
-            //Quando parte la transizione disabilito i click utente nelle view coinvolte nell'animazione, in modo che non
-            //si possa premere durante la transizione
+            //Quando parte la transizione emitto i signal delle view coinvolte per indicare loro che è iniziata la transizione,
+            //in modo che possano disabilitare la possibilità di clickare e cose simili
             if(running)
             {
-                rfidTransition.currentViewContainer.disableClicks();
-
-                rfidTransition.nextViewContainer.disableClicks();
+                rfidTransition.currentViewContainer.transitionFromRFIDStarted()
+                rfidTransition.nextViewContainer.transitionFromRFIDStarted()
             }
-            //Quando la transizione finisce, distruggo la view che è sparita, per salvare memoria. Inoltre abilito i click utente
-            //per la view che ora è visibile
+            //Quando la transizione finisce, distruggo la view che è sparita, per salvare memoria. Inoltre emitto il signal che
+            //indica alla ShoeView che è apparsa che è finita la transizione
             else
             {
                 rfidTransition.currentViewContainer.destroy();
 
-                rfidTransition.nextViewContainer.enableClicks();
+                rfidTransition.nextViewContainer.transitionFromRFIDEnded()
             }
         }
     }

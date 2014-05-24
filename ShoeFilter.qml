@@ -17,6 +17,9 @@ Rectangle {
     property Rectangle backgroundRectangle
 
 
+    property bool isOpen: false
+
+
     FontLoader { id: metroFont; source: "qrc:segeo-wp.ttf" }
 
     Rectangle {
@@ -107,6 +110,8 @@ Rectangle {
                         //Faccio scomparire il rettangolo scuro sullo sfondo
                         backgroundRectangle.visible = false
                         backgroundRectangle.opacity = 0
+
+                        isOpen = false
                     }else{
                         arrow.text = "»"
                         draggingRectangle.y = 0 - filterPanelHeight
@@ -123,10 +128,14 @@ Rectangle {
                         //Faccio scomparire il rettangolo scuro sullo sfondo
                         backgroundRectangle.visible = false
                         backgroundRectangle.opacity = 0
+
+                        isOpen = false
                     }else if(startY >= Math.round(draggingRectangle.y)){
                         //Se invece la y iniziale è maggiore di quella attuale (e quindi il rettangolo è più in alto, sollevo il pannello
                         arrow.text = "»"
                         draggingRectangle.y = 0 - filterPanelHeight
+
+                        isOpen = true
                     }
                 }
             }

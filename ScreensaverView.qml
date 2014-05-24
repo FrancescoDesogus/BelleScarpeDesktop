@@ -11,6 +11,9 @@ Rectangle
     property bool isClickAllowed: true
 
 
+    signal transitionFromRFIDStarted()
+    signal transitionFromRFIDEnded()
+
 
     Text {
         text: "I'm a timeout screen, pleased to make your acquaintance."
