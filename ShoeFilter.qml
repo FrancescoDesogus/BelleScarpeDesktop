@@ -227,20 +227,31 @@ Rectangle {
         }
 
 
-//        onVisibleChanged: {
-//            if(visible && !filteredList.atXBeginning)
-//                leftSmoother.opacity = 0
-//            else if(!visible && !filteredList.atXBeginning)
-//                leftSmoother.opacity = 1
+        /* Dato che ci sono gli "smoother" a destra e a sinistra della lista delle scarpe, durante le transizioni quando si preme
+         * su una scarpa (e quindi quando flipableSurface diventa visibile per effettuare la transizione) bisogna farli scomparire
+         * e poi ricomparire se e quando la schermata torna ad essere mostrata, in modo che l'entry della lista clickata non finisca
+         * sopra uno smoother durante la transizione al contrario (in tal caso finirebbe sopra lo smoothere poi subito sotto
+         * all'improvviso, rendendo l'aspetto visivo per niente "smooth") */
+        onVisibleChanged: {
+            //Se la flipableSurface diventa visibile, e la lista non era all'inizio (e quindi il leftSmoother è visibile),
+            //nascondo lo smoother
+            if(visible && !filteredList.atXBeginning)
+                leftSmoother.opacity = 0
+            /* Se quando la transizione è terminata (e quindi la flipableSurface non è più visibile) la lista non si trova
+             * all'inizio, e quindi il leftSmoother prima era visibile, devo farlo ricomparire. Non basta mettere l'opacità a 1
+             * perchè il binding che lo faceva apparire/scomparire quando ci si spostava nella lista (definito al momento
+             * della dichiarazione dello smoother) si era rotto quando gli era stata messa l'opacità a 0.
+             * Quindi, invece di settare l'opacità a 1, ripristino il binding con la funzione apposita, in modo che d'ora in avanti
+             * continui a lavorare correttamente come stava facendo prima della transizione */
+            else if(!visible && !filteredList.atXBeginning)
+                leftSmoother.opacity = Qt.binding(function() { return filteredList.atXBeginning ? 0 : 1 })
 
-//            if(visible && !filteredList.atXEnd)
-//                rightSmoother.opacity = 0
-//            else if(!visible && !filteredList.atXEnd)
-//                rightSmoother.opacity = 1
-
-//            leftSmoother.opacity = Qt.binding(function() { return filteredList.atXBeginning ? 0 : 1 })
-//            rightSmoother.opacity = Qt.binding(function() { return filteredList.atXEnd ? 0 : 1 })
-//        }
+            //Stesso discorso di sopra per il rightSmoother
+            if(visible && !filteredList.atXEnd)
+                rightSmoother.opacity = 0
+            else if(!visible && !filteredList.atXEnd)
+                rightSmoother.opacity = Qt.binding(function() { return filteredList.atXEnd ? 0 : 1 })
+        }
 
         function createCopy(toCopy)
         {
