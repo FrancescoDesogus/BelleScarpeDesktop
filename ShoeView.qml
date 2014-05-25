@@ -164,7 +164,7 @@ Rectangle {
         onTouchEventOccurred: container.touchEventOccurred()
 
 
-        //Signal che viene emesso quando si preme su una scarpa consigliata e bisogna cambiare transizione. Il signal passa
+        //Signal che viene emesso quando si preme su una scarpa consigliata e bisogna cambiare schermata. Il signal passa
         //come parametri l'id della scarpa da caricare e la FlipableSurface da usare per la transizione visiva
         onNeedShoeIntoContext: {
             //Recupero la FlipableSurface che dovrà essere usata per la transizione
@@ -368,6 +368,28 @@ Rectangle {
         //Quando il component è stato caricato, setto la sua visibilità su false per non farlo vedere inizialmente
         Component.onCompleted: {
             mainImageFocusBackground.visible = false
+        }
+
+        /* Questa MouseArea è usata esclusivamente quando il pannello per i filtri è aperto. Infatti, nonostante la MouseArea copra
+         * tutto lo schermo, quando si apre la lista delle immagini e compare il background, essendo le immagini grandi quanto
+         * tutto lo schermo quando si preme da qualunque parte questa MouseArea non intercetta nessun evento. Li intercetta però
+         * quando il pannell oper i filtri è aperto; in tal caso infatti si rende visibile anche questo background, che ha il solo
+         * scopo di aspettare gli eventi da questa MouseArea. Quando ne riceve uno, si rende invisibile e chiude il pannello */
+        MouseArea {
+            anchors.fill: parent
+
+            onClicked: {
+                //Procedo solo se i click sono abilitati; non lo sono durante le transizioni, in quanto sarebbe possibile
+                //far scomparire il pannello durante una transizione premendo su questo background
+                if(container.isClickAllowed)
+                {
+                    //Rendo invisibile il background (di fatto era presente, anche se aveva l'opacità a 0)...
+                    mainImageFocusBackground.visible = false
+
+                    //...e chiudo il pannello per filtrare
+                    filterPanel.closePanel();
+                }
+            }
         }
     }
 
@@ -816,6 +838,42 @@ Rectangle {
         anchors.horizontalCenter: parent.horizontalCenter
 
 
+        //Anche ShoeFilter ha un signal onTouchEventOccurred; quando scatta, propago l'evento verso l'esterno
+        onTouchEventOccurred: container.touchEventOccurred()
+
+        //Signal che viene emesso quando si preme su una scarpa consigliata e bisogna cambiare schermata. Il funzionamento
+        //è analogo all'onNeedShoeIntoContext di SimiliarShoesList, quindi i commenti sono lasciati la
+        onNeedShoeIntoContext: {
+            flipableSurface = shoeSelectedFlipable
+
+            var globalCoordinates = flipableSurface.mapToItem(container.parent, 0, 0)
+
+            flipableSurface.parent = container
+
+            flipableSurface.initialX = globalCoordinates.x
+            flipableSurface.initialY = globalCoordinates.y
+
+            flipableSurface.frontShoeView = container
+
+            container.needShoeIntoContext(id)
+
+            imagesList.opacity = 0
+            shoeDetail.opacity = 0
+            similiarShoesList.opacity = 0
+            backButton.opacity = 0
+
+            //A differenza di quanto faccio in onNeedShoeIntoContext di SimiliarShoesList, qua metto a 0 anche l'opacità
+            //del pannello dei filtri, che rimane aperto durante la transizione e deve svanire
+            filterPanel.opacity = 0
+        }
+
+        Behavior on opacity {
+            NumberAnimation {
+                duration: filterPanel.opacity == 0 ? fadingOutDuration  : fadingInDuration
+            }
+        }
+
+
         //Dichiaro alcuni stati che servono meramente per attivare determinate transizioni
         states: [
             State {
@@ -824,14 +882,6 @@ Rectangle {
 
             State {
                 name: "visible"
-            },
-
-            State {
-                name: "hiddenAndOpen"
-            },
-
-            State {
-                name: "visibleAndOpen"
             }
         ]
 
@@ -886,46 +936,6 @@ Rectangle {
                     else
                         filterPanel.visible = false
                 }
-            },
-
-            //Transizione di fade in per quando si passa allo stato visibile mentre il pannello è aperto
-            Transition {
-                to: "visibleAndOpen"
-
-                NumberAnimation {
-                    target: filterPanel
-
-                    properties: "opacity"
-                    duration: fadingOutDuration
-
-                    to: 1
-                }
-
-                onRunningChanged: {
-                    //All'avvio dell'animazione rendo visibile il pannello qualora non lo fosse
-                    if(running)
-                        filterPanel.visible = true
-                }
-            },
-
-            //Transizione di fade out per quando si passa allo stato invisibile mentre il pannello è aperto
-            Transition {
-                to: "hiddenAndOpen"
-
-                NumberAnimation {
-                    target: filterPanel
-
-                    properties: "opacity"
-                    duration: fadingInDuration
-
-                    to: 0
-                }
-
-                onRunningChanged: {
-                    //Al termine dell'animazione rendo invisibile il pannello
-                    if(!running)
-                        filterPanel.visible = false
-                }
             }
         ]
     }
@@ -954,7 +964,7 @@ Rectangle {
         //Disabilito i click utente durante la transizione
         container.isClickAllowed = false;
 
-        //Se il pannello dei filtri non era aperto, lo faccio scomparire
+        //Se il pannello dei filtri non era aperto, lo faccio scomparire sotto lo schermo
         if(!filterPanel.isOpen)
             filterPanel.state = "hidden"
     }
@@ -964,7 +974,7 @@ Rectangle {
         //Riabilito i click utente
         container.isClickAllowed = true;
 
-        //Se il pannello dei filtri non era aperto, lo faccio ricomparire
+        //Se il pannello dei filtri non era aperto, lo faccio ricomparire da sotto lo schermo
         if(!filterPanel.isOpen)
             filterPanel.state = "visible"
     }

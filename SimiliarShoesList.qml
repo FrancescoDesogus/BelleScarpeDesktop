@@ -22,10 +22,6 @@ Rectangle
     //Colore di background di tutto il component
     property string backgroundColor: "#00000000"
 
-    //Booleano che indica se si può clickare su una scarpa consigliata per cambiare schermata; inizialmente si può, ma una vola
-    //clickata una il booleano diventa false per evitare di poter premere molte volte di fila e creare mille schermate
-    property bool isClickable: true
-
 
     /**************************************************************
      * Signal emessi verso l'esterno
@@ -191,12 +187,10 @@ Rectangle
                     anchors.fill: parent;
 
                     onClicked: {
-                        //Procedo con la creazione della nuova schermata solo se non è già stata premuta un'altra scarpa, per evitare
-                        //la creazione di più schermate insiem
-                        if(isClickable){
-
-                            //Notifico che non è più possibile clickare
-                            isClickable = false
+                        /* Procedo con la creazione della nuova schermata solo se i click utente sono abilitati; non lo sono durante
+                         * le transizioni tra una schermata e l'altra, quindi dopo l'esecuzione del codice che segue
+                         * non sarà possibile premere su un'altra scarpa fino a quando la transizione non termina */
+                        if(isClickAllowed){
 
                             //Notifico l'esterno che è avvenuto un click
                             container.touchEventOccurred();
@@ -252,17 +246,6 @@ Rectangle
 
             orientation: ListView.Vertical
             spacing: 9 * scaleY
-
-
-            /* Per evitare il rischio di un utente che preme mille volte su una scarpa consigliata senza aspettare il termine della
-             * transizione alla nuova schermata (facendo creare quindi mille view), viene usato un booleano che diventa false e blocca
-             * la possibilità di aprire nuove schermate una volta premuta una scarpa; per far si però che quando si torni indietro
-             * in una schermata già vista sia possibile premere di nuovo su una scarpa, bisogna rimettere il booleano su true.
-             * Visto che il booleano va di pari passo con la visibilità della view, uso questo listener per disattivare/riattivare
-             * il booleano quando la view cambia visiblità; così facendo quando si rivista una view vecchia, il booleano ritorna true */
-            onVisibleChanged: {
-                container.isClickable = container.visible
-            }
 
             //Quando inizia il movimento della lista da parte dell'utente devo bloccare il timer che fa scomparire la scrollbar
             onMovementStarted: {
