@@ -109,8 +109,15 @@ Rectangle {
                 imageFocusList.currentIndex = listIndex
                 imageFocusList.state = "visible"
 
-                //Rendo "attivo" il dot corrispondente all'index della lista che verrà visualizzato
-                imageFocusList.dotsArray[listIndex].opacity = 0.5
+
+                //Salvo quale è l'indice dell'immagine attualmente visibile
+                imageFocusList.currentVisibleIndex = listIndex
+
+                //Stabilisco che il dot correntemente attivo della lista è quello corrispondente all'index selezionato
+                imageFocusList.currentActiveDot = imageFocusList.dotsArray[listIndex]
+
+                //Rendo "attivo" il dot
+                imageFocusList.currentActiveDot.scale = 1
 
                 //Rendo invisibile il rettangolo per aprire il pannello dei filtri
                 filterPanel.state = "hidden"
@@ -399,12 +406,14 @@ Rectangle {
     ListView {
         id: imageFocusList
 
-        //Questa proprietà contiene il valore del contentX della lista al momento in cui si preme per effettuare uno scroll. Il
-        //contentX rappresenta la posizione dell'elemento visualizzato all'interno della lista; è usato per far funzionare i dot
-        property real startingContentX;
-
         //Array che contiene tutti i dot della lista
         property var dotsArray: new Array();
+
+        //Indice dell'immagine attualmente visibile nello schermo
+        property int currentVisibleIndex;
+
+        //Proprietà che contene il dot della lista attualmente attivo (quello relativo all'immagine attualmente visibile)
+        property Item currentActiveDot;
 
 
         //La lista è grande quanto tutto lo schermo, quindi occupa tutto il parent
@@ -539,6 +548,8 @@ Rectangle {
                 color: "#807a7a"
 
                 radius: 20
+
+                scale: 0.5
             }
         }
 
@@ -603,79 +614,32 @@ Rectangle {
         }
 
 
-        //Per far si che quando si scorra la lista i dot in basso cambino in relazione all'elemento visualizzato,
-        //quando si preme inizia un flick utente bisogna fare alcune cose
-        onFlickStarted: {
-            /* Quando si scorre velocemente la lista si eseguono molti flick di fila. Per far si che i dot cambino seguendo
-             * l'immagine attualmente visibile, ad ogni flick aggiorno il valore del punto iniziale e confronto il punto
-             * attuale con quello precedentemente salvato; se il contentX attuale è minore di quello salvato inizialmente,
-             * allora ci si è spostati verso sinistra */
-            if(contentX < startingContentX)
+        /* Quando si scorre la lista il contentX varia in base all'elemento della lista attualmente visualizzato. Per far si
+         * che i dot cambino seguendo l'immagine attualmente visibile, ogni volta che il contentX cambia
+         * controllo se l'immagine visibile è cambiata; se lo è, aggiorno il dot */
+        onContentXChanged: {
+            /* Calcolo a quale indice si è arrivati nello scorrimento. Per farlo mi baso sul fatto che tutti gli item della
+             * lista hanno la stessa larghezza (tutto lo schermo), quindi per capire a quale indice si è basta recuperare
+             * la posizione attuale all'interno della lista e dividerla per la larghezza; arrotondo il numero in quanto
+             * durante un flick la posizione del contentX sta' variando e quindi non sempre ha un valore intero */
+            var index = Math.round(contentX / container.width);
+
+            //Se l'indice calcolato è diverso dall'indice precedentemente salvato, vuol dire che ci si è spostati. Procedo
+            //quindi con il cambio del dot attivo
+            if(currentVisibleIndex != index)
             {
-                //Aggiorno il punto iniziale, in modo che eventuali altri flick eseguiti velocemente dopo questo
-                //utilizzino questo punto di riferimento per il confronto
-                startingContentX = contentX
+                //Rendo inattivo il dot precedentemente attivo
+                currentActiveDot.scale = 0.5
 
-                /* Calcolo a quale indice si è arrivati nello scorrimento. Per farlo mi baso sul fatto che tutti gli item della
-                 * lista hanno la stessa larghezza (tutto lo schermo), quindi per capire a quale indice si è basta recuperare
-                 * la posizione attuale all'interno della lista e dividerla per la larghezza; arrotondo il numero in quanto
-                 * durante un flick la posizione del contentX sta' variando e quindi non sempre ha un valore intero */
-                var index = Math.round(contentX / container.width);
+                //Aggiorno il dot correntemente attivo con quello corrispondente all'immagine attualmente visibile
+                currentActiveDot = dotsArray[index];
 
-                //Controllo se si è arrivati al limite della lista, e nel caso mi fermo
-                if(index == count - 1)
-                    return
-
-                //Riporto il dot precedente (cioè quello con index maggiore) allo stato "normale", e "attivo" il nuovo
-                dotsArray[index+1].opacity = 1
-                dotsArray[index].opacity = 0.5
-
-            }
-            //Caso in cui ci si è spostati verso destra; il funzionamento è analogo all'altro
-            else
-            {
-                startingContentX = contentX
-
-                index = Math.round(contentX / container.width);
-
-                if(index == 0)
-                    return
-
-                dotsArray[index-1].opacity = 1
-                dotsArray[index].opacity = 0.5
-            }
-        }
+                //Rendo il dot attivo
+                currentActiveDot.scale = 1;
 
 
-        //Quando la view si ferma in seguito ad uno scroll, devo controllare se l'immagine attualmente visibile è cambiata; in
-        //tal caso, bisogna aggiornare il dot attualmente attivo
-        onMovementEnded: {
-            /* Per capire se ci si è spostati, controllo se il contentX salvato al momento in cui il flick è iniziato è uguale
-             * a quello attuale. Se sono uguali, vuol dire che non ci si è spostati, quindi non bisogna fare niente */
-            if(contentX == startingContentX)
-                return;
-
-            //Caso in cui ci si è spostati verso sinistra; funzionamento analogo a quello presente in onFlickStarted
-            if(contentX < startingContentX)
-            {
-                var index = contentX / container.width;
-
-                if(index == count - 1)
-                    return
-
-                dotsArray[index+1].opacity = 1;
-                dotsArray[index].opacity = 0.5;
-            }
-            //Caso in cui ci si è spostati verso destra
-            else
-            {
-                index = contentX / container.width;
-
-                if(index == 0)
-                    return
-
-                dotsArray[index-1].opacity = 1;
-                dotsArray[index].opacity = 0.5;
+                //Aggiorno l'indice dell'immagine attualmente attiva
+                currentVisibleIndex = index
             }
         }
 
@@ -941,16 +905,87 @@ Rectangle {
     }
 
 
+    Rectangle {
+        id: priceRangeSliderContainer
 
-    FilterList {
-        x: 100
-        y: 100
+        visible: false
 
-        width: 200
-        height: 200
+        width: 230 * scaleX
+        height: 10 * scaleY
 
-        listModel: allBrandsModel
+        x: 100 * scaleX
+        y: 100 * scaleY
+
+
+        color: "#d9d1d1"
+
+
+        Rectangle {
+            id: betweenDots
+
+            width: 230 * scaleX
+            height: 10 * scaleY
+
+            color: "#99807a7a"
+
+
+            Rectangle {
+                id: leftDot
+
+                width: 20 * scaleX
+                height: 20 * scaleY
+
+                x: -rightDot.width/2
+                y: -5 * scaleY
+
+                radius: 20
+
+                color: "#3e3e3e"
+
+                MouseArea {
+                    anchors.fill: parent
+
+                    drag.target: leftDot
+                    drag.axis: Drag.XAxis
+                    drag.maximumX: rightDot.x
+                    drag.minimumX: -rightDot.width/2
+                }
+
+                onXChanged: {
+                    betweenDots.x = x
+                    betweenDots.width = 230 - x
+                }
+            }
+
+            Rectangle {
+                id: rightDot
+
+                width: 20 * scaleX
+                height: 20 * scaleY
+
+                x: priceRangeSliderContainer.width - rightDot.width/2
+                y: -5 * scaleY
+
+                radius: 20
+
+                color: "#3e3e3e"
+
+                MouseArea {
+                    anchors.fill: parent
+
+                    drag.target: rightDot
+                    drag.axis: Drag.XAxis
+                    drag.maximumX: priceRangeSliderContainer.width - rightDot.width/2
+                    drag.minimumX: leftDot.x
+                }
+
+                onXChanged: {
+                    betweenDots.width = x
+                }
+            }
+        }
     }
+
 
     //Ascolto il signal che indica l'inizio di una transizione da RFID
     onTransitionFromRFIDStarted: {
