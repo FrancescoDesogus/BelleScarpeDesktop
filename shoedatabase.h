@@ -13,10 +13,14 @@ public:
 
     bool open();
     void close();
-    void getAllShoes();
     Shoe* getShoeFromId(int shoeId);
     Shoe* getShoeFromId(QString RFIDcode);
     std::vector<Shoe*> getSimiliarShoes(int shoeId, QString sex, QString category);
+    QStringList getAllBrands();
+    QStringList getAllCategories();
+    QStringList getAllColors();
+    QStringList getAllSizes();
+    QStringList getPriceRange();
 
 private:
     QSqlDatabase db;

@@ -176,7 +176,9 @@ Shoe* ShoeDatabase::getShoe(QString queryString)
         QSqlQuery queryForSizes;
 
         //Eseguo la query sulla tabella delle taglie
-        queryForSizes.exec("SELECT * FROM " + ShoeDatabase::SIZE_TABLE_NAME + " WHERE " + ShoeDatabase::SIZE_ID_COLUMN + " = " + QString::number(shoeId) + " ORDER BY " + ShoeDatabase::SIZE_SIZE_COLUMN);
+        queryForSizes.exec("SELECT * FROM " + ShoeDatabase::SIZE_TABLE_NAME + " "
+                           "WHERE " + ShoeDatabase::SIZE_ID_COLUMN + " = " + QString::number(shoeId) + " "
+                           "ORDER BY " + ShoeDatabase::SIZE_SIZE_COLUMN);
 
         QVariantMap sizesAndQuantities;
 
@@ -332,6 +334,184 @@ vector<Shoe*> ShoeDatabase::getSimiliarShoes(int shoeId, QString sex, QString ca
     }
 }
 
+
+
+/**
+ * @brief ShoeDatabase::getAllBrands recupera tutte le marche disponibili nel database
+ *
+ * @return la lista delle marche
+ */
+QStringList ShoeDatabase::getAllBrands()
+{
+    QSqlQuery query;
+
+    query.exec("SELECT DISTINCT " + ShoeDatabase::SHOE_BRAND_COLUMN + " FROM " + ShoeDatabase::SHOE_TABLE_NAME);
+
+    QStringList brands;
+
+    if(query.lastError().number() == -1 && query.size() > 0)
+    {
+        while(query.next())
+        {
+            brands.append(query.value(0).toString());
+        }
+
+        return brands;
+    }
+    else
+    {
+        if(query.size() == 0)
+            qDebug() << "ShoeDatabase::getAllBrands: nessuna marca trovata";
+        else
+            qDebug() << "ShoeDatabase::getAllBrands: c'è stato un errore nella query: " << query.lastError();
+
+        //Restituisco l'array vuoto
+        return brands;
+    }
+}
+
+/**
+ * @brief ShoeDatabase::getAllCategories recupera tutte le categorie disponibili nel database
+ *
+ * @return la lista delle categorie
+ */
+QStringList ShoeDatabase::getAllCategories()
+{
+    QSqlQuery query;
+
+    query.exec("SELECT DISTINCT " + ShoeDatabase::SHOE_CATEGORY_COLUMN + " FROM " + ShoeDatabase::SHOE_TABLE_NAME);
+
+    QStringList categories;
+
+    if(query.lastError().number() == -1 && query.size() > 0)
+    {
+        while(query.next())
+        {
+            categories.append(query.value(0).toString());
+        }
+
+        return categories;
+    }
+    else
+    {
+        if(query.size() == 0)
+            qDebug() << "ShoeDatabase::getAllCategories: nessuna categoria trovata";
+        else
+            qDebug() << "ShoeDatabase::getAllCategories: c'è stato un errore nella query: " << query.lastError();
+
+        //Restituisco l'array vuoto
+        return categories;
+    }
+}
+
+/**
+ * @brief ShoeDatabase::getAllColors recupera tutti i colori disponibili nel database
+ *
+ * @return la lista dei colori
+ */
+QStringList ShoeDatabase::getAllColors()
+{
+    QSqlQuery query;
+
+    query.exec("SELECT DISTINCT " + ShoeDatabase::SHOE_COLOR_COLUMN + " FROM " + ShoeDatabase::SHOE_TABLE_NAME);
+
+    QStringList colors;
+
+    if(query.lastError().number() == -1 && query.size() > 0)
+    {
+        while(query.next())
+        {
+            colors.append(query.value(0).toString());
+        }
+
+        return colors;
+    }
+    else
+    {
+        if(query.size() == 0)
+            qDebug() << "ShoeDatabase::getAllColors: nessun colore trovato";
+        else
+            qDebug() << "ShoeDatabase::getAllColors: c'è stato un errore nella query: " << query.lastError();
+
+        //Restituisco l'array vuoto
+        return colors;
+    }
+}
+
+
+
+/**
+ * @brief ShoeDatabase::getAllSizes recupera tutte le taglie presenti nel database
+ *
+ * @return la lista delle taglie
+ */
+QStringList ShoeDatabase::getAllSizes()
+{
+    QSqlQuery query;
+
+    query.exec("SELECT DISTINCT " + ShoeDatabase::SIZE_SIZE_COLUMN + " FROM " + ShoeDatabase::SIZE_TABLE_NAME + " " +
+               "ORDER BY " + ShoeDatabase::SIZE_SIZE_COLUMN);
+
+    QStringList sizes;
+
+    if(query.lastError().number() == -1 && query.size() > 0)
+    {
+        while(query.next())
+        {
+            sizes.append(query.value(0).toString());
+        }
+
+        return sizes;
+    }
+    else
+    {
+        if(query.size() == 0)
+            qDebug() << "ShoeDatabase::getAllSizes: nessuna taglia trovata";
+        else
+            qDebug() << "ShoeDatabase::getAllSizes: c'è stato un errore nella query: " << query.lastError();
+
+        //Restituisco l'array vuoto
+        return sizes;
+    }
+}
+
+
+
+/**
+ * @brief ShoeDatabase::getPriceRange recupera il prezzo minimo e quello massimo presente nel database
+ *
+ * @return una lista contenente nel primo elemento il prezzo minimo e nel secondo quello massimo
+ */
+QStringList ShoeDatabase::getPriceRange()
+{
+    QSqlQuery query;
+
+    query.exec("SELECT MIN(" + ShoeDatabase::SHOE_PRICE_COLUMN + "), MAX(" + ShoeDatabase::SHOE_PRICE_COLUMN + ")" + " " +
+               "FROM " + ShoeDatabase::SHOE_TABLE_NAME);
+
+    QStringList priceRange;
+
+    if(query.lastError().number() == -1 && query.size() > 0)
+    {
+        while(query.next())
+        {
+            priceRange.append(query.value(0).toString());
+            priceRange.append(query.value(1).toString());
+        }
+
+        return priceRange;
+    }
+    else
+    {
+        if(query.size() == 0)
+            qDebug() << "ShoeDatabase::getPriceRange: nessuna prezzo trovato";
+        else
+            qDebug() << "ShoeDatabase::getPriceRange: c'è stato un errore nella query: " << query.lastError();
+
+        //Restituisco l'array vuoto
+        return priceRange;
+    }
+}
 
 
 /**

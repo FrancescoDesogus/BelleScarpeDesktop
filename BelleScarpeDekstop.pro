@@ -57,4 +57,5 @@ OTHER_FILES += \
     SimiliarShoesList.qml \
     FlipableSurface.qml \
     SimilarShoesDelegate.qml \
-    ShoeFilter.qml
+    ShoeFilter.qml \
+    FilterList.qml

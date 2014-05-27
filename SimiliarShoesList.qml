@@ -295,7 +295,7 @@ Rectangle
         //Timer che si occupa di far sparire la ScrollBar dopo un tot di tempo dal termine dell'input utente
         Timer {
             id: fadeOutTimer
-            interval: 2000 //1 secondo
+            interval: 2000
             running: true //Faccio partire il timer all'inizio del programma
             repeat: false
 

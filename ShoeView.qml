@@ -940,6 +940,18 @@ Rectangle {
         ]
     }
 
+
+
+    FilterList {
+        x: 100
+        y: 100
+
+        width: 200
+        height: 200
+
+        listModel: allBrandsModel
+    }
+
     //Ascolto il signal che indica l'inizio di una transizione da RFID
     onTransitionFromRFIDStarted: {
         //Durante la transizione, non deve essere permesso clickare sullo schermo per far apparire nuove schermate, quindi
@@ -992,6 +1004,8 @@ Rectangle {
             filterPanel.opacity = 1
         }
     }
+
+
 
 
 

@@ -23,5 +23,6 @@
         <file>FlipableSurface.qml</file>
         <file>SimilarShoesDelegate.qml</file>
         <file>ShoeFilter.qml</file>
+        <file>FilterList.qml</file>
     </qresource>
 </RCC>

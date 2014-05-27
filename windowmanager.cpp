@@ -234,6 +234,13 @@ void WindowManager::loadShoe(Shoe *shoe, bool isFromRFID)
 
 
 
+    QStringList allBrands = database.getAllBrands();
+    QStringList allCategories = database.getAllCategories();
+    QStringList allColors = database.getAllColors();
+    QStringList allSizes = database.getAllSizes();
+    QStringList priceRange = database.getPriceRange();
+
+
 
 
     //Dato che ho prelevato tutto quello che mi serviva dal db, posso chiuderlo
@@ -258,7 +265,11 @@ void WindowManager::loadShoe(Shoe *shoe, bool isFromRFID)
     context->setContextProperty("thumbnailModel", QVariant::fromValue(imagesAndVideoPathsModel));
     context->setContextProperty("imagesModel", QVariant::fromValue(imagesOnlyPathsModel));
     context->setContextProperty("similiarShoesModel", QVariant::fromValue(similiarShoesModel));
-
+    context->setContextProperty("allBrandsModel", QVariant::fromValue(allBrands));
+    context->setContextProperty("allCategoriesModel", QVariant::fromValue(allCategories));
+    context->setContextProperty("allColorsModel", QVariant::fromValue(allColors));
+    context->setContextProperty("allSizesModel", QVariant::fromValue(allSizes));
+    context->setContextProperty("priceRangeModel", QVariant::fromValue(priceRange));
 
 
 
