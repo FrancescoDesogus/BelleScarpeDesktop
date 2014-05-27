@@ -5,7 +5,7 @@ Rectangle {
     id: container
 
     property real filterPanelWidth: 1920 * scaleX
-    property real filterPanelHeight: 330 * scaleY
+    property real filterPanelHeight: 500 * scaleY
     property string filterPanelbackgroundColor: "#FA626262"
 
     property real draggingRectangleWidth: 350 * scaleX
@@ -287,11 +287,11 @@ Rectangle {
 
         Rectangle {
             id: listContainer
-            anchors.right: filterPanel.right
+            anchors.horizontalCenter: filterPanel.horizontalCenter
             anchors.bottom: filterPanel.bottom
             anchors.bottomMargin: 50 * scaleY
-            width: 1150 * scaleX
-            height: 180 * scaleY
+            width: filterPanel.width
+            height: 150 * scaleY
 
             color: "#00000000"
 
@@ -435,7 +435,7 @@ Rectangle {
 
             text: "Scarpe Filtrate"
             font.family: metroFont.name
-            font.pointSize: 24
+            font.pointSize: 21
             font.letterSpacing: 1.3
             font.weight: Font.Bold
             color: "#EDEDED"
