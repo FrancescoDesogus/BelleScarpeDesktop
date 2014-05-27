@@ -30,11 +30,11 @@ Rectangle {
     property real similarLeftMargin: 0
 
     //Proprietà per la lista delle scarpe filtrate
-    property real filteredImageWidth: 130 * scaleX
+    property real filteredImageWidth: 120 * scaleX
     property real filteredImageHeight: 100 * scaleY
-    property real filteredTitleFontPointSize: 13
-    property real filteredTextFontPointSize: 12
-    property real filteredTopMargin: 16 * scaleY
+    property real filteredTitleFontPointSize: 12
+    property real filteredTextFontPointSize: 11
+    property real filteredTopMargin: 7 * scaleY
     property real filteredLeftMargin: 7 * scaleX
 
     //Dato che deve essere possibile accedere al separator da fuori, uso un alias
