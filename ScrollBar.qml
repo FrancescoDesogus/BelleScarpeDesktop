@@ -3,6 +3,9 @@ import QtQuick 2.0;
 Item {
 
     property string position                   : "left";
+    property string listBackgroundColor        : "white"
+    property string handleColorNormal          : "black"
+    property string handleColorPressed         : "blue"
 
     id: scrollbar;
     width: (handleSize + 2 * (backScrollbar.border.width +1));
@@ -53,6 +56,7 @@ Item {
     }
     Rectangle {
         id: backScrollbar;
+        color: listBackgroundColor
 //        radius: 2;
 //        antialiasing: true;
 //        color: "#FAF2F2";
@@ -144,7 +148,7 @@ Item {
                 id: backHandle;
                 radius: 20
                 antialiasing: true
-                color: (clicker.pressed ? "blue" : "black");
+                color: (clicker.pressed ? handleColorPressed : handleColorNormal);
 //                opacity: (flickable.moving ? 0.65 : 0.35);
                 opacity: defaultOpacity;
                 anchors.fill: parent

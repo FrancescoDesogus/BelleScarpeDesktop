@@ -274,6 +274,7 @@ Rectangle
             flickable: similarList
             position: "right"
             handleSize: 6
+            listBackgroundColor: listContainer.color
 
             onBarClicked: {
                 //Rimetto l'opacità della barra al valore di default, qualora non fosse già così
