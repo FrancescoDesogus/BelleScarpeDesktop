@@ -415,7 +415,7 @@ Rectangle {
 
                     height: filteredList.height - (2 * scaleY)
                     width: 350 * scaleX
-                    textFont: metroFont.name
+                    textFont: metroFont
 
                     //Setto le varie proprietà della scarpa in questione
                     thumbnailSource: modelData.thumbnail
