@@ -5,7 +5,7 @@ Rectangle {
     id: container
 
     property real filterPanelWidth: 1920 * scaleX
-    property real filterPanelHeight: 500 * scaleY
+    property real filterPanelHeight: 300 * scaleY
     property string filterPanelbackgroundColor: "#FA626262"
 
     property real draggingRectangleWidth: 350 * scaleX
@@ -13,6 +13,8 @@ Rectangle {
     property string draggingRectangleBackgroundColor: "#646464"
 
     property Rectangle backgroundRectangle
+
+    property string textColor: "#EDEDED"
 
 
     //Booleano per indicare se il pannello è aperto o no
@@ -80,7 +82,7 @@ Rectangle {
             anchors.topMargin: -9 * scaleY
             anchors.horizontalCenter: parent.horizontalCenter
 
-            color: filteredShoesTitle.color
+            color: textColor
         }
 
         Text {
@@ -92,7 +94,7 @@ Rectangle {
             anchors.bottom: parent.bottom
 //          anchors.bottomMargin: 2
             anchors.horizontalCenter: parent.horizontalCenter
-            color: filteredShoesTitle.color
+            color: textColor
         }
 
 
@@ -285,6 +287,102 @@ Rectangle {
         anchors.top: draggingRectangle.bottom
         anchors.horizontalCenter: container.horizontalCenter
 
+        FilterList {
+            id: brandsFilterList
+
+            title: "Marca"
+
+            anchors.top : filterPanel.top
+            anchors.topMargin: 15 * scaleY
+            anchors.left: filterPanel.left
+            anchors.leftMargin: 20 * scaleX
+
+            width: 200 * scaleX
+            height: 55 * scaleY
+
+            listModel: allBrandsModel
+            backgroundColor: filterPanel.color
+        }
+
+        FilterList {
+            id: categoryFilterList
+
+            title: "Categoria"
+
+            anchors.top : filterPanel.top
+            anchors.topMargin: 15 * scaleY
+            anchors.left: brandsFilterList.right
+            anchors.leftMargin: 50 * scaleX
+
+            width: 200 * scaleX
+            height: 55 * scaleY
+
+            listModel: allCategoriesModel
+            backgroundColor: filterPanel.color
+        }
+
+        FilterList {
+            id: colorFilterList
+
+            title: "Colore"
+
+            anchors.top : filterPanel.top
+            anchors.topMargin: 15 * scaleY
+            anchors.left: categoryFilterList.right
+            anchors.leftMargin: 50 * scaleX
+
+            width: 200 * scaleX
+            height: 55 * scaleY
+
+            listModel: allColorsModel
+            backgroundColor: filterPanel.color
+        }
+
+        FilterList {
+            id: sizeFilterList
+
+            title: "Taglia"
+
+            anchors.top : filterPanel.top
+            anchors.topMargin: 15 * scaleY
+            anchors.left: colorFilterList.right
+            anchors.leftMargin: 50 * scaleX
+
+            width: 200 * scaleX
+            height: 55 * scaleY
+
+            listModel: allSizesModel
+            backgroundColor: filterPanel.color
+        }
+
+
+        FilterList {
+            id: sexFilterList
+
+            title: "Sesso"
+
+            anchors.top : filterPanel.top
+            anchors.topMargin: 15 * scaleY
+            anchors.left: sizeFilterList.right
+            anchors.leftMargin: 50 * scaleX
+
+            width: 200 * scaleX
+            height: 55 * scaleY
+
+            listModel: ListModel {
+                ListElement {
+                    name: "Uomo"
+                }
+
+                ListElement {
+                    name: "Donna"
+                }
+            }
+
+            backgroundColor: filterPanel.color
+        }
+
+
         Rectangle {
             id: listContainer
             anchors.horizontalCenter: filterPanel.horizontalCenter
@@ -317,7 +415,7 @@ Rectangle {
 
                     height: filteredList.height - (2 * scaleY)
                     width: 350 * scaleX
-                    textFont: metroFont
+                    textFont: metroFont.name
 
                     //Setto le varie proprietà della scarpa in questione
                     thumbnailSource: modelData.thumbnail
@@ -430,28 +528,30 @@ Rectangle {
             }
         }
 
-        Text {
-            id: filteredShoesTitle
+//        Text {
+//            id: filteredShoesTitle
 
-            text: "Scarpe Filtrate"
-            font.family: metroFont.name
-            font.pointSize: 21
-            font.letterSpacing: 1.3
-            font.weight: Font.Bold
-            color: "#EDEDED"
+//            text: "Scarpe Filtrate"
+//            font.family: metroFont.name
+//            font.pointSize: 21
+//            font.letterSpacing: 1.3
+//            font.weight: Font.Bold
+//            color: "#EDEDED"
 
-            anchors.bottom: listContainer.top
-            anchors.bottomMargin: 34 * scaleY
-            anchors.horizontalCenter: listContainer.horizontalCenter
-        }
+//            anchors.bottom: listContainer.top
+//            anchors.bottomMargin: 34 * scaleY
+//            anchors.horizontalCenter: listContainer.horizontalCenter
+//        }
 
         Rectangle {
             id: titleUnderline
 
-            height: 2 * scaleY
+            height: 1 * scaleY
             width: listContainer.width
-            anchors.bottom: filteredShoesTitle.bottom
-            anchors.bottomMargin: - (15 * scaleY)
+//            anchors.bottom: filteredShoesTitle.bottom
+//            anchors.bottomMargin: - (15 * scaleY)
+            anchors.bottom: listContainer.top
+            anchors.bottomMargin: 10 * scaleY
             anchors.horizontalCenter: listContainer.horizontalCenter
 
             color: filteredShoesTitle.color

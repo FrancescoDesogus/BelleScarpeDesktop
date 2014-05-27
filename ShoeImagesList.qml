@@ -303,6 +303,7 @@ Rectangle {
                 id: verticalScrollBar
                 flickable: thumbnailList
                 position: "left"
+                listBackgroundColor: listBackground.color
 
                 onBarClicked: {
                     //Rimetto l'opacità della barra al valore di default, qualora non fosse già così
