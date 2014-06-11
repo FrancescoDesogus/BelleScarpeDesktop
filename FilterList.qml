@@ -9,6 +9,8 @@ Rectangle {
 
     property string title: "Titolo"
 
+    property var selectedElements: [];
+
     //Altezza e larghezza sono definite al momento della definizione
 
     color: listContainer.visible ? "#eaeaea" : containerBackgroundColor
@@ -54,7 +56,10 @@ Rectangle {
         anchors.fill: parent
 
         onClicked: {
-            listContainer.visible = !listContainer.visible
+            if(!listContainer.visible)
+                openList()
+            else
+                closeList()
         }
     }
 
@@ -67,7 +72,24 @@ Rectangle {
         anchors.bottom: container.top
         color: backgroundColor
 
+
+        transformOrigin: Item.Bottom
+
         visible: false
+
+        opacity: 0
+
+
+        Behavior on opacity {
+            NumberAnimation {
+                duration: 250
+
+                onRunningChanged: {
+                    if(!running && listContainer.opacity == 0)
+                        listContainer.visible = false
+                }
+            }
+        }
 
         ListView {
             id: filterList
@@ -82,6 +104,7 @@ Rectangle {
 
             orientation: ListView.Vertical
             spacing: 2 * scaleY
+
 
             //Il delegate usa un component creato ad hoc
             delegate: Rectangle {
@@ -178,5 +201,16 @@ Rectangle {
 
         //Quando scatta il timer, porto l'opacità della barra a zero
         onTriggered: verticalScrollBar.barOpacity = 0
+    }
+
+    function openList()
+    {
+        listContainer.visible = true
+        listContainer.opacity = 1;
+    }
+
+    function closeList()
+    {
+        listContainer.opacity = 0;
     }
 }

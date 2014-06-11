@@ -587,5 +587,12 @@ Rectangle {
 
         //Riporto su false il booleano che serve per decifrare gli eventi della MouseArea, in modo che sia pronto all'uso in seguito
         clickableArea.hasMoved = false
+
+        //Chiudo anche eventuali liste aperte
+        brandsFilterList.closeList();
+        categoryFilterList.closeList();
+        colorFilterList.closeList();
+        sizeFilterList.closeList();
+        sexFilterList.closeList();
     }
 }
