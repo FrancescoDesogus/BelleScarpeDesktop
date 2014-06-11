@@ -407,7 +407,7 @@ Rectangle {
         id: imageFocusList
 
         //Array che contiene tutti i dot della lista
-        property var dotsArray: new Array();
+        property var dotsArray: [];
 
         //Indice dell'immagine attualmente visibile nello schermo
         property int currentVisibleIndex;
