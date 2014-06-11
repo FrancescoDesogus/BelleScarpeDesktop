@@ -11,7 +11,8 @@ Rectangle {
 
     //Altezza e larghezza sono definite al momento della definizione
 
-    color: containerBackgroundColor
+    color: listContainer.visible ? "#eaeaea" : containerBackgroundColor
+
 
     FontLoader {
         id: metroFont;
@@ -26,7 +27,7 @@ Rectangle {
         anchors.leftMargin: 20 * scaleX
 
         text: title
-        color: textColor
+        color: listContainer.visible ? "black" : textColor
         font.family: metroFont.name
         font.pointSize: 14
         font.letterSpacing: 1.3
@@ -41,7 +42,7 @@ Rectangle {
         anchors.verticalCenter: container.verticalCenter
 
         text: "<"
-        rotation: 90
+        rotation: listContainer.visible ? 270 : 90
         color: textColor
         font.family: metroFont.name
         font.pointSize: 14
@@ -54,7 +55,6 @@ Rectangle {
 
         onClicked: {
             listContainer.visible = !listContainer.visible
-            filterArrow.rotation = listContainer.visible ? 270 : 90
         }
     }
 
