@@ -501,19 +501,32 @@ Rectangle {
                     //di destra è fermo nell'estremo destro, (priceRangeSliderContainer.width - rightDot.x) vale zero
                     rectangleBetweenDots.width = priceRangeSliderContainer.width - x - (priceRangeSliderContainer.width - rightDot.x)
 
-                    var shit = Math.round((((priceRangeModel[1] - priceRangeModel[0]) * leftDot.x) / (priceRangeSliderContainer.width - rightDot.width/2)) + parseInt(priceRangeModel[0]))
-                    console.log("leftDotX: " + leftDot.x)
-                    console.log("Result: " + parseInt((priceRangeModel[1] - priceRangeModel[0]) * leftDot.x))
-                    console.log("MaximumX: " + parseInt(priceRangeSliderContainer.width - rightDot.width/2))
-                    leftPrice.text = shit
+
+                    var partialValue = Math.round((((priceRangeModel[1] - priceRangeModel[0]) * leftDot.x) / (priceRangeSliderContainer.width - rightDot.width/2)))
+
+                    //Dato che il leftDot può assumere valori negativi, nell'estremo sinistro si potrebbero ottenere valori negativi
+                    //quando in realtà non dovrebbero esserci; se questo è il caso, riporto il valore a zero
+                    if(partialValue < 0)
+                        partialValue = 0;
+
+                    //Al valore parziale, che corrispondeva all'incremento nello spostamento, sommo il valore minimo per ottenere
+                    //il valore attuale
+                    var currentValue = partialValue + parseInt(priceRangeModel[0])
+
+                    //Infine setto il testo sopra il dot col valore ottenuto
+                    leftPrice.text = currentValue
                 }
 
                 Text {
                     id: leftPrice
-                    text: priceRangeModel[0]
                     anchors.bottom: leftDot.top
                     color: "white"
                     visible: true
+
+                    /* Quando il componente è stato creato, gli assegno come testo il prezzo minimo. Non lo faccio immediatamente
+                     * alla creazione in quanto per motivi arcani viene chiamato l'onXChanged del leftDot all'inizio con valori
+                     * anomali che farebbero comparire il prezzo massimo invece che quello minimo */
+                    Component.onCompleted: leftPrice.text = priceRangeModel[0]
                 }
             }
 
@@ -550,9 +563,16 @@ Rectangle {
                 //posizione del dot di destra, tenendo conto che il left dot può essere spostato e quindi anche il rettangolo
                 onXChanged: {
                     rectangleBetweenDots.width = x - rectangleBetweenDots.x
-                    var shit = Math.round((((priceRangeModel[1] - priceRangeModel[0]) * rightDot.x) / (priceRangeSliderContainer.width - rightDot.width/2)) + parseInt(priceRangeModel[0]))
-                    console.log(shit)
-                    rightPrice.text = shit
+
+                    //Calcolo anche il nuovo valore da mostrare, in modo analogo a quanto fatto per il leftDot
+                    var partialValue = Math.round((((priceRangeModel[1] - priceRangeModel[0]) * rightDot.x) / (priceRangeSliderContainer.width - rightDot.width/2)))
+
+                    if(partialValue < 0)
+                        partialValue = 0;
+
+                    var currentValue = partialValue + parseInt(priceRangeModel[0])
+
+                    rightPrice.text = currentValue
                 }
 
                 Text {
@@ -563,10 +583,6 @@ Rectangle {
                 }
             }
         }
-
-
-
-
 
 
 
