@@ -501,7 +501,11 @@ Rectangle {
                     //di destra è fermo nell'estremo destro, (priceRangeSliderContainer.width - rightDot.x) vale zero
                     rectangleBetweenDots.width = priceRangeSliderContainer.width - x - (priceRangeSliderContainer.width - rightDot.x)
 
-
+                    //Calcolo il valore che deve avere il punto in una data x:
+                    //Calcolo la differenza tra i valori massimo e minimo, quindi prezzo max - prezzo min
+                    //moltiplico tutto per la x attuale del punto
+                    //infine divido tutto per la x massima dello slider
+                    //e per evitare che il minimo sia 0, riaggiungo il range inferiore al risultato
                     var partialValue = Math.round((((priceRangeModel[1] - priceRangeModel[0]) * leftDot.x) / (priceRangeSliderContainer.width - rightDot.width/2)))
 
                     //Dato che il leftDot può assumere valori negativi, nell'estremo sinistro si potrebbero ottenere valori negativi
