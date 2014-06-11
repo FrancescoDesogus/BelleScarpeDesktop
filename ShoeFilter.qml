@@ -500,9 +500,12 @@ Rectangle {
                     //Cambio poi la lunghezza del rettangolo, tenendo conto che il dot di destra può essere spostato. Se il dot
                     //di destra è fermo nell'estremo destro, (priceRangeSliderContainer.width - rightDot.x) vale zero
                     rectangleBetweenDots.width = priceRangeSliderContainer.width - x - (priceRangeSliderContainer.width - rightDot.x)
-                    leftPrice.text = Math.round((priceRangeModel[0] * leftDot.x) / (-rightDot.width/2))
 
-
+                    var shit = Math.round((((priceRangeModel[1] - priceRangeModel[0]) * leftDot.x) / (priceRangeSliderContainer.width - rightDot.width/2)) + parseInt(priceRangeModel[0]))
+                    console.log("leftDotX: " + leftDot.x)
+                    console.log("Result: " + parseInt((priceRangeModel[1] - priceRangeModel[0]) * leftDot.x))
+                    console.log("MaximumX: " + parseInt(priceRangeSliderContainer.width - rightDot.width/2))
+                    leftPrice.text = shit
                 }
 
                 Text {
@@ -510,6 +513,7 @@ Rectangle {
                     text: priceRangeModel[0]
                     anchors.bottom: leftDot.top
                     color: "white"
+                    visible: true
                 }
             }
 
@@ -546,7 +550,9 @@ Rectangle {
                 //posizione del dot di destra, tenendo conto che il left dot può essere spostato e quindi anche il rettangolo
                 onXChanged: {
                     rectangleBetweenDots.width = x - rectangleBetweenDots.x
-                    rightPrice.text = Math.round((priceRangeModel[1] * rightDot.x) / (priceRangeSliderContainer.width / 2))
+                    var shit = Math.round((((priceRangeModel[1] - priceRangeModel[0]) * rightDot.x) / (priceRangeSliderContainer.width - rightDot.width/2)) + parseInt(priceRangeModel[0]))
+                    console.log(shit)
+                    rightPrice.text = shit
                 }
 
                 Text {
