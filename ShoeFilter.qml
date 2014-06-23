@@ -1,21 +1,30 @@
 import QtQuick 2.0
 //import QtGraphicalEffects 1.0
 
+/* Component che rappresenta il pannello per filtrare le scarpe che compare in basso */
 Rectangle {
     id: container
 
+    //Dimensioni totali di tutto il pannello e il suo colore di background
     property real filterPanelWidth: 1920 * scaleX
     property real filterPanelHeight: 300 * scaleY
     property string filterPanelbackgroundColor: "#FA626262"
 
+    //Dimensioni del rettangolo draggabile e il suo colore di background
     property real draggingRectangleWidth: 350 * scaleX
     property real draggingRectangleHeight: 41 * scaleY
     property string draggingRectangleBackgroundColor: "#646464"
 
-    property Rectangle backgroundRectangle
+    //Dimensioni di ogni entry della lista delle scarpe filtrate
+    property real shoeListElementWidth: 350 * scaleX
+    property real shoeListElementHeight: filteredList.height - (2 * scaleY)
 
+    //Colore per il testo delle combo box
     property string textColor: "#EDEDED"
 
+    //Riferimento ad il rettangolo di background che deve essere grande tutto lo schermo ed invisibile; è usato per far si che
+    //quando si preme fuori dal pannello il rettangolo intercetti l'input e chiuda il pannello stesso
+    property Rectangle backgroundRectangle
 
     //Booleano per indicare se il pannello è aperto o no
     property bool isOpen: false
@@ -35,6 +44,11 @@ Rectangle {
     signal needShoeIntoContext(int id, variant shoeSelectedFlipable)
 
 
+    //Questo signal scatta quando si preme per filtrare le scarpe ed è usato per informare l'esterno dell'evento; vengono
+    //passati come parametri le liste contenenti i filtri per ogni categoria di filtri; le liste possono essere vuote
+    signal needToFilterShoes(variant brandList, variant categoryList, variant colorList, variant sizeList, variant sexList, int minPrice, int maxPrice)
+
+
 
     //L'intero container ha associata una MouseArea che ha il solo scopo di emettere il signal touchEventOccurred(), in modo
     //da avvisare chi userà il component ShoeImagesList che è stato ricevuto un touch event
@@ -45,6 +59,7 @@ Rectangle {
 
     FontLoader { id: metroFont; source: "qrc:segeo-wp.ttf" }
 
+    //Rettangolo che "sporge" per essere draggato
     Rectangle {
         id: draggingRectangle
 
@@ -64,6 +79,7 @@ Rectangle {
             }
         }
 
+        //Rettangolo messo alla base in modo da avere la parte di sopra con radius e la parte di sotto senza
         Rectangle {
             anchors.bottom: draggingRectangle.bottom
             width: parent.width
@@ -92,20 +108,12 @@ Rectangle {
             font.letterSpacing: 1.2
 
             anchors.bottom: parent.bottom
-//          anchors.bottomMargin: 2
             anchors.horizontalCenter: parent.horizontalCenter
             color: textColor
         }
 
 
-
-        onYChanged:  {
-            //L'opacità varia in base alla y del mouse, dopo la pressione
-//            backgroundRectangle.opacity = Math.abs((draggingRectangle.y / filterPanelHeight)/(7))
-            backgroundRectangle.opacity = 0
-        }
-
-
+        //MouseArea per gestire il dragging
         MouseArea {
             id: clickableArea
 
@@ -125,27 +133,24 @@ Rectangle {
 
             anchors.fill: draggingRectangle
 
-
+            //Setto le proprietà che determinano verso dove e quanto si può draggare il rettangolo
             drag.target: draggingRectangle
             drag.axis: Drag.YAxis
             drag.maximumY: -draggingRectangle.height
             drag.minimumY: -filterPanelHeight
 
+            //Quando si preme sul rettangolo...
             onPressed: {
-                //Salvo la coordinata iniziale del mouse...
+                //...salvo la coordinata iniziale del mouse...
                 startY = mouse.y
 
                 //...e la posizione iniziale del rettangolo
                 startingRectangleY = draggingRectangle.y
 
+                //Elimino l'anchor del rettangolo, in modo che possa essere effettivamente trascinato
                 draggingRectangle.anchors.bottom = undefined
 
-                backgroundRectangle.visible = true
-
-                if(previousY == - Math.floor(draggingRectangle.height))
-                    backgroundRectangle.opacity = 0
-
-                //Segnalo che è avvenuto un evento touch
+                //Segnalo anche che è avvenuto un evento touch
                 container.touchEventOccurred()
             }
 
@@ -221,10 +226,11 @@ Rectangle {
             id: delegateCopy
 
             //Inizialmente setto solo dei valori costanti, indipendenti dalla scarpa e uguali per ogni entry della lista
-            height: filteredList.height - (2 * scaleY)
-            width: 350 * scaleX
+            height: shoeListElementHeight
+            width: shoeListElementWidth
             textFont: metroFont
 
+            //Segnalo che questo delegate è usato nella lista delle scarpe filrate
             filtered: true
         }
 
@@ -273,20 +279,26 @@ Rectangle {
         }
     }
 
+    //Rettangolo che contiene il pannello vero e proprio; sta' sotto il rettangolo draggabile
     Rectangle {
         id: filterPanel
 
         width: filterPanelWidth
         height: filterPanelHeight
 
-//        x: 100
-//        y: 100
+
+        //MouseArea che ha il solo scopo di emettere il signal touchEventOccurred()
+        MouseArea {
+            anchors.fill: parent
+            onClicked: container.touchEventOccurred()
+        }
 
         color: filterPanelbackgroundColor
 
         anchors.top: draggingRectangle.bottom
         anchors.horizontalCenter: container.horizontalCenter
 
+        //Combo box per le marche filtrabili
         FilterList {
             id: brandsFilterList
 
@@ -300,10 +312,15 @@ Rectangle {
             width: 200 * scaleX
             height: 55 * scaleY
 
+            //Inserisco come model l'array contenente le marche creato da C++
             listModel: allBrandsModel
             backgroundColor: filterPanel.color
+
+            //Se avviene un evento touch, propago il signal verso l'esterno
+            onTouchEventOccurred: container.touchEventOccurred()
         }
 
+        //Combo box per le categorie filtrabili
         FilterList {
             id: categoryFilterList
 
@@ -319,8 +336,11 @@ Rectangle {
 
             listModel: allCategoriesModel
             backgroundColor: filterPanel.color
+
+            onTouchEventOccurred: container.touchEventOccurred()
         }
 
+        //Combo box per i colori filtrabili
         FilterList {
             id: colorFilterList
 
@@ -336,8 +356,11 @@ Rectangle {
 
             listModel: allColorsModel
             backgroundColor: filterPanel.color
+
+            onTouchEventOccurred: container.touchEventOccurred()
         }
 
+        //Combo box per le taglie filtrabili
         FilterList {
             id: sizeFilterList
 
@@ -353,9 +376,11 @@ Rectangle {
 
             listModel: allSizesModel
             backgroundColor: filterPanel.color
+
+            onTouchEventOccurred: container.touchEventOccurred()
         }
 
-
+        //Combo box per il sesso
         FilterList {
             id: sexFilterList
 
@@ -380,29 +405,30 @@ Rectangle {
             }
 
             backgroundColor: filterPanel.color
-        }
 
+            onTouchEventOccurred: container.touchEventOccurred()
+        }
 
 
         //Slider per scegliere il range del prezzo. Visivamente rappresenta il rettangolo più chiaro che c'è sotto lo slider
         Rectangle {
             id: priceRangeSliderContainer
 
+            //Proprietà che contengono il valore min e max selezionati in un dato momento
+            property int min: priceRangeModel[0]
+            property int max: priceRangeModel[1]
+
             visible: true
 
             width: 230 * scaleX
             height: 10 * scaleY
 
-    //        x: 100 * scaleX
-    //        y: 100 * scaleY
-
             anchors.verticalCenter: sexFilterList.verticalCenter
             anchors.left: sexFilterList.right
             anchors.leftMargin: 150 * scaleX
 
-            //Colore più chiaro
+            //Colore più chiaro per il rettangolo esterno (che sta' "sotto" i pallini ed il rettangolo centrale)
             color: "#d9d1d1"
-
 
             //Mouse area per far spostare il dot più vicino alla zona clickata quando si preme sulla parte parte dello slider più chiara
             MouseArea {
@@ -420,6 +446,9 @@ Rectangle {
                         rightDot.x = mouse.x - rightDot.width/2
                     else
                         leftDot.x = mouse.x - rightDot.width/2
+
+                    //Segnalo che c'è stato un evento touch
+                    container.touchEventOccurred()
                 }
             }
 
@@ -453,6 +482,9 @@ Rectangle {
                             leftDot.x = offset
                         else
                             rightDot.x = offset
+
+                        //Segnalo che c'è stato un evento touch
+                        container.touchEventOccurred()
                     }
                 }
             }
@@ -483,9 +515,15 @@ Rectangle {
                     drag.minimumX: -rightDot.width/2
                     drag.maximumX: rightDot.x
 
+                    /* Quando si preme sul dot, impongo che sia messo sopra l'altro. In questo modo se per esempio porto entrambi
+                     * i dot in uno dei due estremi, posso sempre tornare indietro (cioè premendo l'accozzaglia dei 2 dot verrà
+                     * sempre premuto l'ultimo dei dot trascinati, in modo da non rimanere bloccati nell'estremo) */
                     onPressed:{
                         leftDot.z = 1
                         rightDot.z = 0
+
+                        //Segnalo che c'è stato un evento touch
+                        container.touchEventOccurred()
                     }
                 }
 
@@ -501,11 +539,9 @@ Rectangle {
                     //di destra è fermo nell'estremo destro, (priceRangeSliderContainer.width - rightDot.x) vale zero
                     rectangleBetweenDots.width = priceRangeSliderContainer.width - x - (priceRangeSliderContainer.width - rightDot.x)
 
-                    //Calcolo il valore che deve avere il punto in una data x:
-                    //Calcolo la differenza tra i valori massimo e minimo, quindi prezzo max - prezzo min
-                    //moltiplico tutto per la x attuale del punto
-                    //infine divido tutto per la x massima dello slider
-                    //e per evitare che il minimo sia 0, riaggiungo il range inferiore al risultato
+                    /* Calcolo il valore che deve avere il punto in una data x: calcolo la differenza tra i valori massimo e minimo,
+                     * quindi prezzo max - prezzo min; moltiplico tutto per la x attuale del punto; infine divido tutto per la x
+                     * massima dello slider e per evitare che il minimo sia 0, riaggiungo il range inferiore al risultato */
                     var partialValue = Math.round((((priceRangeModel[1] - priceRangeModel[0]) * leftDot.x) / (priceRangeSliderContainer.width - rightDot.width/2)))
 
                     //Dato che il leftDot può assumere valori negativi, nell'estremo sinistro si potrebbero ottenere valori negativi
@@ -517,7 +553,10 @@ Rectangle {
                     //il valore attuale
                     var currentValue = partialValue + parseInt(priceRangeModel[0])
 
-                    //Infine setto il testo sopra il dot col valore ottenuto
+                    //Salvo qual è il nuovo valore minimo
+                    priceRangeSliderContainer.min = currentValue
+
+                    //Infine setto il testo sopra il dot con il valore ottenuto
                     leftPrice.text = currentValue
                 }
 
@@ -527,10 +566,16 @@ Rectangle {
                     color: "white"
                     visible: true
 
-                    /* Quando il componente è stato creato, gli assegno come testo il prezzo minimo. Non lo faccio immediatamente
-                     * alla creazione in quanto per motivi arcani viene chiamato l'onXChanged del leftDot all'inizio con valori
-                     * anomali che farebbero comparire il prezzo massimo invece che quello minimo */
-                    Component.onCompleted: leftPrice.text = priceRangeModel[0]
+                    /* Quando il componente è stato creato, gli assegno come testo il prezzo minimo (contenuto nel primo posto
+                     * dell'array passato da C++). Non lo faccio immediatamente alla creazione in quanto per motivi
+                     * arcani viene chiamato l'onXChanged del leftDot all'inizio con valori anomali che farebbero comparire
+                     * il prezzo massimo invece che quello minimo */
+                    Component.onCompleted:  {
+                        leftPrice.text = priceRangeModel[0]
+
+                        //Salvo anche il valore minimo correntemente selezionato, perchè anche questo altrimenti risulta sfasato
+                        priceRangeSliderContainer.min = priceRangeModel[0]
+                    }
                 }
             }
 
@@ -557,9 +602,11 @@ Rectangle {
                     drag.maximumX: priceRangeSliderContainer.width - rightDot.width/2
                     drag.minimumX: leftDot.x
 
-                    onPressed:{
+                    onPressed: {
                         leftDot.z = 0
                         rightDot.z = 1
+
+                        container.touchEventOccurred()
                     }
                 }
 
@@ -576,11 +623,16 @@ Rectangle {
 
                     var currentValue = partialValue + parseInt(priceRangeModel[0])
 
+                    priceRangeSliderContainer.max = currentValue
+
                     rightPrice.text = currentValue
                 }
 
+                //Testo col limite massimo del prezzo
                 Text {
                     id: rightPrice
+
+                    //Il range dei prezzi min/max è passato da C++ sotto forma di array; il limite massimo è messo in seconda posizione
                     text: priceRangeModel[1]
                     anchors.bottom: rightDot.top
                     color: "white"
@@ -588,10 +640,66 @@ Rectangle {
             }
         }
 
+        //Bottone per eseguire il filtro
+        Rectangle {
+            id: filterButton
+
+            width: 100
+            height: 60
+            color: "black"
+
+            radius: 4
+
+            gradient: Gradient {
+                GradientStop {
+                    position: 0.14;
+                    color: "#000000";
+                }
+                GradientStop {
+                    position: 0.53;
+                    color: "#ffffff";
+                }
+            }
+
+            anchors.top: filterPanel.top
+            anchors.topMargin: 15 * scaleY
+            anchors.left: priceRangeSliderContainer.right
+            anchors.leftMargin: 30 * scaleX
+
+            Text {
+                text: "Filtra"
+                font.family: metroFont.name
+                font.pointSize: 15
+                font.letterSpacing: 1.3
+                font.weight: Font.Bold
+
+                anchors.centerIn: parent
+            }
+
+            MouseArea {
+                anchors.fill: parent
+
+                //Quando il bottone è premuto...
+                onClicked: {
+                    //...recupero le liste degli elementi selezionati per ogni combo box (possono essere vuote)
+                    var brandList = brandsFilterList.selectedElements;
+                    var categoryList = categoryFilterList.selectedElements;
+                    var colorList = colorFilterList.selectedElements;
+                    var sizeList = sizeFilterList.selectedElements;
+                    var sexList = sexFilterList.selectedElements;
+
+                    //Recupero anche il range di prezzi da considerare
+                    var minPrice = priceRangeSliderContainer.min;
+                    var maxPrice = priceRangeSliderContainer.max;
+
+                    //Emetto infine il signal che avvisa l'esterno della ricerca, passando tutti i parametri recuperati sopra
+                    container.needToFilterShoes(brandList, categoryList, colorList, sizeList, sexList, minPrice, maxPrice)
+                }
+            }
+        }
 
 
-
-
+        //Contenitore della lista delle scarpe filtrate
         Rectangle {
             id: listContainer
             anchors.horizontalCenter: filterPanel.horizontalCenter
@@ -602,6 +710,13 @@ Rectangle {
 
             color: "#00000000"
 
+
+            //MouseArea che ha il solo scopo di emettere il signal touchEventOccurred()
+            MouseArea {
+                anchors.fill: parent
+                onClicked: container.touchEventOccurred()
+            }
+
             ListView {
                 id: filteredList
 
@@ -609,12 +724,20 @@ Rectangle {
 
                 //La lista è grande quanto tutto il container
                 anchors.fill: listContainer
+                anchors.leftMargin: container.calculateListPosition()
 
+
+                //Attivo lo scrolling della lista supera la larghezza del suo container
+                boundsBehavior: filteredList.width < listContainer.width ? Flickable.StopAtBounds : Flickable.DragOverBounds
+
+                //La lista è abilitata solo se è possibile premere sugli elementi (non è possibile subito dopo che si è premuto
+                //su una scarpa causando quindi una transizione)
                 enabled: isClickAllowed
 
                 //Il modello della lista, contenente i path delle immagini da mostrare, è preso da C++ ed è uguale a quello della lista
                 //contenente le thumbnail
-                model: similiarShoesModel
+//                model: similiarShoesModel
+                model: similiarShoesModelProva
 
                 clip: true
 
@@ -622,8 +745,8 @@ Rectangle {
                 delegate: SimilarShoesDelegate {
                     id: filteredContainer
 
-                    height: filteredList.height - (2 * scaleY)
-                    width: 350 * scaleX
+                    height: shoeListElementHeight
+                    width: shoeListElementWidth
                     textFont: metroFont
 
                     //Setto le varie proprietà della scarpa in questione
@@ -641,23 +764,15 @@ Rectangle {
 
                         onClicked: {
                             if(isClickAllowed) {
-
                                 container.touchEventOccurred();
 
                                 filteredList.positionViewAtIndex(index, ListView.Contain)
 
-
                                 var shoeSelectedFlipable = flipableSurface.createCopy(filteredContainer)
-
                                 shoeSelectedFlipable.frontListItem = filteredContainer
-
                                 shoeSelectedFlipable.parent = container
-
                                 container.needShoeIntoContext(modelData.id, shoeSelectedFlipable)
 
-
-                                /// Sezione Timer ///
-                                //Cambio l'indice della lista; automaticamente verrà cambiata anche la mainImage
                                 filteredList.currentIndex = index
                             }
                         }
@@ -666,31 +781,11 @@ Rectangle {
 
                 orientation: ListView.Horizontal
                 spacing: 9 * scaleX
-
-
-    //            //Quando inizia il movimento della lista da parte dell'utente devo bloccare il timer che fa scomparire la scrollbar
-    //            onMovementStarted: {
-    //                //Eseguo il codice solo se la barra è visibile
-    //                if(verticalScrollBar.visible)
-    //                {
-    //                    //Rimetto l'opacità della barra al valore di default, qualora non fosse già così
-    //                    verticalScrollBar.barOpacity = verticalScrollBar.defaultOpacity
-
-    //                    //Termino il timer, qualora fosse in esecuzione
-    //                    fadeOutTimer.stop()
-    //                }
-    //            }
-
-    //            //Quando finisce il movimento della lista da parte dell'utente devo mandare in esecuzione il timer
-    //            //che fa scomparire la scrollbar
-    //            onMovementEnded: {
-    //                if(verticalScrollBar.visible)
-    //                    fadeOutTimer.restart()
-    //            }
             }
         }
 
 
+        //Smoother sinistro che compare a sinistra della lista quando la si scorre verso destra
         Rectangle {
             id: leftSmoother
             width: filteredList.height
@@ -714,6 +809,7 @@ Rectangle {
             }
         }
 
+        //Smoother destro che compare a sinistra della lista quando la si scorre verso destra
         Rectangle {
             id: rightSmoother
             width: filteredList.height
@@ -779,6 +875,9 @@ Rectangle {
 
         //Riporto su false il booleano che serve per decifrare gli eventi della MouseArea, in modo che sia pronto all'uso in seguito
         clickableArea.hasMoved = false
+
+        //Rendo visibile il background che serve ad intercettare gli input fuori dal panel (è visibile ma ha opacità pari a 0)
+        backgroundRectangle.visible = true
     }
 
     /* Funzione che effettua il necessario per chiudere il pannello dei filtri; è usata anche dall'esterno in ShoeView */
@@ -789,7 +888,6 @@ Rectangle {
 
         //Faccio scomparire il rettangolo sullo sfondo
         backgroundRectangle.visible = false
-        backgroundRectangle.opacity = 0
 
         //Dichiaro che ora il pannello è chiuso
         isOpen = false
@@ -803,5 +901,21 @@ Rectangle {
         colorFilterList.closeList();
         sizeFilterList.closeList();
         sexFilterList.closeList();
+    }
+
+
+
+    /*
+     * Funzione che calcola la posizione da cui deve partire la ListView contenente le scarpe filtrate (in sostanza calcola la
+     * coordinata x che la lista deve avere). Il funzionamento è identico a quello in ShoeImagesList per la lista delle thumbnail,
+     * solo che in questo caso è tutto riportato in orizzontale */
+    function calculateListPosition()
+    {
+        if(filteredList.width >= listContainer.width)
+            return 0;
+
+        var listHalvedWidth = (container.shoeListElementWidth/2) * filteredList.count + (filteredList.spacing/2 * (filteredList.count - 1));
+
+        return (listContainer.width/2 - listHalvedWidth);
     }
 }

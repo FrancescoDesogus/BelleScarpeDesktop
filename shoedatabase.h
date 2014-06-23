@@ -1,13 +1,16 @@
 #ifndef SHOEDATABASE_H
 #define SHOEDATABASE_H
 
+#include <QObject>
 #include <QtSql/QSqlDatabase>
 #include <QString>
 #include <shoe.h>
 #include <vector>
 
-class ShoeDatabase
+class ShoeDatabase : public QObject
 {
+    Q_OBJECT
+
 public:
     ShoeDatabase();
 
@@ -21,6 +24,12 @@ public:
     QStringList getAllColors();
     QStringList getAllSizes();
     QStringList getPriceRange();
+    std::vector<Shoe*> getFilteredShoes(const QStringList& brandList, const QStringList& categoryList, const QStringList& colorList, const QStringList& sizeList, const QStringList& sexList, int minPrice, int maxPrice);
+
+public slots:
+    void init();
+
+signals:
 
 private:
     QSqlDatabase db;
@@ -33,7 +42,6 @@ private:
 
     static const QString SHOE_TABLE_NAME;
     static const QString SIZE_TABLE_NAME;
-
 
 
     static const QString SHOE_ID_COLUMN;
@@ -57,8 +65,6 @@ private:
     static const int SHOE_RFID_CODE_COLUMN_POSITION;
 
 
-
-
     static const QString SIZE_ID_COLUMN;
     static const QString SIZE_SIZE_COLUMN;
     static const QString SIZE_QUANTITY_COLUMN;
@@ -69,6 +75,8 @@ private:
 
 
     Shoe* getShoe(QString query);
+
+    QString prepareFilterQueryPart(const QString& columnName, const QStringList& filterList);
 };
 
 #endif // SHOEDATABASE_H

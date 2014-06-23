@@ -1,20 +1,37 @@
 import QtQuick 2.0
 
+/*
+ * Questo component è usato per selezionare i filtri da applicare nella ricerca delle scarpe e rappresenta sostanzialmente
+ * una combo box in cui si possono selezionare più elementi in contemporanea
+ */
 Rectangle {
     id: container
 
+    //Sringa che compare quando la combo box è chiusa
+    property string title: "Titolo"
+
+    //Model che contiene gli elementi selezionabili da mostrare nella combo box
     property variant listModel;
+
+    //Array contenente gli elementi selezionati in un dato momento; viene recuperato quando il bottone per filtrare è premuto
+    property var selectedElements: [];
+
     property string backgroundColor: "white"
     property string containerBackgroundColor: "grey"
 
-    property string title: "Titolo"
 
-    property var selectedElements: [];
+    /**************************************************************
+     * Signal emessi verso l'esterno
+     **************************************************************/
 
-    //Altezza e larghezza sono definite al momento della definizione
+    //Signal che scatta quando viene rilevato un qualsiasi evento touch nell'interfaccia; serve per riazzerare il timer
+    //che porta alla schermata di partenza dopo un tot di tempo di inattività
+    signal touchEventOccurred()
+
+
+
 
     color: listContainer.visible ? "#eaeaea" : containerBackgroundColor
-
 
     FontLoader {
         id: metroFont;
@@ -60,9 +77,13 @@ Rectangle {
                 openList()
             else
                 closeList()
+
+            //Segnalo all'esterno che c'è stato un evento touch
+            container.touchEventOccurred()
         }
     }
 
+    //Contenitore della lista degli elementi selezionabili
     Rectangle {
         id: listContainer
 
@@ -72,25 +93,27 @@ Rectangle {
         anchors.bottom: container.top
         color: backgroundColor
 
-
-        transformOrigin: Item.Bottom
-
+        //Di default la lista non è visibile; lo diventa quando si preme la base della combo box
         visible: false
 
+        //Nonostante la lista sia inizialmente invisibile, metto comunque l'opacità a 0 per far si che la appaia l'animazione
+        //di fade in la prima volta che si preme sulla combo box
         opacity: 0
 
-
+        //Animazione per far comparire/scomparire la lista quando si preme la base della combo box
         Behavior on opacity {
             NumberAnimation {
                 duration: 250
 
                 onRunningChanged: {
+                    //Se l'animazione era per far scomparire la lista, e l'animazione è ora conclusa, rendo invisibile la lista
                     if(!running && listContainer.opacity == 0)
                         listContainer.visible = false
                 }
             }
         }
 
+        //Lista contenente gli elementi selezionabili
         ListView {
             id: filterList
 
@@ -110,6 +133,9 @@ Rectangle {
             delegate: Rectangle {
                 id: textContainer
 
+                //Booleano per indicare se l'elemento in questione è stato selezionato
+                property bool isSelected: false
+
                 width: container.width
                 height: itemText.height
 
@@ -117,7 +143,9 @@ Rectangle {
 
                 Text {
                     id: itemText
+
                     text: modelData
+
                     font.family: metroFont.name
                     font.pointSize: 12
                     font.weight: Font.Normal
@@ -132,11 +160,38 @@ Rectangle {
                 }
 
 
+                //MouseArea per gestire la selezione dell'elemento per i filtri
                 MouseArea {
                     anchors.fill: parent;
 
                     onClicked: {
-                        textContainer.color = "ligthblue"
+                        //Se l'item clickato non era selezionato, adesso lo è
+                        if(!isSelected)
+                        {
+                            textContainer.color = "ligthblue"
+
+                            //Aggiungo l'elemento alla lista degli elementi selezionati per i filtri
+                            selectedElements.push(itemText.text)
+
+                            //Segnalo che l'elemento è ora selezionato
+                            isSelected = true
+                        }
+                        else
+                        {
+                            textContainer.color = "transparent"
+
+                            //Devo rimuovere l'elemento dalla lista degli elementi selezionati; recupero il suo indice nell'array
+                            var index = selectedElements.indexOf(itemText.text)
+
+                            //Rimuovo l'elemento
+                            selectedElements.splice(index, 1)
+
+                            //Segnalo che l'elemento non è più selezionato
+                            isSelected = false
+                        }
+
+                        //Segnalo all'esterno che c'è stato un evento touch
+                        container.touchEventOccurred()
                     }
 
                 }
@@ -165,6 +220,7 @@ Rectangle {
         }
 
 
+        //Scrollbar annessa alla lista, qualora occorresse
         ScrollBar {
             id: verticalScrollBar
             flickable: filterList
@@ -203,14 +259,21 @@ Rectangle {
         onTriggered: verticalScrollBar.barOpacity = 0
     }
 
+    /* Funzione per aprire la lista. L'apertura porta ad una animazione di fade in */
     function openList()
     {
+        //Rendo visibile la lista...
         listContainer.visible = true
+
+        //...e porto l'opacità a 1, che prima era a 0 (questo fa triggerare l'animazione di fade in per via del "Behavior on opacity")
         listContainer.opacity = 1;
     }
 
+    /* Funzione per chiudere la lista. La chiusura porta ad una animazione di fade out */
     function closeList()
     {
+        //Porto l'opacità a 0, causando l'animazione. Al termine dell'animazione, il container della lista diventa invisibile
+        //del tutto grazie a "listContainer.visible = false" (occorre farlo al termine dell'animazione, altrimenti questa non appare)
         listContainer.opacity = 0;
     }
 }

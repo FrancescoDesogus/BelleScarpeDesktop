@@ -100,6 +100,13 @@ Rectangle {
                 height: calculateListViewHeight()
                 width: listBackground.width
 
+                //La lista è ancorata al genitore sulla sinistra in modo da fissarla al bordo sinistro dello schermo, definendo
+                //un margine per lasciare spazio alla scrollbar
+                anchors {
+                    left: parent.left
+                    leftMargin: verticalScrollBar.width + (2 * scaleX)
+                }
+
                 //Posizione y di partenza per la lista
                 y: calculateListPosition()
 
@@ -143,14 +150,6 @@ Rectangle {
                 //Di default il rettangolo segue già l'elemento attualmente selezionato, ma l'animazione è troppo lenta... quindi
                 //disattivo l'opzione visto che l'ho fatta manualmente più sopra
                 highlightFollowsCurrentItem: false
-
-                //La lista è ancorata al genitore sulla sinistra in modo da fissarla al bordo sinistro dello schermo, definendo
-                //un margine per lasciare spazio alla scrollbar
-                anchors {
-                    left: parent.left
-                    leftMargin: verticalScrollBar.width + (2 * scaleX)
-                }
-
 
                 //Modello della lista; contiene le informazioni da visualizzare ed è creato in C++
                 model: thumbnailModel
@@ -497,7 +496,7 @@ Rectangle {
 
     /*
      * Funzione che calcola la posizione da cui deve partire la ListView contenente le thumbnail (in sostanza calcola la
-     * coordinata y che la lista deve avere.
+     * coordinata y che la lista deve avere).
      * Le grandezze usate nella funzione sono già tutte scalate, quindi non c'è bisogno di scalarle.
      */
     function calculateListPosition()

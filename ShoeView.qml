@@ -46,6 +46,10 @@ Rectangle {
     //passa come parametro l'id della scarpa toccata
     signal needShoeIntoContext(int id)
 
+
+    signal needToFilterShoes(variant shoeView, variant brandList, variant categoryList, variant colorList, variant sizeList, variant sexList, int minPrice, int maxPrice)
+
+
     //Signal che indica che bisogna tornare indietro di una view nello stack di viste
     signal goBack()
 
@@ -276,13 +280,22 @@ Rectangle {
     }
 
 
-    //Rettangolo che funge da background oscurato per quando si preme su una thumbnail per mostrare l'immagine ingrandita
+    /* Rettangolo che funge da background oscurato per quando si preme su una thumbnail per mostrare l'immagine ingrandita;
+     * è usato anche quando il pannello dei filtri è aperto in modo da ricevere gli input se si preme fuori dal pannello
+     * per chiuderlo; in questo caso, il rettangolo ha l'opacità a zero (quindi è invisibile ma riceve gli input) */
     Rectangle {
         id: mainImageFocusBackground
         width: parent.width
         height: parent.height
         color: "black"
-        state: "invisible" //Stabilisco che lo stato iniziale è invisible, definito più sotto
+
+        //Stabilisco che lo stato iniziale è invisible, definito più sotto
+        state: "invisible"
+
+        /* Di default l'opacità è a zero; questo serve perchè questo rettangolo è usato anche quando il pannello dei filtri
+         * è aperto (in modo da ricevere gli input se si preme fuori dal pannello per chiuderlo), e serve che sia
+         * presente ma invisibile */
+        opacity: 0
 
 
         //Aggiungo due stati, uno per quando è visibile e uno per quando non lo è
@@ -394,7 +407,10 @@ Rectangle {
                     mainImageFocusBackground.visible = false
 
                     //...e chiudo il pannello per filtrare
-                    filterPanel.closePanel();
+                    filterPanel.closePanel();      
+
+                    //Segnalo anche che è avvenuto un evento touch
+                    container.touchEventOccurred();
                 }
             }
         }
@@ -837,6 +853,8 @@ Rectangle {
             //del pannello dei filtri, che rimane aperto durante la transizione e deve svanire
             filterPanel.opacity = 0
         }
+
+        onNeedToFilterShoes: container.needToFilterShoes(container, brandList, categoryList, colorList, sizeList, sexList, minPrice, maxPrice)
 
         Behavior on opacity {
             NumberAnimation {

@@ -12,6 +12,7 @@
 #include <QtDeclarative/QDeclarativeView>
 
 #include <QDebug>
+#include <QThread>
 #include <QQmlContext>
 
 #include <QQmlEngine>
@@ -30,6 +31,7 @@
 #include <QDir>
 
 #include <QDeclarativeEngine>
+//#include <QDeclarativeContext>
 
 //Dato che uso il "vector" di C++, utilizzo il namespace std come scorciatoia invece di scrivere "std::vector"
 using namespace std;
@@ -48,6 +50,13 @@ WindowManager::WindowManager(QQuickView *parent) :
 
 void WindowManager::setupScreen()
 {
+    QThread* thread = new QThread(this);
+    database.moveToThread(thread);
+    connect (thread, SIGNAL(started()), &database, SLOT(init()));
+    connect (this, SIGNAL(destroyed()), thread, SLOT(quit()));
+    thread->start();
+
+
     /* Aggiungo al contesto dell'engile qml una proprietà che corrisponde all'istanza di questa classe. In questo modo nei file qml
      * che si chiameranno sarà nota la proprietà "firstWindow", e si potranno chiamare i metodi definiti Q_INVOKABLE nell'header
      * della classe, oltre che i membri definiti con Q_PROPERTY (in questo caso però di questi non ce ne sono) */
@@ -80,23 +89,29 @@ void WindowManager::setupScreen()
     this->setResizeMode(QQuickView::SizeRootObjectToView);
 
 
-    //Mando in esecuzione a tutto schermo
-    this->showFullScreen();
-
-
     //Una volta mandato a tutto schermo, controllo se ci sono più monitor attaccati; nel caso sposto la finestra nel secondo
     if(desktopWidget.screenCount() > 1)
     {
-        //Recupero le informazioni sul secondo screen attaccato
-        QRect secondaryScreenGeometry = desktopWidget.screenGeometry(desktopWidget.primaryScreen() + 1);
+        /* Recupero le informazioni sul secondo screen attaccato; il rettangolo ritornato avrà coordinate che partono da subito
+         * dopo il primo schermo e avrà dimensioni pari a quelle del secondo schermo. Se ad esempio il secondo schermo ha
+         * dimensioni 1920x1080 ed il primo 1366x768, il rettangolo restituito avrà il punto in alto a sinistra alle
+         * coordinate (1366, 0) (cioè subito dopo il primo schermo) e dimensioni 1920x1080 */
+        QRect secondaryScreenGeometry = desktopWidget.screenGeometry(1);
 
-        //Setto la nuova geometria della finestra in base a quella del nuovo monitor
+        //Sposto la view nel rettangolo recuperato
         this->setGeometry(secondaryScreenGeometry);
     }
 
+    /* Mando in esecuzione a tutto schermo; è importante farlo dopo l'eventuale switch di schermi, altrimenti la view diventa
+     * fullscreen con dimensioni basate sul primo schermo; se ad esempio il primo schermo fosse più piccolo del secondo,
+     * la view apparirebbe nel secondo schermo ma con le dimensioni del primo schermo invece che con quelle del secondo */
+    this->showFullScreen();
 
     //Appena avviato carico una scarpa per provare, simulando l'arrivo di un codice RFID
     loadNewShoeView("asd");
+
+
+//    QObject::connect(&view, SIGNAL(requireData), &database, SLOT(loadNewShoeView(QString)));
 }
 
 
@@ -257,7 +272,7 @@ void WindowManager::loadShoe(Shoe *shoe, bool isFromRFID)
      * Di conseguenza quello che faccio è creare un nuovo context da arricchirlo con i dati appena recuperati, e creo un nuovo
      * component (che sarà la view che mostrerà la scarpa) che usi il context appena creato.
      * Inizio con il creare un nuovo context, che parta dal context globale */
-    QQmlContext *context = new QQmlContext(this->rootContext());
+    this->context = new QQmlContext(this->rootContext());
 
     //Creato il context, lo arricchisco di tutti i dati appena recuperati. Nota: posso passare direttamente "shoe" perchè
     //estende QObject e ha definite delle Q_PROPERTY per accedere ai suoi dati
@@ -277,7 +292,7 @@ void WindowManager::loadShoe(Shoe *shoe, bool isFromRFID)
 
 
 
-    //Terminata la creazione e l'arricchimento del context, creo un nuovo component con il file che è la view della scarpa
+    //Terminata la creazione ed il popolamento del context, creo un nuovo component con il file che è la view della scarpa
     QQmlComponent component(this->engine(), QUrl("qrc:/qml/ShoeView.qml"));
 
     //Creo quindi una istanza del component appena creato, inserendo il context sopra definito, e la recupero. Questa nuova view
@@ -308,3 +323,39 @@ void WindowManager::loadShoe(Shoe *shoe, bool isFromRFID)
     QMetaObject::invokeMethod(qmlRoot, "connectNewViewEvents", Q_ARG(QVariant, QVariant::fromValue(newView)), Q_ARG(QVariant, QVariant::fromValue(isFromRFID)));
 }
 
+
+void WindowManager::filterShoes(QObject* shoeView, QVariant brandList, QVariant categoryList, QVariant colorList, QVariant sizeList, QVariant sexList, int minPrice, int maxPrice)
+{
+    database.open();
+
+    /* Adesso devo recuperare tutte le scarpe simili; creo quindi una lista di QObject che fungerà da model per la rispettiva lista
+     * QML; le scarpe estendono QObject, quindi posso inserirle direttamente nella lista e saranno accessibili da QML le proprietà
+     * definite Q_PROPERTY nella classe Shoe */
+    QList<QObject*> filteredShoesModel;
+
+    //Recupero dal db il vettore contenente tutte le scarpe simili a quella considerata in base ai parametri specificati
+    vector<Shoe*> filteredShoes = database.getFilteredShoes(brandList.toStringList(), categoryList.toStringList(), colorList.toStringList(), sizeList.toStringList(), sexList.toStringList(), minPrice, maxPrice);
+
+    //Inserisco nel model tutte le scarpe
+    for(int i = 0; i < filteredShoes.size(); i++)
+       filteredShoesModel.append(filteredShoes[i]);
+
+//    QObject * obj = qvariant_cast<QObject *>(shoeView);
+
+    QQmlContext *context = QQmlEngine::contextForObject(shoeView);
+
+
+    qDebug() << (context == this->context);
+    qDebug() << context;
+    qDebug() << this->context;
+
+    qDebug() << this->rootContext();
+
+    qDebug() << shoeView->property("similiarShoesModelProva");
+
+
+    context->setContextProperty("similiarShoesModelProva", QVariant::fromValue(filteredShoesModel));
+
+
+    database.close();
+}

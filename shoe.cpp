@@ -181,15 +181,4 @@ void Shoe::toString()
 {
     qDebug() << this->id << ") brand: " << this->brand << "; model: " << this->model << "; color: " << this->color << "; sex: " << this->sex <<
                 "; price: " << this->price << "; category: " << this->category << "; mediaPath: " << this->mediaPath << "; RFIDcode: " + this->RFIDcode;
-
-    QString sizes;
-
-//    map<float, int>::iterator ii = this->sizesAndQuantities.begin();
-
-//    while (ii != this->sizesAndQuantities.end())
-//    {
-//        qDebug() << "    size: " << (*ii).first << "; quantity: " << (*ii).second;
-
-//        ii++;
-//    }
 }

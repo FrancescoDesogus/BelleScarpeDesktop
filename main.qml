@@ -97,6 +97,12 @@ Rectangle {
         //che si occupa di recuperarla e di creare la nuova view
         newShoeView.needShoeIntoContext.connect(window.loadNewShoeView)
 
+
+
+        newShoeView.needToFilterShoes.connect(window.filterShoes)
+
+
+
         //Connetto il signal della ShoeView che indica che bisogna tornare indietro di una view nello stack di view
         newShoeView.goBack.connect(myViewManager.goBack);
 

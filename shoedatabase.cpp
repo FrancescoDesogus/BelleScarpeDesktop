@@ -8,6 +8,7 @@
 #include <QtSql/QSqlError>
 #include <vector>
 #include <QDir>
+#include <QThread>
 
 
 //Namespace contenente classi come "vector" e "map". Usare il namespace fa si che non si debba scrivere ad esempio std::vector quando lo si usa
@@ -68,6 +69,16 @@ const int ShoeDatabase::SIZE_QUANTITY_COLUMN_POSITION = 2;
  */
 ShoeDatabase::ShoeDatabase()
 {
+
+}
+
+/**
+ * @brief ShoeDatabase::init
+ */
+void ShoeDatabase::init()
+{
+    qDebug() << "ShoeDatabase::init() - thread ID: " << QThread::currentThreadId();
+
     //Setup del database
     db = QSqlDatabase::addDatabase("QMYSQL");
 
@@ -85,6 +96,7 @@ ShoeDatabase::ShoeDatabase()
  */
 bool ShoeDatabase::open()
 {
+    qDebug() << "ShoeDatabase::open() - thread ID: " << QThread::currentThreadId();
     db.open();
 
     if(!db.isOpen())
@@ -198,10 +210,6 @@ Shoe* ShoeDatabase::getShoe(QString queryString)
             }
         }
 
-        //Aggiunge taglie manualmente per testare la visualizzazione su schermo
-//        for(int k = 48; k < 52; k++){
-//            sizesAndQuantities[QString::number(k)] = 23;
-//        }
 
         //Ora che ho tutti i dati, creo l'oggetto Shoe...
         Shoe* shoe = new Shoe(shoeId, brand, model, color, sex, price, category, sizesAndQuantities, mediaPath, RFIDcode);
@@ -511,6 +519,137 @@ QStringList ShoeDatabase::getPriceRange()
         //Restituisco l'array vuoto
         return priceRange;
     }
+}
+
+/**
+ * @brief ShoeDatabase::getFilteredShoes filtra le scarpe in base ai filtri passati e ritorna i risultati
+ *
+ * @param brandList
+ * @param categoryList
+ * @param colorList
+ * @param sizeList
+ * @param sexList
+ * @param minPrice
+ * @param maxPrice
+ *
+ * @return
+ */
+std::vector<Shoe*> ShoeDatabase::getFilteredShoes(const QStringList& brandList, const QStringList& categoryList, const QStringList& colorList, const QStringList& sizeList, const QStringList& sexList, int minPrice, int maxPrice)
+{
+    QString brandQueryPart = prepareFilterQueryPart(ShoeDatabase::SHOE_BRAND_COLUMN, brandList);
+    QString categoryQueryPart = prepareFilterQueryPart(ShoeDatabase::SHOE_CATEGORY_COLUMN, categoryList);
+    QString colorQueryPart = prepareFilterQueryPart(ShoeDatabase::SHOE_COLOR_COLUMN, colorList);
+    QString sizeQueryPart = prepareFilterQueryPart(ShoeDatabase::SIZE_SIZE_COLUMN, sizeList);
+    QString sexQueryPart = prepareFilterQueryPart(ShoeDatabase::SHOE_SEX_COLUMN, sexList);
+
+    QSqlQuery query;
+
+
+    query.exec("SELECT * FROM " + ShoeDatabase::SHOE_TABLE_NAME +
+               " JOIN " + ShoeDatabase::SIZE_TABLE_NAME +
+               " ON " + ShoeDatabase::SHOE_TABLE_NAME + "." + ShoeDatabase::SHOE_ID_COLUMN + " = " + ShoeDatabase::SIZE_TABLE_NAME + "." + ShoeDatabase::SIZE_ID_COLUMN +
+               " WHERE " + ShoeDatabase::SHOE_PRICE_COLUMN + " BETWEEN " + QString::number(minPrice) + " AND " + QString::number(maxPrice) +
+               + "" + brandQueryPart + categoryQueryPart + colorQueryPart + sizeQueryPart + sexQueryPart
+               + " GROUP BY " + ShoeDatabase::SHOE_TABLE_NAME + "." + ShoeDatabase::SHOE_ID_COLUMN);
+
+    vector<Shoe*> shoeList;
+
+    if(query.lastError().number() == -1 && query.size() > 0)
+    {
+        while(query.next())
+        {
+            int id = query.value(ShoeDatabase::SHOE_ID_COLUMN_POSITION).toInt();
+            QString brand = query.value(ShoeDatabase::SHOE_BRAND_COLUMN_POSITION).toString();
+            QString model = query.value(ShoeDatabase::SHOE_MODEL_COLUMN_POSITION).toString();
+            QString color = query.value(ShoeDatabase::SHOE_COLOR_COLUMN_POSITION).toString();
+            QString sex = query.value(ShoeDatabase::SHOE_SEX_COLUMN_POSITION).toString();
+            QString category = query.value(ShoeDatabase::SHOE_CATEGORY_COLUMN_POSITION).toString();
+            float price = query.value(ShoeDatabase::SHOE_PRICE_COLUMN_POSITION).toFloat();
+            QString mediaPath = query.value(ShoeDatabase::SHOE_MEDIA_COLUMN_POSITION).toString();
+            QString RFIDcode = query.value(ShoeDatabase::SHOE_RFID_CODE_COLUMN_POSITION).toString();
+
+
+            //Array vuoto da inserire nel costruttore; è vuoto perchè per visualizzare le scarpe simili non importa sapere le taglie
+            QVariantMap sizesAndQuantities;
+
+            //Creo la nuova scarpa
+            Shoe *shoe = new Shoe(id, brand, model, color, sex, price, category, sizesAndQuantities, mediaPath, RFIDcode);
+
+
+            //Dato che le scarpe consigliate hanno una thumbnail, devo settare il path all'immagine per ogni scarpa. Prendo
+            //quindi il path assoluto della cartella che conterrà la thumbnail
+            QDir path = QDir::currentPath() + "/debug/shoes_media/" + shoe->getMediaPath() + "/thumbnail/";
+
+
+            //Filtro per recuperare solo immagini, non si sa mai
+            QStringList nameFilter;
+            nameFilter << "*.png" << "*.jpg" << "*.gif";
+
+            //Recupero il path del primo file trovato che soddisfi i filtri; userò quello come thumbnail
+            QString thumbnailPath = "file:///" + path.entryInfoList(nameFilter, QDir::Files, QDir::Name).first().absoluteFilePath();
+
+            //Setto quindi il path trovato come thumbnail della scarpa
+            shoe->setThumbnailPath(thumbnailPath);
+
+            //Infine, inserisco la scarpa nell'array
+            shoeList.push_back(shoe);
+
+            shoe->toString();
+        }
+
+        return shoeList;
+    }
+    else
+    {
+        if(query.size() == 0)
+            qDebug() << "ShoeDatabase::getFilteredShoes: nessuna scarpa è stata trovata con i filtri inseriti";
+        else
+            qDebug() << "ShoeDatabase::getFilteredShoes: c'è stato un errore nella query: " << query.lastError();
+
+        //Restituisco l'array vuoto
+        return shoeList;
+    }
+}
+
+/**
+ * @brief ShoeDatabase::prepareFilterQueryPart è un metodo di convenienza per formare parti della query per filtrare le scarpe.
+ *        Dato che i filtri possono essere molti (per marca, categoria, colore, ecc.) e per ognuno ci posssono essere molteplici
+ *        filtri (ad esempio per marca Adidas, Nike, ecc.), la query deve essere formata dinamicamente.
+ *        A questo metodo sono passati il nome della colonna del db coinvolta e l'elenco dei filtri da applicare. Il risultato
+ *        è una stringa che contiene l'SQL da usare per applicare quei filtri all'interno della clausola WHERE, utilizzando
+ *        la clausola IN. Ad esempio, se sto filtrando per marca il risulato può essere una stringa del genere:
+ *        "marca IN ('Adidas', 'Nike')"
+ *        dove "marca" è il nome della colonna per le marche.
+ *        Se la lista dei filtri è vuota, viene restituita invece una stringa vuota. In questo modo tutte le stringhe
+ *        ritornate da questo metodo sono usate per la query, ma solo quelle in cui la lista dei filtri non era vuota
+ *        effettivamente saranno usate nella query.
+ *        Dato che queste stringhe saranno poi usate una dopo l'altra, e sono usate tutte dopo una clausola WHERE fissa,
+ *        tutte le stringhe ritornate da questo metodo avranno "AND" all'inizio.
+ *        Quindi un output definitivo potrebbe essere:
+ *        "AND marca IN ('Adidas', 'Nike')"
+ *
+ * @param columnName nome della colonna in cui si deve applicare la lista dei filtri
+ * @param filterList lista contenente i filtri da applicare
+ *
+ * @return stringa contenente la parte della query relativa ai filtri considerati; stringa vuota se la lista dei filtri è vuota
+ */
+QString ShoeDatabase::prepareFilterQueryPart(const QString& columnName, const QStringList& filterList)
+{
+    //Se la lista dei filtri è vuota, ritorno una stringa vuota
+    if(filterList.size() == 0)
+        return "";
+
+    //Compongo l'inizio della stringa inserendo anche il primo elemento, in modo da non dover controllare se bisogna mettere la
+    //virgola o no nel for
+    QString queryPart = " AND " + columnName + " IN ('" + filterList.at(0) + "'";
+
+    //Scorro tutti i filtri e li aggiungo alla stringa
+    for(int i = 1; i < filterList.size(); i++)
+        queryPart.append(", '" + filterList.at(i) + "'");
+
+    queryPart.append(")");
+
+    return queryPart;
 }
 
 

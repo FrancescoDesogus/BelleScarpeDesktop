@@ -18,6 +18,8 @@ Rectangle {
     property string modelText;
     property string priceText;
 
+    //Booleano per indicare se il component è usato per la lista delle scarpe simili o per quelle filtrate; in tal caso cambiano
+    //alcuni dettagli visivi. Di default è usato con il look per le scarpe simili
     property bool filtered: false;
 
 
