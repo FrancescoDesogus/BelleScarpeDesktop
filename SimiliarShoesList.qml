@@ -141,11 +141,34 @@ Rectangle
     }
 
 
+    //Rettangolo che contie tutta la lista
     Rectangle {
         id: listContainer
         anchors.top: separator.bottom
         height: 700 * scaleY
         width: parent.width
+
+        //Se non ci sono scarpe simili da mostrare, mostro un colore diverso
+        color: similarList.count > 0 ? "white" : "#DBDBDB"
+
+        radius: similarList.count > 0 ? 0 : 5
+
+        //Testo da mostrare al posto della lista quando è vuota (non sono state trovate scarpe simili per questa scarpa)
+        Text {
+            //La scritta è visibile solo la lista è vuota
+            visible: similarList.count == 0
+
+            text: "Nessuna scarpa simile trovata"
+
+            font.family: metroFont.name
+            font.pointSize: 15
+            font.letterSpacing: 1.3
+            font.weight: Font.Bold
+
+            color: "black"
+
+            anchors.centerIn: parent
+        }
 
         //Abilito lo scorrimento della lista solo se è permesso fare click (la proprietà isClickAllowed è esterna, ricevuta
         //dalla ShoeView in cui sta' questo component)

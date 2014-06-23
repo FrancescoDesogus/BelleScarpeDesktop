@@ -422,7 +422,19 @@ Rectangle {
             property int min: priceRangeModel[0]
             property int max: priceRangeModel[1]
 
-            visible: true
+            //Dimensioni e raggio dei due dot
+            property real dotWidth: 20 * scaleX;
+            property real dotHeight: 20 * scaleY;
+            property int dotRadius: 20;
+
+            //Coordinate minime e massime che i dot possono raggiungere
+            property real minX: -dotWidth/2
+            property real maxX: priceRangeSliderContainer.width - dotWidth/2
+
+            //Coordinate dei dot; servono per essere accedute dall'esterno
+            property real leftDotX: leftDot.x
+            property real rightDotX: rightDot.x
+
 
             width: 230 * scaleX
             height: 10 * scaleY
@@ -497,14 +509,14 @@ Rectangle {
             Rectangle {
                 id: leftDot
 
-                width: 20 * scaleX
-                height: 20 * scaleY
+                width: priceRangeSliderContainer.dotWidth
+                height: priceRangeSliderContainer.dotHeight
+                radius: priceRangeSliderContainer.dotRadius
+
 
                 //Sposto un po' il dot in negativo inizialmente in modo che sia un po' fuori dal rettangolo
-                x: -rightDot.width/2
+                x: priceRangeSliderContainer.minX
                 y: -5 * scaleY
-
-                radius: 20
 
                 color: "#3e3e3e"
 
@@ -516,7 +528,7 @@ Rectangle {
                     drag.axis: Drag.XAxis
 
                     //I limiti del drag sono a sinistra quello che sarebbe lo 0 del dot, a destra il dot di sinistra
-                    drag.minimumX: -rightDot.width/2
+                    drag.minimumX: priceRangeSliderContainer.minX
                     drag.maximumX: rightDot.x
 
                     /* Quando si preme sul dot, impongo che sia messo sopra l'altro. In questo modo se per esempio porto entrambi
@@ -587,14 +599,14 @@ Rectangle {
             Rectangle {
                 id: rightDot
 
-                width: 20 * scaleX
-                height: 20 * scaleY
+                width: priceRangeSliderContainer.dotWidth
+                height: priceRangeSliderContainer.dotHeight
+                radius: priceRangeSliderContainer.dotRadius
 
                 //Sposto un po' il dot inizialmente in modo che sia un po' fuori dal rettangolo verso destra
-                x: priceRangeSliderContainer.width - rightDot.width/2
+                x: priceRangeSliderContainer.maxX
                 y: -5 * scaleY
 
-                radius: 20
 
                 color: "#3e3e3e"
 
@@ -603,8 +615,8 @@ Rectangle {
 
                     drag.target: rightDot
                     drag.axis: Drag.XAxis
-                    drag.maximumX: priceRangeSliderContainer.width - rightDot.width/2
                     drag.minimumX: leftDot.x
+                    drag.maximumX: priceRangeSliderContainer.maxX
 
                     onPressed: {
                         leftDot.z = 0
@@ -641,6 +653,22 @@ Rectangle {
                     anchors.bottom: rightDot.top
                     color: "white"
                 }
+            }
+
+            /* Funzione per settare la x del leftDot. Serve per far si che si possa spostare il leftDot dall'esterno; è una cosa
+             * brutta ma deve essere fatta perchè quando si preme la primissima volta il bottone per filtrare le scarpe si resetano
+             * tutti i component, compresi i dot, che tornano allo stato iniziale. Per far si che si rimangano dove sono, occorre
+             * recuperare rimettere la x che avevano prima della ricerca, e questo deve essere fatto dall'esterno */
+            function setLeftDotX(x)
+            {
+                leftDot.x = x
+            }
+
+
+            /* Funzione per settare la x del rightDot */
+            function setRightDotX(x)
+            {
+                rightDot.x = x
             }
         }
 
@@ -696,13 +724,45 @@ Rectangle {
                     var minPrice = priceRangeSliderContainer.min;
                     var maxPrice = priceRangeSliderContainer.max;
 
+                    /* C'è un bug assurdo quando si effetua la prima ricerca in una schermata: in pratica gli elementi
+                     * selezionati nelle varie combo box e gli slider tornano alle loro posizioni di default subito dopo la
+                     * ricerca (che viene fatta normalmente); quindi una seconda ricerca verrebbe fatta come se non ci fosse
+                     * alcun filtro attivo, a meno che non vengano rimessi. Accade solo alla primissima ricerca e non ho capito
+                     * assolutamente perchè, so solo che è dovuto al fatto che il model della lista dei risultati viene sovrascritto
+                     * con un nuovo model da C++. Per fixxare il problema, uso una soluzione tarocca: subito dopo la prima ricerca
+                     * rimetto i valori dei filtri com'erano prima della ricerca.
+                     * Nel caso dei due dot dello slider dei prezzi, per rimetterli dov'erano devo recuperare la loro posizione
+                     * prima della ricerca */
+                    if(!container.hasAlreadyFilteredShoes)
+                    {
+                        //Salvo le posizioni dei dot prima della ricerca
+                        var leftDotX = priceRangeSliderContainer.leftDotX
+                        var rightDotX = priceRangeSliderContainer.rightDotX
+                    }
+
                     //Emetto infine il signal che avvisa l'esterno della ricerca, passando tutti i parametri recuperati sopra
-                    container.needToFilterShoes(brandList, categoryList, colorList, sizeList, sexList, minPrice, maxPrice)
+                    container.needToFilterShoes(brandList, categoryList, colorList, sizeList, sexList, minPrice, maxPrice);
 
-                    //Segnalo che è stata fatta almeno una ricerca, qualora non fosse già così
-                    hasAlreadyFilteredShoes = true;
+                    /* Se questa è la prima ricerca, per via del bug assurdo descritto poc più sopra, devo rimettere i filtri
+                     * che c'erano prima della ricerca nei vari componenti coinvolti, che altrimenti tornerebbero
+                     * al loro valore di default */
+                    if(!container.hasAlreadyFilteredShoes)
+                    {
+                        //Rimetto tutti i valori selezionati nelle varie combo box
+                        brandsFilterList.selectedElements = brandList;
+                        categoryFilterList.selectedElements = categoryList;
+                        colorFilterList.selectedElements = colorList;
+                        sizeFilterList.selectedElements = sizeList;
+                        sexFilterList.selectedElements = sexList;
 
-//                    console.log(sexList)
+                        //Setto con le apposite funzioni le posizioni dei dot dello slider dei prezzi, in modo che si
+                        //posizionino dove erano prima della ricerca
+                        priceRangeSliderContainer.setLeftDotX(leftDotX);
+                        priceRangeSliderContainer.setRightDotX(rightDotX);
+
+                        //Segnalo quindi è stata fatta almeno una ricerca
+                        hasAlreadyFilteredShoes = true;
+                    }
                 }
             }
         }
@@ -870,7 +930,6 @@ Rectangle {
 
             height: 1 * scaleY
             width: listContainer.width
-//            anchors.bottomMargin: - (15 * scaleY)
             anchors.bottom: listContainer.top
             anchors.bottomMargin: 10 * scaleY
             anchors.horizontalCenter: listContainer.horizontalCenter
@@ -918,8 +977,7 @@ Rectangle {
     }
 
 
-    /*
-     * Funzione che calcola la posizione da cui deve partire la ListView contenente le scarpe filtrate (in sostanza calcola la
+    /* Funzione che calcola la posizione da cui deve partire la ListView contenente le scarpe filtrate (in sostanza calcola la
      * coordinata x che la lista deve avere). Il funzionamento è identico a quello in ShoeImagesList per la lista delle thumbnail,
      * solo che in questo caso è tutto riportato in orizzontale (i commenti sono messi la) */
     function calculateListPosition()
