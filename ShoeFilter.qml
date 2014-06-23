@@ -29,6 +29,10 @@ Rectangle {
     //Booleano per indicare se il pannello è aperto o no
     property bool isOpen: false
 
+    //Booleano per indicare se è stata fatta almeno una ricerca (di default non è così); serve per sapere se mostrare un messaggio
+    //di invito alla ricerca se il model della lista dei risultati è vuoto (la prima volta) oppure se mostrare un messaggio di errore
+    property bool hasAlreadyFilteredShoes: false
+
 
     /**************************************************************
      * Signal emessi verso l'esterno
@@ -694,6 +698,11 @@ Rectangle {
 
                     //Emetto infine il signal che avvisa l'esterno della ricerca, passando tutti i parametri recuperati sopra
                     container.needToFilterShoes(brandList, categoryList, colorList, sizeList, sexList, minPrice, maxPrice)
+
+                    //Segnalo che è stata fatta almeno una ricerca, qualora non fosse già così
+                    hasAlreadyFilteredShoes = true;
+
+//                    console.log(sexList)
                 }
             }
         }
@@ -717,6 +726,30 @@ Rectangle {
                 onClicked: container.touchEventOccurred()
             }
 
+
+            //Testo da mostrare al posto della lista quando questa è vuota per un motivo o per l'altro
+            Text {
+                //Rispetivamente, il messaggio da mostrare inizialmente ed il messaggio di errore quando non ci sono risultati
+                property string initialText: "Seleziona i filtri da usare e premi il pulsante per effettuare una ricerca"
+                property string errorText: "Nessuna scarpa trovata"
+
+                //La scritta è visibile solo la lista è vuota
+                visible: filteredList.count == 0
+
+                //Se è stata fatta almeno una ricerca in passato, mostro un messaggio di errore, altrimenti il testo niziale
+                text: hasAlreadyFilteredShoes ? errorText : initialText
+
+                font.family: metroFont.name
+                font.pointSize: 15
+                font.letterSpacing: 1.3
+                font.weight: Font.Bold
+
+                color: textColor
+
+                anchors.centerIn: parent
+            }
+
+
             ListView {
                 id: filteredList
 
@@ -736,8 +769,7 @@ Rectangle {
 
                 //Il modello della lista, contenente i path delle immagini da mostrare, è preso da C++ ed è uguale a quello della lista
                 //contenente le thumbnail
-//                model: similiarShoesModel
-                model: similiarShoesModelProva
+                model: filteredShoesModel
 
                 clip: true
 
@@ -833,33 +865,15 @@ Rectangle {
             }
         }
 
-//        Text {
-//            id: filteredShoesTitle
-
-//            text: "Scarpe Filtrate"
-//            font.family: metroFont.name
-//            font.pointSize: 21
-//            font.letterSpacing: 1.3
-//            font.weight: Font.Bold
-//            color: "#EDEDED"
-
-//            anchors.bottom: listContainer.top
-//            anchors.bottomMargin: 34 * scaleY
-//            anchors.horizontalCenter: listContainer.horizontalCenter
-//        }
-
         Rectangle {
             id: titleUnderline
 
             height: 1 * scaleY
             width: listContainer.width
-//            anchors.bottom: filteredShoesTitle.bottom
 //            anchors.bottomMargin: - (15 * scaleY)
             anchors.bottom: listContainer.top
             anchors.bottomMargin: 10 * scaleY
             anchors.horizontalCenter: listContainer.horizontalCenter
-
-            color: filteredShoesTitle.color
         }
     }
 
@@ -904,18 +918,21 @@ Rectangle {
     }
 
 
-
     /*
      * Funzione che calcola la posizione da cui deve partire la ListView contenente le scarpe filtrate (in sostanza calcola la
      * coordinata x che la lista deve avere). Il funzionamento è identico a quello in ShoeImagesList per la lista delle thumbnail,
-     * solo che in questo caso è tutto riportato in orizzontale */
+     * solo che in questo caso è tutto riportato in orizzontale (i commenti sono messi la) */
     function calculateListPosition()
     {
-        if(filteredList.width >= listContainer.width)
+        /* Nota: calcolo la lunghezza della lista manualmente e non uso filteredList.width perchè a furia di cambiare il model
+         * della lista in base alle ricerche si altera il valore del width diventando più grande di quello che è (anche se di fatto
+         * gli elementi sono pochi). Dato che non so perchè lo faccia o come risolverlo, calcolo la lunghezza manualmente
+         * tenendo conto di quanti elementi ci sono nella lista, della lunghezza di ciascuno e dello spacing tra di essi */
+        var listWidth = (container.shoeListElementWidth) * filteredList.count + (filteredList.spacing * (filteredList.count - 1));
+
+        if(listWidth >= listContainer.width)
             return 0;
 
-        var listHalvedWidth = (container.shoeListElementWidth/2) * filteredList.count + (filteredList.spacing/2 * (filteredList.count - 1));
-
-        return (listContainer.width/2 - listHalvedWidth);
+        return (listContainer.width/2 - listWidth/2);
     }
 }

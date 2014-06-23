@@ -98,13 +98,17 @@ Rectangle {
         newShoeView.needShoeIntoContext.connect(window.loadNewShoeView)
 
 
-
+        //Connetto il signal della view che richiede di filtrare scarpe in base ai filtri scelti con lo slot di C++ che
+        //si occupa effettivamente di effettuare la ricerca
         newShoeView.needToFilterShoes.connect(window.filterShoes)
-
 
 
         //Connetto il signal della ShoeView che indica che bisogna tornare indietro di una view nello stack di view
         newShoeView.goBack.connect(myViewManager.goBack);
+
+        //Connetto il signal per tornare indietro di schermata anche con uno slot C++ che serve a gestire i riferimenti
+        //del context della view QML (quello che fa è eliminare il context della view che sta scomparendo)
+        newShoeView.goBack.connect(window.movingToPreviousView);
 
 
         //Quelle qua sopra erano le cose in comune per tutte le ShoeView. Però alcune cose dipendono dal fatto che la view
@@ -144,7 +148,6 @@ Rectangle {
             console.log("C'è stato un errore nell'aggiunta della nuova view");
             return;
         }
-
 
         //Segno che ora la schermata attiva è quella dello screensaver
         myViewManager.isScreensaverOn = true;

@@ -22,7 +22,9 @@ private:
     //Database dal quale recuperare informazioni sulle scarpe
     ShoeDatabase database;
 
-    QQmlContext *context;
+//    QQmlContext *context;
+    std::vector<QQmlContext*> qmlContextList;
+
 
     void loadShoe(Shoe *shoe, bool isFromRFID);
 
@@ -30,6 +32,7 @@ public slots:
     void loadNewShoeView(int id);
     void loadNewShoeView(QString RFIDcode);
     void filterShoes(QObject* shoeView, QVariant brandList, QVariant categoryList, QVariant colorList, QVariant sizeList, QVariant sexList, int minPrice, int maxPrice);
+    void movingToPreviousView();
 };
 
 #endif // WINDOWMANAGER_H

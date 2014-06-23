@@ -77,7 +77,7 @@ ShoeDatabase::ShoeDatabase()
  */
 void ShoeDatabase::init()
 {
-    qDebug() << "ShoeDatabase::init() - thread ID: " << QThread::currentThreadId();
+//    qDebug() << "ShoeDatabase::init() - thread ID: " << QThread::currentThreadId();
 
     //Setup del database
     db = QSqlDatabase::addDatabase("QMYSQL");
@@ -96,7 +96,7 @@ void ShoeDatabase::init()
  */
 bool ShoeDatabase::open()
 {
-    qDebug() << "ShoeDatabase::open() - thread ID: " << QThread::currentThreadId();
+//    qDebug() << "ShoeDatabase::open() - thread ID: " << QThread::currentThreadId();
     db.open();
 
     if(!db.isOpen())
@@ -522,20 +522,25 @@ QStringList ShoeDatabase::getPriceRange()
 }
 
 /**
- * @brief ShoeDatabase::getFilteredShoes filtra le scarpe in base ai filtri passati e ritorna i risultati
+ * @brief ShoeDatabase::getFilteredShoes filtra le scarpe in base ai filtri passati e restituisce i risultati trovati. Le liste
+ *        dei filtri passate possono essere anche vuote
  *
- * @param brandList
- * @param categoryList
- * @param colorList
- * @param sizeList
- * @param sexList
- * @param minPrice
- * @param maxPrice
+ * @param brandList lista delle marche da filtrare
+ * @param categoryList lista delle categorie da filtrare
+ * @param colorList lista dei colori da filtrare
+ * @param sizeList lista delle taglie da filtrare
+ * @param sexList lista del sesso da filtrare
+ * @param minPrice prezzo minimo da applicare nella ricerca
+ * @param maxPrice prezzo massimo da applicare nella ricerca
  *
- * @return
+ * @return la lista delle scarpe che soddisfano i filtri; può essere vuota se non ne sono state trovate o se c'è stato un errore
  */
 std::vector<Shoe*> ShoeDatabase::getFilteredShoes(const QStringList& brandList, const QStringList& categoryList, const QStringList& colorList, const QStringList& sizeList, const QStringList& sexList, int minPrice, int maxPrice)
 {
+    /* Dato che la query di ricerca è formata da parti che possono esserci o non esserci, e ogni parte ha lunghezza variabile,
+     * attraverso un apposito metodo recupero le parti della query da usare per ogni categoria di filtro. La parte di query
+     * restituita sarà del tipo "AND marca IN ('Adidas', 'Nike')", oppure sarà una stringa vuota se quella data categoria
+     * di filtri non deve essere usata nella query (questo accade quando la lista dei filtri per quella categoria è vuota) */
     QString brandQueryPart = prepareFilterQueryPart(ShoeDatabase::SHOE_BRAND_COLUMN, brandList);
     QString categoryQueryPart = prepareFilterQueryPart(ShoeDatabase::SHOE_CATEGORY_COLUMN, categoryList);
     QString colorQueryPart = prepareFilterQueryPart(ShoeDatabase::SHOE_COLOR_COLUMN, colorList);
@@ -545,6 +550,19 @@ std::vector<Shoe*> ShoeDatabase::getFilteredShoes(const QStringList& brandList, 
     QSqlQuery query;
 
 
+    /* Esempio di query risultante:
+     *
+     * SELECT * FROM scarpa JOIN taglia ON scarpa.id_scarpa = taglia.id_scarpa
+     * WHERE prezzo BETWEEN 45 AND 90
+     * AND marca IN ('Vans', 'Reebok')
+     * AND categoria IN ('Running')
+     * AND colore IN ('Nero', 'Rosso')
+     * AND taglia IN ('38') AND sesso IN ('Uomo')
+     * GROUP BY scarpa.id_scarpa
+     *
+     * Dato che il range di prezzi è sempre usato nella query, tutte le parti che possono essere opzionali e composte dal
+     * metodo prepareFilterQueryPart() hanno davanti "AND ", in modo da concatenarsi a vicenda senza problemi
+     */
     query.exec("SELECT * FROM " + ShoeDatabase::SHOE_TABLE_NAME +
                " JOIN " + ShoeDatabase::SIZE_TABLE_NAME +
                " ON " + ShoeDatabase::SHOE_TABLE_NAME + "." + ShoeDatabase::SHOE_ID_COLUMN + " = " + ShoeDatabase::SIZE_TABLE_NAME + "." + ShoeDatabase::SIZE_ID_COLUMN +
@@ -554,6 +572,7 @@ std::vector<Shoe*> ShoeDatabase::getFilteredShoes(const QStringList& brandList, 
 
     vector<Shoe*> shoeList;
 
+    //Recupero i risultati, se ci sono; il recupero dei risultati è analogo a quello per le scarpe simili
     if(query.lastError().number() == -1 && query.size() > 0)
     {
         while(query.next())
@@ -572,7 +591,6 @@ std::vector<Shoe*> ShoeDatabase::getFilteredShoes(const QStringList& brandList, 
             //Array vuoto da inserire nel costruttore; è vuoto perchè per visualizzare le scarpe simili non importa sapere le taglie
             QVariantMap sizesAndQuantities;
 
-            //Creo la nuova scarpa
             Shoe *shoe = new Shoe(id, brand, model, color, sex, price, category, sizesAndQuantities, mediaPath, RFIDcode);
 
 
@@ -580,21 +598,13 @@ std::vector<Shoe*> ShoeDatabase::getFilteredShoes(const QStringList& brandList, 
             //quindi il path assoluto della cartella che conterrà la thumbnail
             QDir path = QDir::currentPath() + "/debug/shoes_media/" + shoe->getMediaPath() + "/thumbnail/";
 
-
-            //Filtro per recuperare solo immagini, non si sa mai
             QStringList nameFilter;
             nameFilter << "*.png" << "*.jpg" << "*.gif";
-
-            //Recupero il path del primo file trovato che soddisfi i filtri; userò quello come thumbnail
             QString thumbnailPath = "file:///" + path.entryInfoList(nameFilter, QDir::Files, QDir::Name).first().absoluteFilePath();
-
-            //Setto quindi il path trovato come thumbnail della scarpa
             shoe->setThumbnailPath(thumbnailPath);
 
             //Infine, inserisco la scarpa nell'array
             shoeList.push_back(shoe);
-
-            shoe->toString();
         }
 
         return shoeList;

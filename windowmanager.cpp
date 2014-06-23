@@ -57,15 +57,18 @@ void WindowManager::setupScreen()
     thread->start();
 
 
+    QQmlContext* rootContext = this->rootContext();
+
+
     /* Aggiungo al contesto dell'engile qml una proprietà che corrisponde all'istanza di questa classe. In questo modo nei file qml
      * che si chiameranno sarà nota la proprietà "firstWindow", e si potranno chiamare i metodi definiti Q_INVOKABLE nell'header
      * della classe, oltre che i membri definiti con Q_PROPERTY (in questo caso però di questi non ce ne sono) */
-    this->rootContext()->setContextProperty("window", this);
+    rootContext->setContextProperty("window", this);
 
 
     //Inserisco come proprietà le informazioni sulla risoluzione target da usare
-    this->rootContext()->setContextProperty("TARGET_RESOLUTION_WIDTH", TARGET_RESOLUTION_WIDTH);
-    this->rootContext()->setContextProperty("TARGET_RESOLUTION_HEIGHT", TARGET_RESOLUTION_HEIGHT);
+    rootContext->setContextProperty("TARGET_RESOLUTION_WIDTH", TARGET_RESOLUTION_WIDTH);
+    rootContext->setContextProperty("TARGET_RESOLUTION_HEIGHT", TARGET_RESOLUTION_HEIGHT);
 
 
     //Recupero informazioni sulla grandezza dello schermo vera e propria, in modo da visualizzare la view in fullscreen correttamente
@@ -76,8 +79,20 @@ void WindowManager::setupScreen()
     /* Definisco nel contesto dell'engine qml altre due proprietà, che sono i valori per cui bisogna moltiplicare ogni coordinata di larghezza
      * e altezza presente nei file qml in modo tale che le posizioni e le grandezze degli oggetti scalino bene su tutti i monitor.
      * Come risoluzione target si usa 1920x1080 */
-    this->rootContext()->setContextProperty("scaleX", (qreal) mainScreenSize.width() / TARGET_RESOLUTION_WIDTH);
-    this->rootContext()->setContextProperty("scaleY", (qreal) mainScreenSize.height() / TARGET_RESOLUTION_HEIGHT);
+    rootContext->setContextProperty("scaleX", (qreal) mainScreenSize.width() / TARGET_RESOLUTION_WIDTH);
+    rootContext->setContextProperty("scaleY", (qreal) mainScreenSize.height() / TARGET_RESOLUTION_HEIGHT);
+
+
+    /* All'interno della parte QML (nel file ShoeFilter) c'è la lista dei risultati delle ricerche di scarpe; questa lista
+     * utilizza un model passato da C++ in modo da avere sempre i dati aggiornati. Inizialmente però il model non è presente, in
+     * quanto chiaramente non è stata ancora fatta una ricerca; questo genera un messaggio di errore nella console, che si può
+     * evitare settando un model iniziale vuoto che è condiviso da tuttte le view dell'applicazione.
+     * Quindi creo il model vuoto... */
+    QList<QObject*> filteredShoesModel;
+
+    //...e lo inserisco nel context globale di tutte le view; il model verrà sovrascritto qunado servirà
+    rootContext->setContextProperty("filteredShoesModel", QVariant::fromValue(filteredShoesModel));
+
 
 
     //Carico il file base
@@ -159,7 +174,15 @@ void WindowManager::loadNewShoeView(int id)
 }
 
 
-
+/**
+ * @brief WindowManager::loadShoe è il metodo che si occupa di caricare la scarpa passatagli in un context QML e di creare
+ *        la ShoeView QML che usi quel context; il metodo si occupa di caricare anche parti accessorie della scarpa, come le
+ *        scarpe simili, e di creare le proprietà che dovranno essere usate in QML per visualizzare determinate cose (come le liste)
+ *
+ * @param shoe la scarpa da caricare
+ * @param isFromRFID booleano che indica se la scarpa è stata caricata in seguito ad un messaggio RFID oppure no; serve saperlo
+ *        per la parte QML
+ */
 void WindowManager::loadShoe(Shoe *shoe, bool isFromRFID)
 {
     //Se shoe è uguale a null, c'è stato qualche problema con il recupero della scarpa dal db, quindi bisogna gestirlo
@@ -237,24 +260,15 @@ void WindowManager::loadShoe(Shoe *shoe, bool isFromRFID)
        similiarShoesModel.append(similiarShoes[i]);
 
 
-
-
-
-    //Modello Di prova
-    QList<QObject*> similiarShoesModelProva;
-
-    for(int i = 0; i < 1; i++)
-       similiarShoesModelProva.append(similiarShoes[i]);
-
-
-
-
+///Da spostare nel setupScreen() in modo che venga fatto una sola volta all'avvio dell'applicazione
+    //Recupero tutte le marche, categorie, colori, taglie e range di prezzi presenti nel negozio; servono per visualizzare
+    //gli elementi filtrabili per una ricerca
     QStringList allBrands = database.getAllBrands();
     QStringList allCategories = database.getAllCategories();
     QStringList allColors = database.getAllColors();
     QStringList allSizes = database.getAllSizes();
     QStringList priceRange = database.getPriceRange();
-
+///
 
 
 
@@ -272,7 +286,7 @@ void WindowManager::loadShoe(Shoe *shoe, bool isFromRFID)
      * Di conseguenza quello che faccio è creare un nuovo context da arricchirlo con i dati appena recuperati, e creo un nuovo
      * component (che sarà la view che mostrerà la scarpa) che usi il context appena creato.
      * Inizio con il creare un nuovo context, che parta dal context globale */
-    this->context = new QQmlContext(this->rootContext());
+    QQmlContext* context = new QQmlContext(this->rootContext());
 
     //Creato il context, lo arricchisco di tutti i dati appena recuperati. Nota: posso passare direttamente "shoe" perchè
     //estende QObject e ha definite delle Q_PROPERTY per accedere ai suoi dati
@@ -288,7 +302,9 @@ void WindowManager::loadShoe(Shoe *shoe, bool isFromRFID)
 
 
 
-    context->setContextProperty("similiarShoesModelProva", QVariant::fromValue(similiarShoesModelProva));
+    //Aggiungo il context appena creato allo stack di context; serve per avere sempre un riferimento al context della view
+    //attualmente attiva, altrimenti è impossibile recuperarlo
+    qmlContextList.push_back(context);
 
 
 
@@ -324,6 +340,19 @@ void WindowManager::loadShoe(Shoe *shoe, bool isFromRFID)
 }
 
 
+/**
+ * @brief WindowManager::filterShoes è uno slot chiamato da un signal QML che si occupa di ricercare le scarpe applicando i filtri
+ *        passati come parametri. Le liste dei filtri passati possono essere anche vuote
+ *
+ * @param shoeView tmp
+ * @param brandList lista delle marche da filtrare
+ * @param categoryList lista delle categorie da filtrare
+ * @param colorList lista dei colori da filtrare
+ * @param sizeList lista delle taglie da filtrare
+ * @param sexList lista del sesso da filtrare
+ * @param minPrice prezzo minimo da applicare nella ricerca
+ * @param maxPrice prezzo massimo da applicare nella ricerca
+ */
 void WindowManager::filterShoes(QObject* shoeView, QVariant brandList, QVariant categoryList, QVariant colorList, QVariant sizeList, QVariant sexList, int minPrice, int maxPrice)
 {
     database.open();
@@ -342,20 +371,35 @@ void WindowManager::filterShoes(QObject* shoeView, QVariant brandList, QVariant 
 
 //    QObject * obj = qvariant_cast<QObject *>(shoeView);
 
-    QQmlContext *context = QQmlEngine::contextForObject(shoeView);
+//    QQmlContext *context = QQmlEngine::contextForObject(shoeView);
 
 
-    qDebug() << (context == this->context);
-    qDebug() << context;
-    qDebug() << this->context;
+//    qDebug() << (context == this->context);
+//    qDebug() << context;
+//    qDebug() << this->context;
 
-    qDebug() << this->rootContext();
+//    qDebug() << this->rootContext();
 
-    qDebug() << shoeView->property("similiarShoesModelProva");
+//    qDebug() << shoeView->property("similiarShoesModelProva");
 
 
-    context->setContextProperty("similiarShoesModelProva", QVariant::fromValue(filteredShoesModel));
+    QQmlContext* context = qmlContextList.back();
+
+    context->setContextProperty("filteredShoesModel", QVariant::fromValue(filteredShoesModel));
 
 
     database.close();
+}
+
+
+/**
+ * @brief WindowManager::movingToPreviousView è uno slot chiamato da un signal QML che indica che si sta tornando di indietro
+ *        di una view nello stack. Alla parte C++ interessa perchè quando si torna indietro di una view bisogna eliminare il
+ *        riferimento al context della view che sta sparendo dallo stack di context, dato che ora non serve più.
+ *        In questo modo si ha sempre il riferimento al context della view attualmente visibile
+ */
+void WindowManager::movingToPreviousView()
+{
+    //Rimuovo l'ultimo context presente nello stack
+    qmlContextList.pop_back();
 }
