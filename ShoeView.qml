@@ -104,10 +104,6 @@ Rectangle {
                 //Quando il signal scatta, cambio lo stato del rettangolo che oscura lo schermo
                 mainImageFocusBackground.state = "visible";
 
-                //Rendo "normale" il dot corrispondende all'index della lista che era stato precedentemente visualizzato,
-                //qualora esistesse
-                imageFocusList.dotsArray[imageFocusList.currentIndex].opacity = 1
-
                 //Cambio l'indice della lista contenente le immagini ingrandite in base all'indice ricevuto dal signal; dopodichè
                 //rendo visibile la lista stessa
                 imageFocusList.currentIndex = listIndex
@@ -224,8 +220,10 @@ Rectangle {
         //Proprietà che indica se il bottone è disabilitato o meno; lo è quando non ci sono schermate verso cui tornare indietro
         property bool isDisabled: false;
 
-        //Se il bottone è disabilitato, carico l'immagine apposita, altrimenti quella normale
-        source: isDisabled ? "qrc:///qml/back_disabled_mini.png" : "qrc:///qml/back_enabled_mini.png"
+        //Il bottone è visibile solo se non è disabilitato
+        visible: isDisabled ? false : true
+
+        source: "qrc:///qml/back_enabled_mini.png"
 
         width: 65 * scaleX
         height: 65 * scaleY
@@ -236,6 +234,7 @@ Rectangle {
 
         x: 180 * scaleX
         y: 10 * scaleY
+
 
         Behavior on opacity {
             NumberAnimation {
@@ -431,6 +430,9 @@ Rectangle {
         //Proprietà che contene il dot della lista attualmente attivo (quello relativo all'immagine attualmente visibile)
         property Item currentActiveDot;
 
+        //Grandezza dei dot quando sono disattivi
+        property real deactivatedDotSize: 0.5
+
 
         //La lista è grande quanto tutto lo schermo, quindi occupa tutto il parent
         anchors.fill: parent
@@ -547,7 +549,6 @@ Rectangle {
 //                    pinch.minimumScale: 0.1
 //                    pinch.maximumScale: 10
 //                }
-
             }
         }
 
@@ -565,7 +566,8 @@ Rectangle {
 
                 radius: 20
 
-                scale: 0.5
+                //Di default la grandezza del dot è quella che hanno quando sono disattivi
+                scale: imageFocusList.deactivatedDotSize
 
                 //Animazione per quando si cambia lo scale
                 Behavior on scale {
@@ -593,8 +595,14 @@ Rectangle {
 
         /* Questa funzione è chiamata al termine del caricamento della lista (quindi una sola volta) e serve a creare
          * dinamicamente i dot degli elementi della lista */
-        function createDots(sizes)
+        function createDots()
         {
+            /* Per via di un bug assurdo, dopo una prima ricerca di scarpe l'array dotsArray potrebbe diventare nullo. Quindi
+             * occorre richiamare questa funzione ogni volta dopo una ricerca (sarebbe più dispendioso capire se la ricerca
+             * è la prima e farlo solo in quel caso), continuando con la creazione dell'array solo se effettivamente è vuoto */
+            if(dotsArray.length != 0)
+                return;
+
             //Variabile che conterrà una singola istanza del Component "listDot" creato poco più sopra
             var item;
 
@@ -651,15 +659,15 @@ Rectangle {
             //quindi con il cambio del dot attivo
             if(currentVisibleIndex != index)
             {
-                //Rendo inattivo il dot precedentemente attivo
-                currentActiveDot.scale = 0.5
+                //Rendo inattivo il dot precedentemente attivo, ma solo se effettivamente c'è un dot attivo
+                if(currentActiveDot)
+                    currentActiveDot.scale = deactivatedDotSize
 
                 //Aggiorno il dot correntemente attivo con quello corrispondente all'immagine attualmente visibile
                 currentActiveDot = dotsArray[index];
 
                 //Rendo il dot attivo
                 currentActiveDot.scale = 1;
-
 
                 //Aggiorno l'indice dell'immagine attualmente attiva
                 currentVisibleIndex = index
@@ -795,13 +803,12 @@ Rectangle {
         ]
 
         //Quando il component è stato caricato, setto la sua visibilità su false per non farlo vedere inizialmente. Creo
-        //anche i dot della lista chiamando la funzione apposita
+        //anche i dot della lista da mostrare
         Component.onCompleted: {
             imageFocusList.visible = false
 
-            createDots()
+            imageFocusList.createDots();
         }
-
 
         /* Faccio si che quando cambi l'indice della lista, la lista visualizzi l'elemento attualmente selezionato.
          * Nota: se highlightFollowsCurrentItem fosse stato true la chiamata a positionViewAtIndex avrebbe provocato
@@ -854,7 +861,28 @@ Rectangle {
             filterPanel.opacity = 0
         }
 
-        onNeedToFilterShoes: container.needToFilterShoes(container, brandList, categoryList, colorList, sizeList, sexList, minPrice, maxPrice)
+        //Quando viene emesso il signal che indica che bisogna filtrare le scarpe, devo propagarlo verso l'esterno
+        onNeedToFilterShoes: {
+            /* Per via di un bug assurdo, succede che quando si esegue la prima ricerca nella schermata alcune variabili
+             * si riazzerano per motivi che solo Gesù comprende, tra cui la variabile contenente l'array contenente i dot
+             * della lista delle immagini. Come workaround per questo problema ogni volta che si mostra la lista si controlla
+             * se l'array di dot esiste, e se non esiste lo si crea. Questo vuol dire che si perde il riferimento ai dot che
+             * c'erano prima (se ce n'erano), ma i dot vecchi rimangono visibili anche se sotto i nuovi (si potrebbe fare
+             * una copia dei riferimenti prima della ricerca e poi rimetterli dopo che viene eseguita, ma creerebbe ulteriori
+             * incasinamenti... a sto punto è meglio fare una copia).
+             * Il problema è che il dot precedentemente attivo (se c'era) rimane attivo, in quanto non è più possibile
+             * disattivarlo non avendo il suo riferimento. Di conseguenza, prima di effettuare la ricerca prendo il dot attualmente
+             * attivo (se c'era) e lo disattivo, in modo che tale che stia letteralmente sotto i nuovi dot e non si veda */
+            if(imageFocusList.currentActiveDot)
+                imageFocusList.currentActiveDot.scale = imageFocusList.deactivatedDotSize
+
+            //Propago il signal verso l'esterno (che è C++)
+            container.needToFilterShoes(container, brandList, categoryList, colorList, sizeList, sexList, minPrice, maxPrice)
+
+            //Per il bug descritto qua sopra, dopo la ricerca creo i dot. Visto che il bug capita solo dopo la prima ricerca,
+            //all'interno della funzione verrà controllato se effettivamente i dot son da creare, altrimenti non succede niente
+            imageFocusList.createDots();
+        }
 
         Behavior on opacity {
             NumberAnimation {
