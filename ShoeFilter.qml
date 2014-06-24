@@ -8,12 +8,12 @@ Rectangle {
     //Dimensioni totali di tutto il pannello e il suo colore di background
     property real filterPanelWidth: 1920 * scaleX
     property real filterPanelHeight: 300 * scaleY
-    property string filterPanelbackgroundColor: "#FA626262"
+    property string filterPanelbackgroundColor: "#FAA8A8A8"
 
     //Dimensioni del rettangolo draggabile e il suo colore di background
     property real draggingRectangleWidth: 350 * scaleX
     property real draggingRectangleHeight: 41 * scaleY
-    property string draggingRectangleBackgroundColor: "#646464"
+    property string draggingRectangleBackgroundColor: "#A8A8A8"
 
     //Dimensioni di ogni entry della lista delle scarpe filtrate
     property real shoeListElementWidth: 350 * scaleX
@@ -345,18 +345,23 @@ Rectangle {
         }
 
         //Combo box per i colori filtrabili
-        FilterList {
+        FilterGrid {
             id: colorFilterList
 
             title: "Colore"
+
+            colorGrid: true
 
             anchors.top : filterPanel.top
             anchors.topMargin: 15 * scaleY
             anchors.left: categoryFilterList.right
             anchors.leftMargin: 50 * scaleX
 
-            width: 200 * scaleX
+            width: 280 * scaleX
             height: 55 * scaleY
+
+            gridCellHeight: 60
+            gridCellWidth: 60
 
             listModel: allColorsModel
             backgroundColor: filterPanel.color
@@ -365,18 +370,23 @@ Rectangle {
         }
 
         //Combo box per le taglie filtrabili
-        FilterList {
+        FilterGrid {
             id: sizeFilterList
 
             title: "Taglia"
+
+            colorGrid: false
 
             anchors.top : filterPanel.top
             anchors.topMargin: 15 * scaleY
             anchors.left: colorFilterList.right
             anchors.leftMargin: 50 * scaleX
 
-            width: 200 * scaleX
+            width: 250 * scaleX
             height: 55 * scaleY
+
+            gridCellHeight: 40
+            gridCellWidth: 40
 
             listModel: allSizesModel
             backgroundColor: filterPanel.color

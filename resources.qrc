@@ -24,5 +24,6 @@
         <file>SimilarShoesDelegate.qml</file>
         <file>ShoeFilter.qml</file>
         <file>FilterList.qml</file>
+        <file>FilterGrid.qml</file>
     </qresource>
 </RCC>

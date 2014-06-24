@@ -21,6 +21,14 @@ Rectangle {
     property string containerBackgroundColor: "grey"
 
 
+    //Proprietà dimensionali della singola cella della griglia
+    property int gridCellHeight: 80
+    property int gridCellWidth: 80
+
+    //Proprietà che decide quale delegate utilizzare
+    property bool colorGrid: true
+
+
     /**************************************************************
      * Signal emessi verso l'esterno
      **************************************************************/
@@ -115,89 +123,155 @@ Rectangle {
         }
 
         //Lista contenente gli elementi selezionabili
-        ListView {
+        GridView {
             id: filterList
 
             anchors.fill: parent
+            anchors.topMargin: verticalScrollBar.width
+            anchors.bottomMargin: verticalScrollBar.width
             anchors.leftMargin: verticalScrollBar.width
 
+            clip: true
             model: listModel
 
-            clip: true
+            Component {
+                id: colorDelegate
 
-            boundsBehavior: Flickable.StopAtBounds
+                Rectangle {
+                   id: mainRectangle
 
-            orientation: ListView.Vertical
-            spacing: 2 * scaleY
+                   width: gridCellWidth
+                   height: gridCellHeight
 
+                   //Booleano per indicare se l'elemento in questione è stato selezionato
+                   property bool isSelected: false
 
-            //Il delegate usa un component creato ad hoc
-            delegate: Rectangle {
-                id: textContainer
+                   color: "white"
 
-                //Booleano per indicare se l'elemento in questione è stato selezionato
-                property bool isSelected: false
+                   Text {
+                       id: itemText
 
-                width: container.width
-                height: itemText.height
+                       text: modelData
 
-                color: "transparent"
+                       font.family: metroFont.name
+                       font.pointSize: 5
+                       font.weight: Font.Normal
+                       font.letterSpacing: 1.2
+                       color: "Red"
+                   }
 
-                Text {
-                    id: itemText
+                   //MouseArea per gestire la selezione dell'elemento per i filtri
+                   MouseArea {
+                       anchors.fill: parent;
 
-                    text: modelData
+                       onClicked: {
+                           //Se l'item clickato non era selezionato, adesso lo è
+                           if(!isSelected)
+                           {
+                               mainRectangle.border.color = "steelblue"
+                               mainRectangle.border.width = 2
 
-                    font.family: metroFont.name
-                    font.pointSize: 12
-                    font.weight: Font.Normal
-                    font.letterSpacing: 1.2
-    //                color: "#9FB7BF"
-                    color: "white"
-                    anchors.left: parent.left
-                    anchors.leftMargin: 15 * scaleX
-                    anchors.top: parent.top
-                    width: container.width - (10 * scaleX)
-                    elide: Text.ElideRight
-                }
+                               //Aggiungo l'elemento alla lista degli elementi selezionati per i filtri
+                               selectedElements.push(itemText.text)
 
+                               //Segnalo che l'elemento è ora selezionato
+                               isSelected = true
+                           }
+                           else
+                           {
+                               mainRectangle.border.color = "transparent"
 
-                //MouseArea per gestire la selezione dell'elemento per i filtri
-                MouseArea {
-                    anchors.fill: parent;
+                               //Devo rimuovere l'elemento dalla lista degli elementi selezionati; recupero il suo indice nell'array
+                               var index = selectedElements.indexOf(itemText.text)
 
-                    onClicked: {
-                        //Se l'item clickato non era selezionato, adesso lo è
-                        if(!isSelected)
-                        {
-                            textContainer.color = "ligthblue"
+                               //Rimuovo l'elemento
+                               selectedElements.splice(index, 1)
 
-                            //Aggiungo l'elemento alla lista degli elementi selezionati per i filtri
-                            selectedElements.push(itemText.text)
+                               //Segnalo che l'elemento non è più selezionato
+                               isSelected = false
+                           }
 
-                            //Segnalo che l'elemento è ora selezionato
-                            isSelected = true
-                        }
-                        else
-                        {
-                            textContainer.color = "transparent"
+                           //Segnalo all'esterno che c'è stato un evento touch
+                           container.touchEventOccurred()
+                       }
 
-                            //Devo rimuovere l'elemento dalla lista degli elementi selezionati; recupero il suo indice nell'array
-                            var index = selectedElements.indexOf(itemText.text)
-
-                            //Rimuovo l'elemento
-                            selectedElements.splice(index, 1)
-
-                            //Segnalo che l'elemento non è più selezionato
-                            isSelected = false
-                        }
-
-                        //Segnalo all'esterno che c'è stato un evento touch
-                        container.touchEventOccurred()
-                    }
-
-                }
+                   }
+               }
             }
+
+            Component {
+                id: sizeDelegate
+
+                Rectangle {
+                   id: mainRectangle
+
+                   width: gridCellWidth
+                   height: gridCellHeight
+
+                   //Booleano per indicare se l'elemento in questione è stato selezionato
+                   property bool isSelected: false
+
+                   color: "white"
+
+                   radius: 3
+
+                   Text {
+                       id: itemText
+
+                       text: modelData
+
+                       font.family: metroFont.name
+                       font.pointSize: 10
+                       font.weight: Font.Normal
+                       font.letterSpacing: 1.2
+                       color: "#333333"
+
+                       anchors.centerIn: parent
+                   }
+
+                   //MouseArea per gestire la selezione dell'elemento per i filtri
+                   MouseArea {
+                       anchors.fill: parent;
+
+                       onClicked: {
+                           //Se l'item clickato non era selezionato, adesso lo è
+                           if(!isSelected)
+                           {
+                               mainRectangle.border.color = "steelblue"
+                               mainRectangle.border.width = 2
+
+                               //Aggiungo l'elemento alla lista degli elementi selezionati per i filtri
+                               selectedElements.push(itemText.text)
+
+                               //Segnalo che l'elemento è ora selezionato
+                               isSelected = true
+                           }
+                           else
+                           {
+                               mainRectangle.border.color = "transparent"
+
+                               //Devo rimuovere l'elemento dalla lista degli elementi selezionati; recupero il suo indice nell'array
+                               var index = selectedElements.indexOf(itemText.text)
+
+                               //Rimuovo l'elemento
+                               selectedElements.splice(index, 1)
+
+                               //Segnalo che l'elemento non è più selezionato
+                               isSelected = false
+                           }
+
+                           //Segnalo all'esterno che c'è stato un evento touch
+                           container.touchEventOccurred()
+                       }
+
+                   }
+               }
+            }
+
+            delegate: colorGrid ? colorDelegate : sizeDelegate
+
+            cellWidth: gridCellWidth + 1
+            cellHeight: gridCellHeight + 1
 
 
             //Quando inizia il movimento della lista da parte dell'utente devo bloccare il timer che fa scomparire la scrollbar
@@ -220,7 +294,6 @@ Rectangle {
                     fadeOutTimer.restart()
             }
         }
-
 
         //Scrollbar annessa alla lista, qualora occorresse
         ScrollBar {
