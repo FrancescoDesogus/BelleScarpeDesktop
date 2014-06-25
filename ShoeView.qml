@@ -46,12 +46,17 @@ Rectangle {
     //passa come parametro l'id della scarpa toccata
     signal needShoeIntoContext(int id)
 
-
-    signal needToFilterShoes(variant shoeView, variant brandList, variant categoryList, variant colorList, variant sizeList, variant sexList, int minPrice, int maxPrice)
+    //Questo signal indica che è stato premuto il pulsante per filtrare le scarpe, e quindi bisogna effettuare una ricerca
+    //nel database in base ai filtri selezionati e passati come parametri
+    signal needToFilterShoes(variant brandList, variant categoryList, variant colorList, variant sizeList, variant sexList, int minPrice, int maxPrice)
 
 
     //Signal che indica che bisogna tornare indietro di una view nello stack di viste
     signal goBack()
+
+    //Questo signal indica che si sta per effettuare una transizione verso una nuova view (transizione di default, non da RFID),
+    //e bisogna effettuare determinati preparativi; è emesso all'esterno, nel file ViewManagerLogic.js
+    signal prepareTransitionToNewView()
 
     //Signal per indicare l'inizio/fine dei vari tipi di transizione (dovuta a RFID o dovuta a input utente diretto).
     //Questi signal sono emessi dall'esterno (dal ViewManager) e sono "ascoltati" dentro ShoeView
@@ -59,6 +64,8 @@ Rectangle {
     signal transitionFromRFIDEnded()
     signal transitionStarted()
     signal transitionEnded()
+
+
 
 
     /* Questa proprietà permette di inserire una Rotation, che da' più libertà di rotazione per il container (la cui proprietà
@@ -101,13 +108,22 @@ Rectangle {
         onMainImageClicked: {
             if(container.isClickAllowed)
             {
-                //Quando il signal scatta, cambio lo stato del rettangolo che oscura lo schermo
-                mainImageFocusBackground.state = "visible";
+                //Quando il signal scatta, cambio lo stato del rettangolo che oscura lo schermo (metto prima uno stato nullo
+                //nel caso in cui fosse già nello stato "visible"; in questo modo scatta di nuovo l'animazione)
+                blackBackgroundScreen.state = "";
+                blackBackgroundScreen.state = "visible";
 
                 //Cambio l'indice della lista contenente le immagini ingrandite in base all'indice ricevuto dal signal; dopodichè
                 //rendo visibile la lista stessa
                 imageFocusList.currentIndex = listIndex
                 imageFocusList.state = "visible"
+
+                /* Per via di un bug assurdo che capita quando si effettua la prima ricerca di scarpe in una schermata
+                 * (maggiori dettagli sul bug nei commenti dentro onNeedToFilterShoes in questo file) ogni volta che
+                 * si visualizza la lista delle immagini bisogna ricreare i dot. In realtà se l'array che li contiene esiste
+                 * già, non vengono creati (quindi la chiamata alla funzione non fa nulla); di fatto verranno creati solo
+                 * dopo una prima ricerca di scarpe */
+                imageFocusList.createDots();
 
 
                 //Salvo quale è l'indice dell'immagine attualmente visibile
@@ -174,45 +190,37 @@ Rectangle {
         //Signal che viene emesso quando si preme su una scarpa consigliata e bisogna cambiare schermata. Il signal passa
         //come parametri l'id della scarpa da caricare e la FlipableSurface da usare per la transizione visiva
         onNeedShoeIntoContext: {
-            //Recupero la FlipableSurface che dovrà essere usata per la transizione
+            //Recupero la FlipableSurface che dovrà essere usata per la transizione, una volta che i dati della scarpa
+            //da mostrare sono stati recuperati
             flipableSurface = shoeSelectedFlipable
 
-            /* Le coordinate attuali di flipableSurface sono relative al suo vecchio padre, il container di SimilarShoesList.
-             * Dato che ora cambierà padre, e quindi sistema di coordinate, recupero le sue coordinate globali in base al
-             * container di ShoeView usando la funzione mapToItem().
-             * Nota: affinchè le coordinate globali vengano calcolate correttamente con questa funzione, le coordinate locali
-             * del flipable devono essere prese localmente a tutto il container di SimilarShoesList */
-            var globalCoordinates = flipableSurface.mapToItem(container.parent, 0, 0)
+            console.log("onNeedShoeIntoContext, CONTAINER: " + container)
 
-            /* A questo punto dell'esecuzione, il flipable ha come padre SimilarShoesList; questo vuol dire che le sue coordinate
-             * sono locali a quel component, e non può neanche andare oltre i suoi limiti visivi. Dato che la FlipableSurface dovrà
-             * muoversi per tutto lo schermo, occorre far diventare la ShoeView in questione padre del flipable, cosicchè non sia
-             * più vincolato a muoversi dentro SimilarShoesList */
-            flipableSurface.parent = container
-
-            //Le coordinate appena prese servono per sapere da dove partire con l'animazione di flip, ed eventualmente dove tornare
-            //quando si preme il tasto back. Salvo quindi le coordinate nelle rispettive proprietà del flipable
-            flipableSurface.initialX = globalCoordinates.x
-            flipableSurface.initialY = globalCoordinates.y
-
-            //Salvo anche il riferimento dell'intera ShoeView. In realtà lo avrei già, essendo la ShoeView il padre di
-            //flipableSurface, ma per evitare ambiguità ho preferito creare una proprietà a posta
-            flipableSurface.frontShoeView = container
+            console.log("onNeedShoeIntoContext, flipableSurface.frontListItem: " + flipableSurface.frontListItem)
 
 
-            //Pronto il flipable, emitto il signal che chiamerà il rispettivo slot di C++ che si occuperà di caricare la scarpa,
+            //Emitto il signal che chiamerà il rispettivo slot di C++ che si occuperà di caricare la scarpa,
             //creare la nuova view e attivare l'animazione del flipable inserendo la nuova view come "back" della FlipableSurface
             container.needShoeIntoContext(id)
 
+            //Dato che i dati sono presi in modo asincrono, mentre vengono recuperati faccio comparire lo sfondo scuro. Porto
+            //inoltre lo sfondo in primo piano mettendo z = 1, in modo che sovrasti per certo qualsiasi elemento della scena
+            blackBackgroundScreen.state = ""
+            blackBackgroundScreen.state = "visible"
+            blackBackgroundScreen.z = 1
 
-            //Infine porto a zero l'opacità di tutti i componenti "che contano" di ShoeView; grazie alla proprietà
-            //Behavior on opacity che hanno tutti questi, verrà avviata l'animazione di fade out
-            imagesList.opacity = 0
-            shoeDetail.opacity = 0
-            similiarShoesList.opacity = 0
-            backButton.opacity = 0
+            //Mostro l'indicatore di caricamento, contenuto nel rettangolo
+            blackBackgroundScreen.loadIndicator.running = true
+
+            //Disabilito i click mentre si aspetta
+            container.isClickAllowed = false;
+
+            console.log("onNeedShoeIntoContext: " + new Date());
         }
     }
+
+
+
 
     Image {
         id: backButton
@@ -283,10 +291,12 @@ Rectangle {
      * è usato anche quando il pannello dei filtri è aperto in modo da ricevere gli input se si preme fuori dal pannello
      * per chiuderlo; in questo caso, il rettangolo ha l'opacità a zero (quindi è invisibile ma riceve gli input) */
     Rectangle {
-        id: mainImageFocusBackground
+        id: blackBackgroundScreen
         width: parent.width
         height: parent.height
         color: "black"
+
+        property variant loadIndicator: busyIndicator
 
         //Stabilisco che lo stato iniziale è invisible, definito più sotto
         state: "invisible"
@@ -295,6 +305,40 @@ Rectangle {
          * è aperto (in modo da ricevere gli input se si preme fuori dal pannello per chiuderlo), e serve che sia
          * presente ma invisibile */
         opacity: 0
+
+
+        /* Item che contiene l'indicatore di caricamento, visibile e animato quando si stanno recuperando dati dal database.
+         * E' creato come Item perchè così posso renderlo grande quanto tutto il padre (il container della lista) senza
+         * che però risulti visibile; questo aiuta per centrare l'indicatore di caricamento nel container della lista.
+         * Per rendere visibile l'indicatore è sufficente settare "running" su true */
+        Item {
+            id: busyIndicator
+
+            anchors.fill: parent
+
+            property bool running: false
+            property string imageSource: "qrc:/images/busy.png"
+
+            //Rendo visibile il tutto solo se sta effettivamente caricando
+            visible: running
+
+            Image {
+                id: image
+
+                anchors.centerIn: parent
+
+                source: busyIndicator.imageSource
+
+                //Animazioni eseguite in parallelo; la prima rende visibile l'indicatore con un fade in, la seconda
+                //lo fa ruotare per l'eternità
+                ParallelAnimation {
+                    running: busyIndicator.running
+
+                    NumberAnimation { target: image; property: "opacity"; from: 0.0; to: 1.0; duration: 200 }
+                    NumberAnimation { target: image; property: "rotation"; from: 0; to: 360; loops: Animation.Infinite; duration: 1200 }
+                }
+            }
+        }
 
 
         //Aggiungo due stati, uno per quando è visibile e uno per quando non lo è
@@ -307,7 +351,7 @@ Rectangle {
                 //Quando si ha questo stato si attivano i seguenti cambiamenti
                 PropertyChanges {
                     //Definisco che il target dei cambiamenti delle proprietà è il rettangolo stesso
-                    target: mainImageFocusBackground
+                    target: blackBackgroundScreen
 
                     //Quando lo stato è visibile, rendo effettivamente visibile il rettangolo
                     visible: true
@@ -319,7 +363,7 @@ Rectangle {
                 name: "invisible"
 
                 PropertyChanges {
-                    target: mainImageFocusBackground
+                    target: blackBackgroundScreen
 
                     /* Anche in questo caso setto la visibilità su true. Non lo metto invisibile perchè altrimenti quando si passa
                      * da visible a invisible il rettangolo scompare immediatamente senza aspettare la fine dell'animazione; quindi
@@ -340,13 +384,12 @@ Rectangle {
             //Transizione per quando si passa dallo stato invisible allo stato visible
             Transition {
                 //Inserisco qua il nome dello stato di partenza coinvolto nella transizione e lo stato da raggiungere
-                from: "invisible"
                 to: "visible"
 
                 //Creo una NumberAnimation, usata per definire animazioni che cambiano proprietà con valori numerici
                 NumberAnimation {
                     //Definisco che il target dell'animazione è il background
-                    target: mainImageFocusBackground
+                    target: blackBackgroundScreen
 
                     //L'unica proprietà che verrà modificata sarà l'opacità
                     properties: "opacity";
@@ -360,11 +403,10 @@ Rectangle {
 
             //Transizione per quando si passa dallo stato visible allo stato invisible
             Transition {
-                from: "visible"
                 to: "invisible"
 
                 NumberAnimation {
-                    target: mainImageFocusBackground
+                    target: blackBackgroundScreen
 
                     properties: "opacity";
                     duration: 250;
@@ -379,14 +421,14 @@ Rectangle {
                  * che l'animazione è terminata */
                 onRunningChanged: {
                     if (!running)
-                        mainImageFocusBackground.visible = false
+                        blackBackgroundScreen.visible = false
                 }
             }
         ]
 
         //Quando il component è stato caricato, setto la sua visibilità su false per non farlo vedere inizialmente
         Component.onCompleted: {
-            mainImageFocusBackground.visible = false
+            blackBackgroundScreen.visible = false
         }
 
         /* Questa MouseArea è usata esclusivamente quando il pannello per i filtri è aperto. Infatti, nonostante la MouseArea copra
@@ -403,7 +445,7 @@ Rectangle {
                 if(container.isClickAllowed)
                 {
                     //Rendo invisibile il background (di fatto era presente, anche se aveva l'opacità a 0)...
-                    mainImageFocusBackground.visible = false
+                    blackBackgroundScreen.visible = false
 
                     //...e chiudo il pannello per filtrare
                     filterPanel.closePanel();      
@@ -503,7 +545,7 @@ Rectangle {
                         //Cambiato l'indice, rendo invisibile sia la lista che lo sfondo scuro; le animazioni saranno eseguite
                         //come transizioni tra stati di questi componenti
                         imageFocusList.state = "invisible"
-                        mainImageFocusBackground.state = "invisible";
+                        blackBackgroundScreen.state = "invisible";
 
                         //Avviso anche che c'è stato un touch event
                         container.touchEventOccurred();
@@ -530,7 +572,7 @@ Rectangle {
                         imageFocusList.currentIndex = index
 
                         imageFocusList.state = "invisible"
-                        mainImageFocusBackground.state = "invisible";
+                        blackBackgroundScreen.state = "invisible";
 
                         container.touchEventOccurred();
 
@@ -553,7 +595,7 @@ Rectangle {
         }
 
 
-        //Component per i dot della lista. E' dichiarato come Component in modo tale che sia possibile crarne istanze via JavaScript
+        //Component per i dot della lista. E' dichiarato come Component in modo tale che sia possibile crearne istanze via JavaScript
         Component {
             id: listDot
 
@@ -663,6 +705,13 @@ Rectangle {
                 if(currentActiveDot)
                     currentActiveDot.scale = deactivatedDotSize
 
+                /* C'è un bug strano che non ho capito nè quando capita nè perchè; è probabilmente dovuto al bug della prima
+                 * ricerca di scarpe. Capita infatti che dotsAray[index] restituisca undefined. Di fatto è un bug innoquo,
+                 * l'unica cosa che fa è mostrare un messaggio di errore nella console, ma per evitarlo faccio un check per
+                 * bloccare la funzione. Non sembrano esserci ripercussioni se si blocca così la funzione */
+                if(typeof dotsArray[index] == 'undefined')
+                    return;
+
                 //Aggiorno il dot correntemente attivo con quello corrispondente all'immagine attualmente visibile
                 currentActiveDot = dotsArray[index];
 
@@ -676,7 +725,7 @@ Rectangle {
 
 
         //Aggiungo due stati, uno per quando la lista è visibile e uno per quando non lo è; il funzionamento è identico
-        //a quanto fatto per il rettangolo mainImageFocusBackground
+        //a quanto fatto per il rettangolo blackBackgroundScreen
         states: [
             //Stato per quando è visibile
             State {
@@ -825,7 +874,7 @@ Rectangle {
         visible: false
 
         //Rettangolo per scuro per il background, riciclato dalla ShoeView
-        backgroundRectangle: mainImageFocusBackground
+        backgroundRectangle: blackBackgroundScreen
 
         //Fisso il pannello in basso al centro dello schermo
         anchors.bottom: parent.bottom
@@ -840,25 +889,15 @@ Rectangle {
         onNeedShoeIntoContext: {
             flipableSurface = shoeSelectedFlipable
 
-            var globalCoordinates = flipableSurface.mapToItem(container.parent, 0, 0)
-
-            flipableSurface.parent = container
-
-            flipableSurface.initialX = globalCoordinates.x
-            flipableSurface.initialY = globalCoordinates.y
-
-            flipableSurface.frontShoeView = container
-
             container.needShoeIntoContext(id)
 
-            imagesList.opacity = 0
-            shoeDetail.opacity = 0
-            similiarShoesList.opacity = 0
-            backButton.opacity = 0
+            blackBackgroundScreen.state = ""
+            blackBackgroundScreen.state = "visible"
+            blackBackgroundScreen.z = 1
 
-            //A differenza di quanto faccio in onNeedShoeIntoContext di SimiliarShoesList, qua metto a 0 anche l'opacità
-            //del pannello dei filtri, che rimane aperto durante la transizione e deve svanire
-            filterPanel.opacity = 0
+            blackBackgroundScreen.loadIndicator.running = true
+
+            container.isClickAllowed = false;
         }
 
         //Quando viene emesso il signal che indica che bisogna filtrare le scarpe, devo propagarlo verso l'esterno
@@ -877,11 +916,7 @@ Rectangle {
                 imageFocusList.currentActiveDot.scale = imageFocusList.deactivatedDotSize
 
             //Propago il signal verso l'esterno (che è C++)
-            container.needToFilterShoes(container, brandList, categoryList, colorList, sizeList, sexList, minPrice, maxPrice)
-
-            //Per il bug descritto qua sopra, dopo la ricerca creo i dot. Visto che il bug capita solo dopo la prima ricerca,
-            //all'interno della funzione verrà controllato se effettivamente i dot son da creare, altrimenti non succede niente
-            imageFocusList.createDots();
+            container.needToFilterShoes(brandList, categoryList, colorList, sizeList, sexList, minPrice, maxPrice)
         }
 
         Behavior on opacity {
@@ -957,6 +992,70 @@ Rectangle {
         ]
     }
 
+    /* Ascolto il signal che indica che bisogna preparare la view corrente per una transizione avvenuta in seguito ad un
+     * input utente. Il signal viene emesso nel file ViewManagerLogic.js, prima di far si che inizi la transizione vera e propria.
+     * questo signal è emesso sia quando la scarpa da mostrare è una di quelle simili alla scarpa corrente, oppure è una scarpa
+     * risultata da una ricerca */
+    onPrepareTransitionToNewView: {
+        /* Mentre si attendeva per l'arivo dei dati, era apparso una schermata scura; adesso che i dati sono arrivati e
+         * può iniziare la transizione, faccio scomparire la schermata di netto, e la riporto con z = 0 essendo stata portata
+         * a z = 1 quando era apparsa (in modo da farla comparire sopra qualsiasi altra cosa nella schermata)*/
+        blackBackgroundScreen.opacity = 0
+        blackBackgroundScreen.z = 0
+
+        /* Se la transizione è di una scarpa che è risultata da una ricerca, vuol dire che normalmente lo schermo scuro era già
+         * presente (anchese aveva opacità a 0; serviva solo per intercettare gli input). Se questo è il caso, non faccio
+         * scomparire la scermata, in quanto se in seguito debba tornare indietro sia ancora presente (in quanto il pannello
+         * dei filtri rimarrebbe aperto). Se invece il pannello era chiuso, vuol dire che la scarpa che ha causato la transizione
+         * era una di quelle simili, quindi non mi metto problemi e rendo invisibile la schermata scura */
+        if(!filterPanel.isOpen)
+            blackBackgroundScreen.visible = false
+
+        //Blocco l'indicatore di caricamento, contenuto nel rettangolo
+        blackBackgroundScreen.loadIndicator.running = false
+
+
+        console.log("onPrepareTransitionToNewView, CONTAINER: " + container)
+
+        console.log("onPrepareTransitionToNewView: " + new Date());
+        console.log("onPrepareTransitionToNewView again, flipableSurface.frontListItem: " + flipableSurface.frontListItem);
+
+
+        /* Adesso devo preparare la flipableSurface per effettuare la transizione vera e propria.
+         * Le coordinate attuali di flipableSurface sono relative al suo vecchio padre, il container di SimilarShoesList.
+         * Dato che ora cambierà padre, e quindi sistema di coordinate, recupero le sue coordinate globali in base al
+         * container di ShoeView usando la funzione mapToItem().
+         * Nota: affinchè le coordinate globali vengano calcolate correttamente con questa funzione, le coordinate locali
+         * del flipable devono essere prese localmente a tutto il container di SimilarShoesList */
+        var globalCoordinates = flipableSurface.mapToItem(container.parent, 0, 0)
+
+        /* A questo punto dell'esecuzione, il flipable ha come padre SimilarShoesList; questo vuol dire che le sue coordinate
+         * sono locali a quel component, e non può neanche andare oltre i suoi limiti visivi. Dato che la FlipableSurface dovrà
+         * muoversi per tutto lo schermo, occorre far diventare la ShoeView in questione padre del flipable, cosicchè non sia
+         * più vincolato a muoversi dentro SimilarShoesList */
+        flipableSurface.parent = container
+
+        //Le coordinate appena prese servono per sapere da dove partire con l'animazione di flip, ed eventualmente dove tornare
+        //quando si preme il tasto back. Salvo quindi le coordinate nelle rispettive proprietà del flipable
+        flipableSurface.initialX = globalCoordinates.x
+        flipableSurface.initialY = globalCoordinates.y
+
+        //Salvo anche il riferimento dell'intera ShoeView. In realtà lo avrei già, essendo la ShoeView il padre di
+        //flipableSurface, ma per evitare ambiguità ho preferito creare una proprietà a posta
+        flipableSurface.frontShoeView = container
+
+
+        //Infine porto a zero l'opacità di tutti i componenti "che contano" di ShoeView; grazie alla proprietà
+        //Behavior on opacity che hanno tutti questi, verrà avviata l'animazione di fade out
+        imagesList.opacity = 0
+        shoeDetail.opacity = 0
+        similiarShoesList.opacity = 0
+        backButton.opacity = 0
+
+        //Se il pannello dei filtri era aperto, faccio scomparire pure quello
+        if(filterPanel.isOpen)
+            filterPanel.opacity = 0
+    }
 
     //Ascolto il signal che indica l'inizio di una transizione da RFID
     onTransitionFromRFIDStarted: {
@@ -979,7 +1078,7 @@ Rectangle {
 
     //Ascolto il signal che indica l'inizio di una transizione normale causata dall'input utente diretto
     onTransitionStarted: {
-        //Disabilito i click utente durante la transizione
+        //Disabilito i click utente durante la transizione, qualora fossero abilitati
         container.isClickAllowed = false;
 
         //Se il pannello dei filtri non era aperto, lo faccio scomparire sotto lo schermo

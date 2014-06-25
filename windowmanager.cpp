@@ -25,13 +25,13 @@
 #include <shoedatabase.h>
 #include <shoe.h>
 #include <dataobject.h>
+#include <databaseinterface.h>
 
 #include <vector>
 #include <QVariant>
 #include <QDir>
 
 #include <QDeclarativeEngine>
-//#include <QDeclarativeContext>
 
 //Dato che uso il "vector" di C++, utilizzo il namespace std come scorciatoia invece di scrivere "std::vector"
 using namespace std;
@@ -50,11 +50,7 @@ WindowManager::WindowManager(QQuickView *parent) :
 
 void WindowManager::setupScreen()
 {
-    QThread* thread = new QThread(this);
-    database.moveToThread(thread);
-    connect (thread, SIGNAL(started()), &database, SLOT(init()));
-    connect (this, SIGNAL(destroyed()), thread, SLOT(quit()));
-    thread->start();
+    this->setupDataThread();
 
 
     QQmlContext* rootContext = this->rootContext();
@@ -123,54 +119,88 @@ void WindowManager::setupScreen()
     this->showFullScreen();
 
     //Appena avviato carico una scarpa per provare, simulando l'arrivo di un codice RFID
-    loadNewShoeView("asd");
-
-
-//    QObject::connect(&view, SIGNAL(requireData), &database, SLOT(loadNewShoeView(QString)));
+//    loadNewShoeView("asd");
+    emit requestShoeData("asd");
 }
 
-
 /**
- * @brief WindowManager::loadNewShoeView è uno slot chiamato dal secondo thread non appena viene letto un nuovo codice.
- *        Il metodo si occupa di recuperare la scarpa a cui corrisponde il codice RFID ricevuto, e quindi di creare una
- *        nuova view che mostri la nuova scarpa
- *
- * @param RFIDcode il codice RFID della scarpa da ricercare
+ * @brief WindowManager::setupDataThread è un metodo chiamato da setupScreen() che si occupa di creare il thread che recupera
+ *        i dati dal database e di eseguire le connessioni di signal e slot che servono a far si che le richieste dei dati da
+ *        parte del main thread, il recupero dei dati dal thread del database ed il conseguente passaggio di dati dal secondo
+ *        thread a quello principale avvengano in modo asincrono
  */
-void WindowManager::loadNewShoeView(QString RFIDcode)
+void WindowManager::setupDataThread()
 {
-    qDebug() << "code received: " << RFIDcode;
+    //Creo l'istanza del thread
+    QThread* dataThread = new QThread(this);
 
-    //Apro il database, visto che dovrò effettuare query
-    database.open();
+    /* Sposto quello che nel gergo di Qt viene detto "work thread object" nel thread. In questo modo l'istanza della classe
+     * DatabaseInterface vivrà all'interno di quel thread. D'ora in avanti, se connetto un signal del thread principale
+     * ad uno slot dell'oggetto databaseInterface, quest slot verrà eseguito nell'altro thread */
+    databaseInterface.moveToThread(dataThread);
 
-    //Recupero la scarpa
-    Shoe *shoe = database.getShoeFromId(RFIDcode);
+    //Connetto la chiusura dell'applicazione con lo stop del thread, in modo che si blocchi se l'applicazione si chiude
+    QObject::connect(this, SIGNAL(destroyed()), dataThread, SLOT(quit()));
 
-    //Chiamo il metodo che si occupa effettivamente di recuperare il resto delle informazioni, di creare la nuova view ecc...
-    loadShoe(shoe, true);
+    /* Connetto tutti i segnali di richiesta di dati ai corrispettivi slot dell'oggetto che funge da interfaccia tra il thread
+     * principale ed il database. Registro quindi:
+     * 1) il segnale per caricare i filtri delle scarpe (cioè i dati riguardanti tutte le marche presenti nel db,
+     *    tutte le categorie, colori, ecc. Dato che c'è bisogno di questi dati subito, e dato che sono
+     *    uguali per ogni schermata, questo segnale verrà emesso una sola volta all'inizio dell'applicazione;
+     * 2) il segnale che richiede i dati di una scarpa in seguito all'arrivo di un codice RFID;
+     * 3) il segnale che richiede i dati di una scarpa in seguito ad un input utente;
+     * 4) il segnale che richiede di filtrare le scarpe in base ai dati passati. */
+    QObject::connect(this, SIGNAL(requestFilters()), &databaseInterface, SLOT(loadFilters()));
+    QObject::connect(this, SIGNAL(requestShoeData(QString)), &databaseInterface, SLOT(loadShoeData(QString)));
+    QObject::connect(this, SIGNAL(requestShoeData(int)), &databaseInterface, SLOT(loadShoeData(int)));
+    QObject::connect(this, SIGNAL(requestFilterData(QVariant,QVariant,QVariant,QVariant,QVariant,int,int)), &databaseInterface, SLOT(loadFilterData(QVariant,QVariant,QVariant,QVariant,QVariant,int,int)));
+
+    /* Nelle Qt  signal e slot funzionano di default solo con classi native di Qt o classi che estendono QObject. Per far si che
+     * che classi particolari (come std::vector<Shoe*>) siano supportate dal sistema signal/slot, esiste chiamo il metodo apposito
+     * che si occupa di estendere il sistema meta-object delle Qt per supportare questa classe, in modo che possa usarla fra poco
+     * nella comunicazione tra signal e slot */
+    qRegisterMetaType<std::vector<Shoe*> >();
+
+    /* Poco sopra ho connesso tutti i signal relativi alla richiesta, da parte del main thread, di dati da caricare dal thread
+     * del database. Adesso connetto i signal opposti, ovvero quello che sono emessi dal database per avvisare al thread principale
+     * che sono pronti i dati (che vengono passati nel signal). Registro quindi:
+     * 1) il signal che passa i dati dei filtri applicabili per le scarpe;
+     * 2) il signal che passa i dati di una scarpa caricata (e un booleano per indicare se la scarpa viene da un
+     *    messaggio RFID o da un input utente);
+     * 3) il signal che passa l'array contenente le scarpe filtrate. */
+    QObject::connect(&databaseInterface, SIGNAL(filtersLoaded(ShoeFilterData*)), this, SLOT(setFiltersIntoContext(ShoeFilterData*)));
+    QObject::connect(&databaseInterface, SIGNAL(shoeDataLoaded(Shoe*,bool)), this, SLOT(loadNewShoeView(Shoe*,bool)));
+    QObject::connect(&databaseInterface, SIGNAL(filterDataLoaded(std::vector<Shoe*>)), this, SLOT(showFilteredShoes(std::vector<Shoe*>)));
+
+    //Eseguite tutte le connessioni, faccio partire il thread
+    dataThread->start();
+
+    /* Dato che i filtri delle scarpe servono subito e sono in comune a tutte le scarpe, emitto subito il signal per recuperarle.
+     * NOTA: anche se il recupero dei dati è fatto in modo asincrono, non c'è pericolo che venga mostrata una view di una scarpa
+     * prima che i dati vengano presi, in quanto un'eventuale necessità di recuperare una scarpa in seguito ad un messaggio RFID
+     * (fatto tramite l'emissione del signal requestShoeData()) verrebbe automaticamente accodato a questo dei filtri in quanto
+     * questo è il funzionamento di default del sistema signal/slot. In sostanza, fino a quando i dati dei filtri non sono stati
+     * recuperati (o il recupero è fallito, ed in tal caso vorrebbe dire che non verrebbero mostrati i filtri nel pannello causando
+     * degli errori nella console ma non rovinando l'user experience) non è possibile caricare una scarpa; un'eventuale richiesta
+     * di caricamento viene messa in coda fino a quando i dati dei filtri non sono recuperati */
+    emit requestFilters();
 }
 
-
-
 /**
- * @brief WindowManager::loadNewShoeView è uno slot chiamato da QML quando si preme ad esempio su una scarpa diversa da quella
- *        correntemente mostrata in modo da visualizzare la sua pagina.
- *        Il metodo si occupa di recuperare la scarpa a cui corrisponde il codice RFID ricevuto, e quindi di creare una
- *        nuova view che mostri la nuova scarpa
+ * @brief WindowManager::setFiltersIntoContext è uno slot chiamato dal thread del database una volta che i dai dei filtri
+ *        applicabili alle scarpe (cioè la lista di tutte le marche presenti nel db, delle categorie, colori, ecc.)
+ *        sono caricati. Il suo compito è di inserire questi dati nel contesto globale di QML, in quanto sono dati condivisi
+ *        da tutte le view delle scarpe.
  *
- * @param id l'id della scarpa da ricercare
+ * @param filters oggetto contenente i filtri applicabili per le scarpe
  */
-void WindowManager::loadNewShoeView(int id)
+void WindowManager::setFiltersIntoContext(ShoeFilterData* filters)
 {
-    //Apro il database, visto che dovrò effettuare query
-    database.open();
+    QQmlContext* rootContext = this->rootContext();
 
-    //Recupero la scarpa
-    Shoe *shoe = database.getShoeFromId(id);
-
-    //Chiamo il metodo che si occupa effettivamente di recuperare il resto delle informazioni, di creare la nuova view ecc...
-    loadShoe(shoe, false);
+    //Inserisco l'oggetto nel contesto QML, in modo che i dati rilevanti siano accessibili direttamente da QML (la classe
+    //ShoeFilterData estende QObject e ha dichiarate determinate proprietà accessibili da QML)
+    rootContext->setContextProperty("filters", filters);
 }
 
 
@@ -183,7 +213,7 @@ void WindowManager::loadNewShoeView(int id)
  * @param isFromRFID booleano che indica se la scarpa è stata caricata in seguito ad un messaggio RFID oppure no; serve saperlo
  *        per la parte QML
  */
-void WindowManager::loadShoe(Shoe *shoe, bool isFromRFID)
+void WindowManager::loadNewShoeView(Shoe *shoe, bool isFromRFID)
 {
     //Se shoe è uguale a null, c'è stato qualche problema con il recupero della scarpa dal db, quindi bisogna gestirlo
     if(shoe == NULL)
@@ -193,9 +223,6 @@ void WindowManager::loadShoe(Shoe *shoe, bool isFromRFID)
 
         //Chiamo un metodo della root per gestire l'errore; il metodo si occuperà di mostrare un errore visivo
         QMetaObject::invokeMethod(qmlRoot, "cantLoadShoe");
-
-        //Chiudo il db e concludo qua il metodo
-        database.close();
 
         return;
     }
@@ -253,27 +280,14 @@ void WindowManager::loadShoe(Shoe *shoe, bool isFromRFID)
     QList<QObject*> similiarShoesModel;
 
     //Recupero dal db il vettore contenente tutte le scarpe simili a quella considerata in base ai parametri specificati
-    vector<Shoe*> similiarShoes = database.getSimiliarShoes(shoe->getId(), shoe->getSex(), shoe->getCategory());
+//    vector<Shoe*> similiarShoes = database.getSimiliarShoes(shoe->getId(), shoe->getSex(), shoe->getCategory());
+
+    vector<Shoe*> similiarShoes = shoe->getSimilarShoes();
 
     //Inserisco nel model tutte le scarpe
     for(int i = 0; i < similiarShoes.size(); i++)
        similiarShoesModel.append(similiarShoes[i]);
 
-
-///Da spostare nel setupScreen() in modo che venga fatto una sola volta all'avvio dell'applicazione
-    //Recupero tutte le marche, categorie, colori, taglie e range di prezzi presenti nel negozio; servono per visualizzare
-    //gli elementi filtrabili per una ricerca
-    QStringList allBrands = database.getAllBrands();
-    QStringList allCategories = database.getAllCategories();
-    QStringList allColors = database.getAllColors();
-    QStringList allSizes = database.getAllSizes();
-    QStringList priceRange = database.getPriceRange();
-///
-
-
-
-    //Dato che ho prelevato tutto quello che mi serviva dal db, posso chiuderlo
-    database.close();
 
 
     /* Adesso la parte importante: bisogna epsorre le cose appena recuperate in modo che siano accessibili da QML.
@@ -294,12 +308,6 @@ void WindowManager::loadShoe(Shoe *shoe, bool isFromRFID)
     context->setContextProperty("thumbnailModel", QVariant::fromValue(imagesAndVideoPathsModel));
     context->setContextProperty("imagesModel", QVariant::fromValue(imagesOnlyPathsModel));
     context->setContextProperty("similiarShoesModel", QVariant::fromValue(similiarShoesModel));
-    context->setContextProperty("allBrandsModel", QVariant::fromValue(allBrands));
-    context->setContextProperty("allCategoriesModel", QVariant::fromValue(allCategories));
-    context->setContextProperty("allColorsModel", QVariant::fromValue(allColors));
-    context->setContextProperty("allSizesModel", QVariant::fromValue(allSizes));
-    context->setContextProperty("priceRangeModel", QVariant::fromValue(priceRange));
-
 
 
     //Aggiungo il context appena creato allo stack di context; serve per avere sempre un riferimento al context della view
@@ -332,11 +340,13 @@ void WindowManager::loadShoe(Shoe *shoe, bool isFromRFID)
     newView->setParentItem(qobject_cast<QQuickItem*>(viewManager));
 
 
+
     /* Il processo di creazione della nuova view non è finito. Bisogna connettere la nuova view a eventi, signals e cose varie
      * che sono visibili e accessibili solo dalla parte QML, quindi quello che faccio è chiamare una funzione contenuta nel
      * file main.qml (che corrisponte ora a qmlRoot) che si occuperà di questi collegamenti, e le passo la nuova view
      * appena aggiunta. Dopo l'esecuzione di quella funzione, la nuova view verrà mostrata */
     QMetaObject::invokeMethod(qmlRoot, "connectNewViewEvents", Q_ARG(QVariant, QVariant::fromValue(newView)), Q_ARG(QVariant, QVariant::fromValue(isFromRFID)));
+
 }
 
 
@@ -353,42 +363,24 @@ void WindowManager::loadShoe(Shoe *shoe, bool isFromRFID)
  * @param minPrice prezzo minimo da applicare nella ricerca
  * @param maxPrice prezzo massimo da applicare nella ricerca
  */
-void WindowManager::filterShoes(QObject* shoeView, QVariant brandList, QVariant categoryList, QVariant colorList, QVariant sizeList, QVariant sexList, int minPrice, int maxPrice)
+void WindowManager::showFilteredShoes(vector<Shoe*> filteredShoes)
 {
-    database.open();
-
     /* Adesso devo recuperare tutte le scarpe simili; creo quindi una lista di QObject che fungerà da model per la rispettiva lista
      * QML; le scarpe estendono QObject, quindi posso inserirle direttamente nella lista e saranno accessibili da QML le proprietà
      * definite Q_PROPERTY nella classe Shoe */
     QList<QObject*> filteredShoesModel;
 
     //Recupero dal db il vettore contenente tutte le scarpe simili a quella considerata in base ai parametri specificati
-    vector<Shoe*> filteredShoes = database.getFilteredShoes(brandList.toStringList(), categoryList.toStringList(), colorList.toStringList(), sizeList.toStringList(), sexList.toStringList(), minPrice, maxPrice);
+//    vector<Shoe*> filteredShoes = database.getFilteredShoes(brandList.toStringList(), categoryList.toStringList(), colorList.toStringList(), sizeList.toStringList(), sexList.toStringList(), minPrice, maxPrice);
 
     //Inserisco nel model tutte le scarpe
     for(int i = 0; i < filteredShoes.size(); i++)
        filteredShoesModel.append(filteredShoes[i]);
 
-//    QObject * obj = qvariant_cast<QObject *>(shoeView);
-
-//    QQmlContext *context = QQmlEngine::contextForObject(shoeView);
-
-
-//    qDebug() << (context == this->context);
-//    qDebug() << context;
-//    qDebug() << this->context;
-
-//    qDebug() << this->rootContext();
-
-//    qDebug() << shoeView->property("similiarShoesModelProva");
-
 
     QQmlContext* context = qmlContextList.back();
 
     context->setContextProperty("filteredShoesModel", QVariant::fromValue(filteredShoesModel));
-
-
-    database.close();
 }
 
 

@@ -9,25 +9,18 @@
 
 class ShoeDatabase : public QObject
 {
-    Q_OBJECT
-
 public:
     ShoeDatabase();
 
-    bool open();
-    void close();
     Shoe* getShoeFromId(int shoeId);
     Shoe* getShoeFromId(QString RFIDcode);
-    std::vector<Shoe*> getSimiliarShoes(int shoeId, QString sex, QString category);
+    std::vector<Shoe*> getSimiliarShoes(Shoe *shoeParameter);
     QStringList getAllBrands();
     QStringList getAllCategories();
     QStringList getAllColors();
     QStringList getAllSizes();
     QStringList getPriceRange();
     std::vector<Shoe*> getFilteredShoes(const QStringList& brandList, const QStringList& categoryList, const QStringList& colorList, const QStringList& sizeList, const QStringList& sexList, int minPrice, int maxPrice);
-
-public slots:
-    void init();
 
 signals:
 
@@ -73,6 +66,8 @@ private:
     static const int SIZE_SIZE_COLUMN_POSITION;
     static const int SIZE_QUANTITY_COLUMN_POSITION;
 
+    bool open();
+    void close();
 
     Shoe* getShoe(QString query);
 

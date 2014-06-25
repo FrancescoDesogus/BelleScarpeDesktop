@@ -231,6 +231,8 @@ Rectangle
                             //quando iniziano/finiscono le transizioni
                             shoeSelectedFlipable.frontListItem = suggestionContainer
 
+                            console.log("SIMILIARshoes, shoeSelectedFlipable.frontListItem: " + shoeSelectedFlipable.frontListItem)
+
                             /* Faccio diventare padre del flipable il container di SimilarShoesList, nel caso non lo fosse già;
                              * questo perchè durante la transizione il flipable prende come padre il container di ShoeView, e nel
                              * caso in cui si prema su una scarpa e poi si trni indietro, il flipable avrebbe ancora quel padre;

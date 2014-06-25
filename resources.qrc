@@ -26,4 +26,7 @@
         <file>FilterList.qml</file>
         <file>FilterGrid.qml</file>
     </qresource>
+    <qresource prefix="/images">
+        <file>busy.png</file>
+    </qresource>
 </RCC>

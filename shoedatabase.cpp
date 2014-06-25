@@ -11,6 +11,9 @@
 #include <QThread>
 
 
+
+#include <QDateTime>
+
 //Namespace contenente classi come "vector" e "map". Usare il namespace fa si che non si debba scrivere ad esempio std::vector quando lo si usa
 using namespace std;
 
@@ -69,16 +72,6 @@ const int ShoeDatabase::SIZE_QUANTITY_COLUMN_POSITION = 2;
  */
 ShoeDatabase::ShoeDatabase()
 {
-
-}
-
-/**
- * @brief ShoeDatabase::init
- */
-void ShoeDatabase::init()
-{
-//    qDebug() << "ShoeDatabase::init() - thread ID: " << QThread::currentThreadId();
-
     //Setup del database
     db = QSqlDatabase::addDatabase("QMYSQL");
 
@@ -89,6 +82,7 @@ void ShoeDatabase::init()
     db.setPassword(ShoeDatabase::DB_PASSWORD);
 }
 
+
 /**
  * @brief ShoeDatabase::open apre il db
  *
@@ -96,17 +90,29 @@ void ShoeDatabase::init()
  */
 bool ShoeDatabase::open()
 {
-//    qDebug() << "ShoeDatabase::open() - thread ID: " << QThread::currentThreadId();
-    db.open();
 
     if(!db.isOpen())
     {
-        qDebug() << db.lastError();
+        db.open();
 
-        return false;
+        if(db.isOpenError())
+        {
+            qDebug() << "ShoeDatabase::open: " << db.lastError();
+
+            return false;
+        }
     }
 
     return true;
+}
+
+/**
+ * @brief ShoeDatabase::close chiude il db
+ */
+void ShoeDatabase::close()
+{
+    if(db.isOpen())
+        db.close();
 }
 
 
@@ -119,7 +125,7 @@ bool ShoeDatabase::open()
  *         essere copiati, bisogna passare per forza un riferimento). Viene ritornato NULL in caso di errori o se non è stato trovato niente
  */
 Shoe* ShoeDatabase::getShoeFromId(int shoeId)
-{
+{    
     //Preparo la query vera e propria da eseguire in base all'id passato
     QString queryString = "SELECT * FROM " + ShoeDatabase::SHOE_TABLE_NAME + " " +
                           "WHERE " + ShoeDatabase::SHOE_ID_COLUMN + " = " + QString::number(shoeId);
@@ -158,6 +164,11 @@ Shoe* ShoeDatabase::getShoeFromId(QString RFIDcode)
  */
 Shoe* ShoeDatabase::getShoe(QString queryString)
 {
+    //Apro il db; se non si apre correttamente, blocco l'esecuzione
+    if(!open())
+        return NULL;
+
+
     QSqlQuery query;
 
     //Eseguo la query
@@ -214,6 +225,17 @@ Shoe* ShoeDatabase::getShoe(QString queryString)
         //Ora che ho tutti i dati, creo l'oggetto Shoe...
         Shoe* shoe = new Shoe(shoeId, brand, model, color, sex, price, category, sizesAndQuantities, mediaPath, RFIDcode);
 
+
+        qDebug() << "getShoe: " << QDateTime::currentDateTime();
+
+
+        ///////////
+        QThread::currentThread()->sleep(1);
+
+
+        //Chiudo il db
+        close();
+
         //...e lo ritorno
         return shoe;
     }
@@ -225,6 +247,8 @@ Shoe* ShoeDatabase::getShoe(QString queryString)
             qDebug() << "ShoeDatabase::getShoe: c'è stato un errore nella query: " << query.lastError();
 
 //        qDebug() << query.lastError();
+
+        close();
 
         return NULL;
     }
@@ -239,19 +263,24 @@ Shoe* ShoeDatabase::getShoe(QString queryString)
  * @param sex sesso della scarpa
  * @param category categoria della scarpa
  *
- * @return la lista delle scarpe simili; NOTA: le scarpe avranno l'array contenente le taglie e le quantità vuoto
+ * @return la lista delle scarpe simili (vuota in caso di errori o se non ce ne sono); NOTA: le scarpe avranno l'array
+ *         contenente le taglie e le quantità vuoto, e anche l'array delle scarpe simili sarà vuoto
  */
-vector<Shoe*> ShoeDatabase::getSimiliarShoes(int shoeId, QString sex, QString category)
+vector<Shoe*> ShoeDatabase::getSimiliarShoes(Shoe *shoeParameter)
 {
+    vector<Shoe*> shoeList;
+
+    if(!open())
+        return shoeList;
+
     QSqlQuery query;
 
 
     query.exec("SELECT * FROM " + ShoeDatabase::SHOE_TABLE_NAME +
-               " WHERE " + ShoeDatabase::SHOE_ID_COLUMN + " != " + QString::number(shoeId) +
-               " AND " + ShoeDatabase::SHOE_SEX_COLUMN + " = '" + sex + "' "
-               " AND " + ShoeDatabase::SHOE_CATEGORY_COLUMN + " = '" + category + "'");
+               " WHERE " + ShoeDatabase::SHOE_ID_COLUMN + " != " + QString::number(shoeParameter->getId()) +
+               " AND " + ShoeDatabase::SHOE_SEX_COLUMN + " = '" + shoeParameter->getSex() + "' "
+               " AND " + ShoeDatabase::SHOE_CATEGORY_COLUMN + " = '" + shoeParameter->getCategory() + "'");
 
-    vector<Shoe*> shoeList;
 
     if(query.lastError().number() == -1 && query.size() > 0)
     {
@@ -294,52 +323,52 @@ vector<Shoe*> ShoeDatabase::getSimiliarShoes(int shoeId, QString sex, QString ca
             shoeList.push_back(shoe);
         }
 
-        Shoe* shoe1 = this->getShoeFromId(1);
-        Shoe* shoe2 = this->getShoeFromId(3);
-        Shoe* shoe3 = this->getShoeFromId(4);
-        Shoe* shoe4 = this->getShoeFromId(8);
+//        Shoe* shoe1 = this->getShoeFromId(1);
+//        Shoe* shoe2 = this->getShoeFromId(3);
+//        Shoe* shoe3 = this->getShoeFromId(4);
+//        Shoe* shoe4 = this->getShoeFromId(8);
 
-        QDir path = QDir::currentPath() + "/debug/shoes_media/" + shoe1->getMediaPath() + "/thumbnail/";
-
-
-        QStringList nameFilter;
-        nameFilter << "*.png" << "*.jpg" << "*.gif";
-
-        QString thumbnailPath = "file:///" + path.entryInfoList(nameFilter, QDir::Files, QDir::Name).first().absoluteFilePath();
-
-        shoe1->setThumbnailPath(thumbnailPath);
+//        QDir path = QDir::currentPath() + "/debug/shoes_media/" + shoe1->getMediaPath() + "/thumbnail/";
 
 
-        path = QDir::currentPath() + "/debug/shoes_media/" + shoe2->getMediaPath() + "/thumbnail/";
-        thumbnailPath = "file:///" + path.entryInfoList(nameFilter, QDir::Files, QDir::Name).first().absoluteFilePath();
-        shoe2->setThumbnailPath(thumbnailPath);
+//        QStringList nameFilter;
+//        nameFilter << "*.png" << "*.jpg" << "*.gif";
 
-        path = QDir::currentPath() + "/debug/shoes_media/" + shoe3->getMediaPath() + "/thumbnail/";
-        thumbnailPath = "file:///" + path.entryInfoList(nameFilter, QDir::Files, QDir::Name).first().absoluteFilePath();
-        shoe3->setThumbnailPath(thumbnailPath);
+//        QString thumbnailPath = "file:///" + path.entryInfoList(nameFilter, QDir::Files, QDir::Name).first().absoluteFilePath();
 
-        path = QDir::currentPath() + "/debug/shoes_media/" + shoe4->getMediaPath() + "/thumbnail/";
-        thumbnailPath = "file:///" + path.entryInfoList(nameFilter, QDir::Files, QDir::Name).first().absoluteFilePath();
-        shoe4->setThumbnailPath(thumbnailPath);
+//        shoe1->setThumbnailPath(thumbnailPath);
 
 
-        shoeList.push_back(shoe1);
-        shoeList.push_back(shoe2);
-        shoeList.push_back(shoe3);
-        shoeList.push_back(shoe4);
+//        path = QDir::currentPath() + "/debug/shoes_media/" + shoe2->getMediaPath() + "/thumbnail/";
+//        thumbnailPath = "file:///" + path.entryInfoList(nameFilter, QDir::Files, QDir::Name).first().absoluteFilePath();
+//        shoe2->setThumbnailPath(thumbnailPath);
 
-        return shoeList;
+//        path = QDir::currentPath() + "/debug/shoes_media/" + shoe3->getMediaPath() + "/thumbnail/";
+//        thumbnailPath = "file:///" + path.entryInfoList(nameFilter, QDir::Files, QDir::Name).first().absoluteFilePath();
+//        shoe3->setThumbnailPath(thumbnailPath);
+
+//        path = QDir::currentPath() + "/debug/shoes_media/" + shoe4->getMediaPath() + "/thumbnail/";
+//        thumbnailPath = "file:///" + path.entryInfoList(nameFilter, QDir::Files, QDir::Name).first().absoluteFilePath();
+//        shoe4->setThumbnailPath(thumbnailPath);
+
+
+//        shoeList.push_back(shoe1);
+//        shoeList.push_back(shoe2);
+//        shoeList.push_back(shoe3);
+//        shoeList.push_back(shoe4);
     }
     else
     {
         if(query.size() == 0)
-            qDebug() << "ShoeDatabase::getSimiliarShoes: nessuna scarpa simile è stata trovata; id scarpa:" << shoeId;
+            qDebug() << "ShoeDatabase::getSimiliarShoes: nessuna scarpa simile è stata trovata";
         else
             qDebug() << "ShoeDatabase::getSimiliarShoes: c'è stato un errore nella query: " << query.lastError();
-
-        //Restituisco l'array vuoto
-        return shoeList;
     }
+
+    close();
+
+    //Restituisco l'array, vuoto o no
+    return shoeList;
 }
 
 
@@ -351,11 +380,16 @@ vector<Shoe*> ShoeDatabase::getSimiliarShoes(int shoeId, QString sex, QString ca
  */
 QStringList ShoeDatabase::getAllBrands()
 {
+    QStringList brands;
+
+    if(!open())
+        return brands;
+
     QSqlQuery query;
 
-    query.exec("SELECT DISTINCT " + ShoeDatabase::SHOE_BRAND_COLUMN + " FROM " + ShoeDatabase::SHOE_TABLE_NAME);
+    query.exec("SELECT DISTINCT " + ShoeDatabase::SHOE_BRAND_COLUMN + " FROM " + ShoeDatabase::SHOE_TABLE_NAME + " " +
+               "ORDER BY " + ShoeDatabase::SHOE_BRAND_COLUMN);
 
-    QStringList brands;
 
     if(query.lastError().number() == -1 && query.size() > 0)
     {
@@ -363,8 +397,6 @@ QStringList ShoeDatabase::getAllBrands()
         {
             brands.append(query.value(0).toString());
         }
-
-        return brands;
     }
     else
     {
@@ -372,10 +404,11 @@ QStringList ShoeDatabase::getAllBrands()
             qDebug() << "ShoeDatabase::getAllBrands: nessuna marca trovata";
         else
             qDebug() << "ShoeDatabase::getAllBrands: c'è stato un errore nella query: " << query.lastError();
-
-        //Restituisco l'array vuoto
-        return brands;
     }
+
+    close();
+
+    return brands;
 }
 
 /**
@@ -385,11 +418,17 @@ QStringList ShoeDatabase::getAllBrands()
  */
 QStringList ShoeDatabase::getAllCategories()
 {
+    QStringList categories;
+
+    if(!open())
+        return categories;
+
+
     QSqlQuery query;
 
-    query.exec("SELECT DISTINCT " + ShoeDatabase::SHOE_CATEGORY_COLUMN + " FROM " + ShoeDatabase::SHOE_TABLE_NAME);
+    query.exec("SELECT DISTINCT " + ShoeDatabase::SHOE_CATEGORY_COLUMN + " FROM " + ShoeDatabase::SHOE_TABLE_NAME + " " +
+               "ORDER BY " + ShoeDatabase::SHOE_CATEGORY_COLUMN);
 
-    QStringList categories;
 
     if(query.lastError().number() == -1 && query.size() > 0)
     {
@@ -397,8 +436,6 @@ QStringList ShoeDatabase::getAllCategories()
         {
             categories.append(query.value(0).toString());
         }
-
-        return categories;
     }
     else
     {
@@ -406,10 +443,11 @@ QStringList ShoeDatabase::getAllCategories()
             qDebug() << "ShoeDatabase::getAllCategories: nessuna categoria trovata";
         else
             qDebug() << "ShoeDatabase::getAllCategories: c'è stato un errore nella query: " << query.lastError();
-
-        //Restituisco l'array vuoto
-        return categories;
     }
+
+    close();
+
+    return categories;
 }
 
 /**
@@ -419,11 +457,16 @@ QStringList ShoeDatabase::getAllCategories()
  */
 QStringList ShoeDatabase::getAllColors()
 {
+    QStringList colors;
+
+    if(!open())
+        return colors;
+
+
     QSqlQuery query;
 
-    query.exec("SELECT DISTINCT " + ShoeDatabase::SHOE_COLOR_COLUMN + " FROM " + ShoeDatabase::SHOE_TABLE_NAME);
-
-    QStringList colors;
+    query.exec("SELECT DISTINCT " + ShoeDatabase::SHOE_COLOR_COLUMN + " FROM " + ShoeDatabase::SHOE_TABLE_NAME + " " +
+               "ORDER BY " + ShoeDatabase::SHOE_COLOR_COLUMN);
 
     if(query.lastError().number() == -1 && query.size() > 0)
     {
@@ -431,8 +474,6 @@ QStringList ShoeDatabase::getAllColors()
         {
             colors.append(query.value(0).toString());
         }
-
-        return colors;
     }
     else
     {
@@ -440,10 +481,11 @@ QStringList ShoeDatabase::getAllColors()
             qDebug() << "ShoeDatabase::getAllColors: nessun colore trovato";
         else
             qDebug() << "ShoeDatabase::getAllColors: c'è stato un errore nella query: " << query.lastError();
-
-        //Restituisco l'array vuoto
-        return colors;
     }
+
+    close();
+
+    return colors;
 }
 
 
@@ -455,12 +497,17 @@ QStringList ShoeDatabase::getAllColors()
  */
 QStringList ShoeDatabase::getAllSizes()
 {
+    QStringList sizes;
+
+    if(!open())
+        return sizes;
+
+
     QSqlQuery query;
 
     query.exec("SELECT DISTINCT " + ShoeDatabase::SIZE_SIZE_COLUMN + " FROM " + ShoeDatabase::SIZE_TABLE_NAME + " " +
                "ORDER BY " + ShoeDatabase::SIZE_SIZE_COLUMN);
 
-    QStringList sizes;
 
     if(query.lastError().number() == -1 && query.size() > 0)
     {
@@ -468,8 +515,6 @@ QStringList ShoeDatabase::getAllSizes()
         {
             sizes.append(query.value(0).toString());
         }
-
-        return sizes;
     }
     else
     {
@@ -477,10 +522,11 @@ QStringList ShoeDatabase::getAllSizes()
             qDebug() << "ShoeDatabase::getAllSizes: nessuna taglia trovata";
         else
             qDebug() << "ShoeDatabase::getAllSizes: c'è stato un errore nella query: " << query.lastError();
-
-        //Restituisco l'array vuoto
-        return sizes;
     }
+
+    close();
+
+    return sizes;
 }
 
 
@@ -492,12 +538,17 @@ QStringList ShoeDatabase::getAllSizes()
  */
 QStringList ShoeDatabase::getPriceRange()
 {
+    QStringList priceRange;
+
+    if(!open())
+        return priceRange;
+
+
     QSqlQuery query;
 
     query.exec("SELECT MIN(" + ShoeDatabase::SHOE_PRICE_COLUMN + "), MAX(" + ShoeDatabase::SHOE_PRICE_COLUMN + ")" + " " +
                "FROM " + ShoeDatabase::SHOE_TABLE_NAME);
 
-    QStringList priceRange;
 
     if(query.lastError().number() == -1 && query.size() > 0)
     {
@@ -506,8 +557,6 @@ QStringList ShoeDatabase::getPriceRange()
             priceRange.append(query.value(0).toString());
             priceRange.append(query.value(1).toString());
         }
-
-        return priceRange;
     }
     else
     {
@@ -515,10 +564,11 @@ QStringList ShoeDatabase::getPriceRange()
             qDebug() << "ShoeDatabase::getPriceRange: nessuna prezzo trovato";
         else
             qDebug() << "ShoeDatabase::getPriceRange: c'è stato un errore nella query: " << query.lastError();
-
-        //Restituisco l'array vuoto
-        return priceRange;
     }
+
+    close();
+
+    return priceRange;
 }
 
 /**
@@ -535,8 +585,14 @@ QStringList ShoeDatabase::getPriceRange()
  *
  * @return la lista delle scarpe che soddisfano i filtri; può essere vuota se non ne sono state trovate o se c'è stato un errore
  */
-std::vector<Shoe*> ShoeDatabase::getFilteredShoes(const QStringList& brandList, const QStringList& categoryList, const QStringList& colorList, const QStringList& sizeList, const QStringList& sexList, int minPrice, int maxPrice)
+vector<Shoe*> ShoeDatabase::getFilteredShoes(const QStringList& brandList, const QStringList& categoryList, const QStringList& colorList, const QStringList& sizeList, const QStringList& sexList, int minPrice, int maxPrice)
 {
+    vector<Shoe*> shoeList;
+
+    if(!open())
+        return shoeList;
+
+
     /* Dato che la query di ricerca è formata da parti che possono esserci o non esserci, e ogni parte ha lunghezza variabile,
      * attraverso un apposito metodo recupero le parti della query da usare per ogni categoria di filtro. La parte di query
      * restituita sarà del tipo "AND marca IN ('Adidas', 'Nike')", oppure sarà una stringa vuota se quella data categoria
@@ -570,7 +626,6 @@ std::vector<Shoe*> ShoeDatabase::getFilteredShoes(const QStringList& brandList, 
                + "" + brandQueryPart + categoryQueryPart + colorQueryPart + sizeQueryPart + sexQueryPart
                + " GROUP BY " + ShoeDatabase::SHOE_TABLE_NAME + "." + ShoeDatabase::SHOE_ID_COLUMN);
 
-    vector<Shoe*> shoeList;
 
     //Recupero i risultati, se ci sono; il recupero dei risultati è analogo a quello per le scarpe simili
     if(query.lastError().number() == -1 && query.size() > 0)
@@ -606,8 +661,6 @@ std::vector<Shoe*> ShoeDatabase::getFilteredShoes(const QStringList& brandList, 
             //Infine, inserisco la scarpa nell'array
             shoeList.push_back(shoe);
         }
-
-        return shoeList;
     }
     else
     {
@@ -615,10 +668,17 @@ std::vector<Shoe*> ShoeDatabase::getFilteredShoes(const QStringList& brandList, 
             qDebug() << "ShoeDatabase::getFilteredShoes: nessuna scarpa è stata trovata con i filtri inseriti";
         else
             qDebug() << "ShoeDatabase::getFilteredShoes: c'è stato un errore nella query: " << query.lastError();
-
-        //Restituisco l'array vuoto
-        return shoeList;
     }
+
+    close();
+
+
+    qDebug() << "filteredShoes: " << QDateTime::currentDateTime();
+
+////////////
+    QThread::currentThread()->sleep(3);
+
+    return shoeList;
 }
 
 /**
@@ -663,10 +723,4 @@ QString ShoeDatabase::prepareFilterQueryPart(const QString& columnName, const QS
 }
 
 
-/**
- * @brief ShoeDatabase::close chiude il db
- */
-void ShoeDatabase::close()
-{
-    db.close();
-}
+

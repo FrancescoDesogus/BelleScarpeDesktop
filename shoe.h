@@ -43,6 +43,7 @@ public:
     void setMediaPath(const QString& mediaPath);
     void setRFIDcode(const QString& RFIDcode);
     void setThumbnailPath(const QString& thumbnailPath);
+    void setSimilarShoes(const std::vector<Shoe*>& similarShoes);
 
 
     //Getter
@@ -57,6 +58,7 @@ public:
     const QString& getMediaPath();
     const QString& getRFIDcode();
     const QString& getThumbnailPath();
+    const std::vector<Shoe*>& getSimilarShoes();
 
     void toString();
 
@@ -73,6 +75,7 @@ private:
     QString mediaPath;
     QString RFIDcode;
     QString thumbnailPath;
+    std::vector<Shoe*> similarShoes; //Array contenente le scarpe simili; può essere vuoto se l'istanza della scarpa non è quella principale della schermata
 
 signals:
 

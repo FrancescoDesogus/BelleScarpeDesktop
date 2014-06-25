@@ -4,7 +4,7 @@ var currentView;
 
 //Variabile globale che contiene lo stack delle view precedentemente viste. Tutte le view contenute nell'array NON saranno visibili.
 //La view correntemente visibile non è infatti presente nell'array
-var viewHistory = new Array();
+var viewHistory = [];
 
 
 /*
@@ -96,6 +96,10 @@ function showViewNotUsed(nextView)
  * La view DEVE essere una ShoeView contenente un riferimento alla FlipableSurface che ha fatto scattare l'evento */
 function showView(nextView)
 {
+    //Emitto il signal della ShoeView che indica che deve fare i preparativi per una transizione. Di fatto questo per la view
+    //vuol dire nascondere l'eventuale schermata di caricamento e preparare la FlipableSurface per la transizione
+    currentView.prepareTransitionToNewView();
+
     /* Dato che l'animazione è usata per passare da una ShoeView ad un'altra ShoeView, assumo che la currentView sia sempre
      * una ShoeView. Di conseguenza recupero la FlipableSurface che è stata clickata dall'utente e assegno come "back"
      * la nuova view da mostrare. Il "front" è già impostato ed è la parte della currentView che ha scatenato l'evento */

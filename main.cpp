@@ -27,6 +27,11 @@ int main(int argc, char *argv[])
 
 //    QObject::connect(&thread, SIGNAL(codeArrived(QString)), &view, SLOT(loadNewShoeView(QString)));
 
+
+
+//    QObject::connect(&thread, SIGNAL(codeArrived(QString)), &view, SIGNAL(requestShoeData(QString)));
+
+
 //    thread.start();
 
     return app.exec();

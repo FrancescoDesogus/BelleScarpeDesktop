@@ -118,6 +118,11 @@ void Shoe::setThumbnailPath(const QString& thumbnailPath)
     this->thumbnailPath = thumbnailPath;
 }
 
+void Shoe::setSimilarShoes(const vector<Shoe*>& similarShoes)
+{
+    this->similarShoes = similarShoes;
+}
+
 
 
 
@@ -174,6 +179,11 @@ const QString &Shoe::getRFIDcode()
 const QString &Shoe::getThumbnailPath()
 {
     return this->thumbnailPath;
+}
+
+const vector<Shoe*> &Shoe::getSimilarShoes()
+{
+    return this->similarShoes;
 }
 
 

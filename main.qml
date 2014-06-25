@@ -93,14 +93,15 @@ Rectangle {
          * in esecuzione, ma deve partire non appena l'RFID reader legge qualcosa e viene appunto chiamata la funzione addView()) */
         newShoeView.touchEventOccurred.connect(screenTimeoutTimer.restart);
 
-        //Connetto il signal della ShoeView che indica che bisogna caricare un'altra scarpa allo slot della classe C++
-        //che si occupa di recuperarla e di creare la nuova view
-        newShoeView.needShoeIntoContext.connect(window.loadNewShoeView)
+
+        //Connetto il signal della ShoeView che indica che bisogna caricare un'altra scarpa al signal di C++
+        //che si occupa di inoltrare la richiesta al database in modo asincrono
+        newShoeView.needShoeIntoContext.connect(window.requestShoeData)
 
 
-        //Connetto il signal della view che richiede di filtrare scarpe in base ai filtri scelti con lo slot di C++ che
-        //si occupa effettivamente di effettuare la ricerca
-        newShoeView.needToFilterShoes.connect(window.filterShoes)
+        //Connetto il signal della view che richiede di filtrare scarpe in base ai filtri scelti con il signal di C++ che si
+        //occupa di chiedere al database di effettuare effettivamente la ricerca
+        newShoeView.needToFilterShoes.connect(window.requestFilterData)
 
 
         //Connetto il signal della ShoeView che indica che bisogna tornare indietro di una view nello stack di view

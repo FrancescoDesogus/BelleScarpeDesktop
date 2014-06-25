@@ -3,6 +3,8 @@
 
 #include <QQuickView>
 #include <ShoeDatabase.h>
+#include <databaseinterface.h>
+#include <shoefilterdata.h>
 #include <QQmlComponent>
 
 class WindowManager : public QQuickView
@@ -19,20 +21,28 @@ private:
     static const int TARGET_RESOLUTION_WIDTH;
     static const int TARGET_RESOLUTION_HEIGHT;
 
-    //Database dal quale recuperare informazioni sulle scarpe
-    ShoeDatabase database;
 
-//    QQmlContext *context;
+    DatabaseInterface databaseInterface;
+
+
     std::vector<QQmlContext*> qmlContextList;
 
+    void setupDataThread();
 
-    void loadShoe(Shoe *shoe, bool isFromRFID);
+signals:
+    void requestFilters();
+    void requestShoeData(QString RFIDcode);
+    void requestShoeData(int id);
+    void requestFilterData(QVariant brandList, QVariant categoryList, QVariant colorList, QVariant sizeList, QVariant sexList, int minPrice, int maxPrice);
 
 public slots:
-    void loadNewShoeView(int id);
-    void loadNewShoeView(QString RFIDcode);
-    void filterShoes(QObject* shoeView, QVariant brandList, QVariant categoryList, QVariant colorList, QVariant sizeList, QVariant sexList, int minPrice, int maxPrice);
+//    void loadNewShoeView(int id);
+//    void loadNewShoeView(QString RFIDcode);
+    void showFilteredShoes(std::vector<Shoe *> filteredShoes);
     void movingToPreviousView();
+    void loadNewShoeView(Shoe *shoe, bool isFromRFID);
+    void setFiltersIntoContext(ShoeFilterData* filters);
+
 };
 
 #endif // WINDOWMANAGER_H

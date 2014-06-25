@@ -1,5 +1,5 @@
 import QtQuick 2.0
-//import QtGraphicalEffects 1.0
+
 
 /* Component che rappresenta il pannello per filtrare le scarpe che compare in basso */
 Rectangle {
@@ -32,6 +32,9 @@ Rectangle {
     //Booleano per indicare se è stata fatta almeno una ricerca (di default non è così); serve per sapere se mostrare un messaggio
     //di invito alla ricerca se il model della lista dei risultati è vuoto (la prima volta) oppure se mostrare un messaggio di errore
     property bool hasAlreadyFilteredShoes: false
+
+    //Booleano per indicare se il pannello ha fatto la richiesta di filtrare scarpe e adesso sta aspettando i risultati
+    property bool isFilteringShoes: false
 
 
     /**************************************************************
@@ -317,7 +320,7 @@ Rectangle {
             height: 55 * scaleY
 
             //Inserisco come model l'array contenente le marche creato da C++
-            listModel: allBrandsModel
+            listModel: filters.allBrandsModel
             backgroundColor: filterPanel.color
 
             //Se avviene un evento touch, propago il signal verso l'esterno
@@ -338,7 +341,7 @@ Rectangle {
             width: 200 * scaleX
             height: 55 * scaleY
 
-            listModel: allCategoriesModel
+            listModel: filters.allCategoriesModel
             backgroundColor: filterPanel.color
 
             onTouchEventOccurred: container.touchEventOccurred()
@@ -363,7 +366,7 @@ Rectangle {
             gridCellHeight: 60
             gridCellWidth: 60
 
-            listModel: allColorsModel
+            listModel: filters.allColorsModel
             backgroundColor: filterPanel.color
 
             onTouchEventOccurred: container.touchEventOccurred()
@@ -388,7 +391,7 @@ Rectangle {
             gridCellHeight: 40
             gridCellWidth: 40
 
-            listModel: allSizesModel
+            listModel: filters.allSizesModel
             backgroundColor: filterPanel.color
 
             onTouchEventOccurred: container.touchEventOccurred()
@@ -429,8 +432,8 @@ Rectangle {
             id: priceRangeSliderContainer
 
             //Proprietà che contengono il valore min e max selezionati in un dato momento
-            property int min: priceRangeModel[0]
-            property int max: priceRangeModel[1]
+            property int min: filters.priceRangeModel[0]
+            property int max: filters.priceRangeModel[1]
 
             //Dimensioni e raggio dei due dot
             property real dotWidth: 20 * scaleX;
@@ -568,7 +571,7 @@ Rectangle {
                     /* Calcolo il valore che deve avere il punto in una data x: calcolo la differenza tra i valori massimo e minimo,
                      * quindi prezzo max - prezzo min; moltiplico tutto per la x attuale del punto; infine divido tutto per la x
                      * massima dello slider e per evitare che il minimo sia 0, riaggiungo il range inferiore al risultato */
-                    var partialValue = Math.round((((priceRangeModel[1] - priceRangeModel[0]) * leftDot.x) / (priceRangeSliderContainer.width - rightDot.width/2)))
+                    var partialValue = Math.round((((filters.priceRangeModel[1] - filters.priceRangeModel[0]) * leftDot.x) / (priceRangeSliderContainer.width - rightDot.width/2)))
 
                     //Dato che il leftDot può assumere valori negativi, nell'estremo sinistro si potrebbero ottenere valori negativi
                     //quando in realtà non dovrebbero esserci; se questo è il caso, riporto il valore a zero
@@ -577,7 +580,7 @@ Rectangle {
 
                     //Al valore parziale, che corrispondeva all'incremento nello spostamento, sommo il valore minimo per ottenere
                     //il valore attuale
-                    var currentValue = partialValue + parseInt(priceRangeModel[0])
+                    var currentValue = partialValue + parseInt(filters.priceRangeModel[0])
 
                     //Salvo qual è il nuovo valore minimo
                     priceRangeSliderContainer.min = currentValue
@@ -597,10 +600,10 @@ Rectangle {
                      * arcani viene chiamato l'onXChanged del leftDot all'inizio con valori anomali che farebbero comparire
                      * il prezzo massimo invece che quello minimo */
                     Component.onCompleted:  {
-                        leftPrice.text = priceRangeModel[0]
+                        leftPrice.text = filters.priceRangeModel[0]
 
                         //Salvo anche il valore minimo correntemente selezionato, perchè anche questo altrimenti risulta sfasato
-                        priceRangeSliderContainer.min = priceRangeModel[0]
+                        priceRangeSliderContainer.min = filters.priceRangeModel[0]
                     }
                 }
             }
@@ -642,12 +645,12 @@ Rectangle {
                     rectangleBetweenDots.width = x - rectangleBetweenDots.x
 
                     //Calcolo anche il nuovo valore da mostrare, in modo analogo a quanto fatto per il leftDot
-                    var partialValue = Math.round((((priceRangeModel[1] - priceRangeModel[0]) * rightDot.x) / (priceRangeSliderContainer.width - rightDot.width/2)))
+                    var partialValue = Math.round((((filters.priceRangeModel[1] - filters.priceRangeModel[0]) * rightDot.x) / (priceRangeSliderContainer.width - rightDot.width/2)))
 
                     if(partialValue < 0)
                         partialValue = 0;
 
-                    var currentValue = partialValue + parseInt(priceRangeModel[0])
+                    var currentValue = partialValue + parseInt(filters.priceRangeModel[0])
 
                     priceRangeSliderContainer.max = currentValue
 
@@ -659,7 +662,7 @@ Rectangle {
                     id: rightPrice
 
                     //Il range dei prezzi min/max è passato da C++ sotto forma di array; il limite massimo è messo in seconda posizione
-                    text: priceRangeModel[1]
+                    text: filters.priceRangeModel[1]
                     anchors.bottom: rightDot.top
                     color: "white"
                 }
@@ -723,6 +726,11 @@ Rectangle {
 
                 //Quando il bottone è premuto...
                 onClicked: {
+                    //...controllo se c'è già una ricerca attualmente in corso o se non è possibile clickare;
+                    //nel caso non faccio nulla, altrimenti...
+                    if(container.isFilteringShoes || !isClickAllowed)
+                        return;
+
                     //...recupero le liste degli elementi selezionati per ogni combo box (possono essere vuote)
                     var brandList = brandsFilterList.selectedElements;
                     var categoryList = categoryFilterList.selectedElements;
@@ -753,7 +761,20 @@ Rectangle {
                     //Emetto infine il signal che avvisa l'esterno della ricerca, passando tutti i parametri recuperati sopra
                     container.needToFilterShoes(brandList, categoryList, colorList, sizeList, sexList, minPrice, maxPrice);
 
-                    /* Se questa è la prima ricerca, per via del bug assurdo descritto poc più sopra, devo rimettere i filtri
+                    //Nascondo il testo di feedback, qualora fosse presente
+                    feedbackText.visible = false
+
+                    //Nascondo la lista, qualora fosse presente
+                    filteredList.opacity = 0
+
+                    //Attivo l'indicatore di caricamento
+                    loadIndicator.running = true
+
+                    //Segnalo che si sta eseguendo una ricerca, in modo tale da non permetterne altre fino a quando questa non finisce
+                    container.isFilteringShoes = true;
+
+
+                    /* Se questa è la prima ricerca, per via del bug assurdo descritto poco più sopra, devo rimettere i filtri
                      * che c'erano prima della ricerca nei vari componenti coinvolti, che altrimenti tornerebbero
                      * al loro valore di default */
                     if(!container.hasAlreadyFilteredShoes)
@@ -796,15 +817,48 @@ Rectangle {
                 onClicked: container.touchEventOccurred()
             }
 
+            /* Item che contiene l'indicatore di caricamento, visibile e animato quando si stanno recuperando dati dal database.
+             * E' creato come Item perchè così posso renderlo grande quanto tutto il padre (il container della lista) senza
+             * che però risulti visibile; questo aiuta per centrare l'indicatore di caricamento nel container della lista.
+             * Per rendere visibile l'indicatore è sufficente settare "running" su true */
+            Item {
+                id: loadIndicator
+
+                anchors.fill: parent
+
+                property bool running: false
+                property string imageSource: "qrc:/images/busy.png"
+
+                //Rendo visibile il tutto solo se sta effettivamente caricando
+                visible: running
+
+                Image {
+                    id: image
+
+                    anchors.centerIn: parent
+
+                    source: loadIndicator.imageSource
+
+                    //Animazioni eseguite in parallelo; la prima rende visibile l'indicatore con un fade in, la seconda
+                    //lo fa ruotare per l'eternità
+                    ParallelAnimation {
+                        running: loadIndicator.running
+
+                        NumberAnimation { target: image; property: "opacity"; from: 0.0; to: 1.0; duration: 200 }
+                        NumberAnimation { target: image; property: "rotation"; from: 0; to: 360; loops: Animation.Infinite; duration: 1200 }
+                    }
+                }
+            }
+
+
 
             //Testo da mostrare al posto della lista quando questa è vuota per un motivo o per l'altro
             Text {
+                id: feedbackText
+
                 //Rispetivamente, il messaggio da mostrare inizialmente ed il messaggio di errore quando non ci sono risultati
                 property string initialText: "Seleziona i filtri da usare e premi il pulsante per effettuare una ricerca"
                 property string errorText: "Nessuna scarpa trovata"
-
-                //La scritta è visibile solo la lista è vuota
-                visible: filteredList.count == 0
 
                 //Se è stata fatta almeno una ricerca in passato, mostro un messaggio di errore, altrimenti il testo niziale
                 text: hasAlreadyFilteredShoes ? errorText : initialText
@@ -820,14 +874,49 @@ Rectangle {
             }
 
 
+            //Lista che mostra i risultati delle scarpe filtrate
             ListView {
                 id: filteredList
-
-                property int counter: 0;
 
                 //La lista è grande quanto tutto il container
                 anchors.fill: listContainer
                 anchors.leftMargin: container.calculateListPosition()
+
+                /* La lista utilizza un model che proviene da C++ e coniene di volta in volta i risultati trovati; di conseguenza,
+                 * questo model verrà cambiato da C++ all'occorenza. Per capire quando effettivamente il model è cambiato (essendo
+                 * i dati presi in modo asincrono) utilizzo l'apposito signal "onModelChanged". Quando scatta, so che è stato
+                 * cambiato il model da C++ e adesso bisogna visualizzare la lista */
+                onModelChanged: {
+                    //Il modello ricevuto da C++ può essere vuoto qualora non ci fossero risultati (o problemi nel prendere i dati);
+                    //nel caso, mostro il testo di feedback, che avrà il messaggio "nessuna scarpa trovata"
+                    if(filteredList.count == 0)
+                        feedbackText.visible = true
+
+                    //Adesso devo far comparire (o ricomparire) la lista, che sarà aggiornata automaticamente con le nuove scarpe;
+                    //la rendo quindi visibile qualora non lo fosse già e porto l'opacità a 1 causando l'animazione di fade in
+                    filteredList.visible = true
+                    filteredList.opacity = 1
+
+                    //Blocco l'indicatore di caricamento, che sparisce
+                    loadIndicator.running = false
+
+                    //Mi segno che il pannello non sta caricando scarpe dal database
+                    container.isFilteringShoes = false;
+                }
+
+
+                //Metto un behavior per eseguire un'animazione quando cambia l'opacità
+                Behavior on opacity {
+                    NumberAnimation {
+                        duration: 200
+
+                        onRunningChanged: {
+                            //Se l'animazione era per far scomparire la lista, e l'animazione è ora conclusa, rendo invisibile la lista
+                            if(!running && filteredList.opacity == 0)
+                                filteredList.visible = false
+                        }
+                    }
+                }
 
 
                 //Attivo lo scrolling della lista supera la larghezza del suo container
@@ -857,6 +946,7 @@ Rectangle {
                     brandText: modelData.brand
                     priceText: modelData.price
 
+                    //Segnalo che questo tipo di delegate è per la visualizzazione di scarpe filtrate
                     filtered: true
 
                     //Al click bisogna apire la nuova schermata con la scarpa clickata. Il funzionamento è analogo a quanto accade

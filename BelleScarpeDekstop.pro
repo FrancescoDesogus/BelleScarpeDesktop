@@ -23,7 +23,9 @@ SOURCES += \
     shoe.cpp \
     shoedatabase.cpp \
     arduino.cpp \
-    dataobject.cpp
+    dataobject.cpp \
+    databaseinterface.cpp \
+    shoefilterdata.cpp
 
 HEADERS += \
     serialreaderthread.h \
@@ -31,7 +33,9 @@ HEADERS += \
     shoe.h \
     shoedatabase.h \
     arduino.h \
-    dataobject.h
+    dataobject.h \
+    databaseinterface.h \
+    shoefilterdata.h
 
 # This variable contains the list of all directories to look
 # in to resolve dependencies. This will be used when crawling
