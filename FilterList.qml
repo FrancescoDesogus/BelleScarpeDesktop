@@ -58,12 +58,12 @@ Rectangle {
         id: filterArrow
 
         anchors.right: container.right
-        anchors.rightMargin: 5 * scaleX
+        anchors.rightMargin: listContainer.visible ? (16 * scaleX) : (10 * scaleX)
         anchors.verticalCenter: container.verticalCenter
 
         text: "<"
         rotation: listContainer.visible ? 270 : 90
-        color: textColor
+        color: listContainer.visible ? "black" : textColor
         font.family: metroFont.name
         font.pointSize: 14
         font.letterSpacing: 1.3

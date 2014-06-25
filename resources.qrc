@@ -25,6 +25,8 @@
         <file>ShoeFilter.qml</file>
         <file>FilterList.qml</file>
         <file>FilterGrid.qml</file>
+        <file>checkbox_unselected.png</file>
+        <file>checkbox_selected.png</file>
     </qresource>
     <qresource prefix="/images">
         <file>busy.png</file>
