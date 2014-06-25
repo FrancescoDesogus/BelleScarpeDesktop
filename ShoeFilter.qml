@@ -357,11 +357,11 @@ Rectangle {
             anchors.left: categoryFilterList.right
             anchors.leftMargin: 50 * scaleX
 
-            width: 280 * scaleX
+            width: 250 * scaleX
             height: 55 * scaleY
 
-            gridCellHeight: 60
-            gridCellWidth: 60
+            gridCellHeight: 76 * scaleY
+            gridCellWidth: 76 * scaleX
 
             listModel: allColorsModel
             backgroundColor: filterPanel.color
@@ -385,8 +385,8 @@ Rectangle {
             width: 250 * scaleX
             height: 55 * scaleY
 
-            gridCellHeight: 40
-            gridCellWidth: 40
+            gridCellHeight: 57 * scaleY
+            gridCellWidth: 57 * scaleX
 
             listModel: allSizesModel
             backgroundColor: filterPanel.color
@@ -395,32 +395,200 @@ Rectangle {
         }
 
         //Combo box per il sesso
-        FilterList {
+//        FilterList {
+//            id: sexFilterList
+
+//            title: "Sesso"
+
+//            anchors.top : filterPanel.top
+//            anchors.topMargin: 15 * scaleY
+//            anchors.left: sizeFilterList.right
+//            anchors.leftMargin: 50 * scaleX
+
+//            width: 200 * scaleX
+//            height: 55 * scaleY
+
+//            listModel: ListModel {
+//                ListElement {
+//                    name: "Uomo"
+//                }
+
+//                ListElement {
+//                    name: "Donna"
+//                }
+//            }
+
+//            backgroundColor: filterPanel.color
+
+//            onTouchEventOccurred: container.touchEventOccurred()
+//        }
+
+        //Rettangolo contenente le checkbox per il sesso
+        Rectangle {
             id: sexFilterList
 
-            title: "Sesso"
+            //Creo qui l'array degli elementi selezionati, così che sia prelevabile ed utilizzabile
+            //nella funzione di filtraggio
+            property var selectedElements: [];
+
+            //Alcune proprietà generali che dovranno essere uguali per entrambe le checkbox
+            property double leftCheckboxMargin: 10 * scaleX //Distanza del testo dalla checkbox
+            property int fontPointSize: 12 //dimensione del testo
+            property int checkboxHW: 23 //altezza e larghezza delle checkbox (sono uguali e scalate direttamente dove usate)
+            property string textColor: "#FFFFFF" //Colore del testo
+
+            color: "grey" //Colore di sfondo di tutto il rettangolo
 
             anchors.top : filterPanel.top
             anchors.topMargin: 15 * scaleY
             anchors.left: sizeFilterList.right
             anchors.leftMargin: 50 * scaleX
 
-            width: 200 * scaleX
+            width: 220 * scaleX
             height: 55 * scaleY
 
-            listModel: ListModel {
-                ListElement {
-                    name: "Uomo"
+            //Mini rettangolo solo per checkbox + testo relativo al filtro "Uomo"
+            Rectangle {
+                id: uomoFilter
+
+                //Proprietà per capire se è selezionato o meno
+                property bool isSelected: false
+
+                color: sexFilterList.color
+
+                //Per far si che siano identiche le checkbox, la loro larghezza sarà
+                //la metà del rettangolo contenitore
+                width: sexFilterList.width / 2
+                height: sexFilterList.height
+
+                anchors.left: sexFilterList.left
+                anchors.leftMargin: 8 * scaleX //distanza dal bordo a sinistra
+                anchors.verticalCenter: sexFilterList.verticalCenter
+
+                //Checkbox
+                Image {
+                    id: checkUomo
+
+                    //l'immagine cambia in base alla selezione
+                    source: uomoFilter.isSelected ? "qrc:///qml/checkbox_selected.png" : "qrc:///qml/checkbox_unselected.png"
+                    fillMode: Image.PreserveAspectFit
+
+                    width: sexFilterList.checkboxHW * scaleX
+                    height: sexFilterList.checkboxHW * scaleY
+
+                    anchors.left: uomoFilter.left
+                    anchors.verticalCenter: uomoFilter.verticalCenter
                 }
 
-                ListElement {
-                    name: "Donna"
+                //Testo
+                Text {
+                    id: textUomo
+
+                    color: sexFilterList.textColor
+
+                    text: "Uomo"
+
+                    font.family: metroFont.name
+                    font.pointSize: sexFilterList.fontPointSize
+
+                    anchors.left: checkUomo.right
+                    anchors.leftMargin: sexFilterList.leftCheckboxMargin
+                    anchors.verticalCenter: uomoFilter.verticalCenter
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+
+                    onClicked: {
+                        //appena premo deve cambiare la selezione
+                        uomoFilter.isSelected = !uomoFilter.isSelected
+
+                        //Adesso, dopo che ho cliccato, vedo se è selezionato o meno
+                        if(uomoFilter.isSelected){
+                            //Aggiungo l'elemento alla lista degli elementi selezionati per i filtri
+                            sexFilterList.selectedElements.push(textUomo.text)
+                        }
+                        else {
+                            //Devo rimuovere l'elemento dalla lista degli elementi selezionati; recupero il suo indice nell'array
+                            var index = sexFilterList.selectedElements.indexOf(textUomo.text)
+
+                            //Rimuovo l'elemento
+                            sexFilterList.selectedElements.splice(index, 1)
+                        }
+                    }
                 }
             }
 
-            backgroundColor: filterPanel.color
+            //Mini rettangolo solo per checkbox + testo relativo al filtro "Donna"
+            Rectangle {
+                id: donnaFilter
 
-            onTouchEventOccurred: container.touchEventOccurred()
+                //Proprietà per capire se è selezionato o meno
+                property bool isSelected: false
+
+                color: sexFilterList.color
+
+                //Per far si che siano identiche le checkbox, la loro larghezza sarà
+                //la metà del rettangolo contenitore
+                width: sexFilterList.width / 2
+                height: sexFilterList.height
+
+                anchors.left: uomoFilter.right
+                anchors.leftMargin: 10 * scaleX
+                anchors.verticalCenter: sexFilterList.verticalCenter
+
+                //Checkbox
+                Image {
+                    id: checkDonna
+
+                    //l'immagine cambia in base alla selezione
+                    source: donnaFilter.isSelected ? "qrc:///qml/checkbox_selected.png" : "qrc:///qml/checkbox_unselected.png"
+                    fillMode: Image.PreserveAspectFit
+                    width: sexFilterList.checkboxHW * scaleX
+                    height: sexFilterList.checkboxHW * scaleY
+
+                    anchors.left: donnaFilter.left
+                    anchors.verticalCenter: donnaFilter.verticalCenter
+                }
+
+                //Testo
+                Text {
+                    id: textDonna
+
+                    color: sexFilterList.textColor
+
+                    text: "Donna"
+                    font.family: metroFont.name
+                    font.pointSize: sexFilterList.fontPointSize
+
+                    anchors.left: checkDonna.right
+                    anchors.leftMargin: sexFilterList.leftCheckboxMargin
+                    anchors.verticalCenter: donnaFilter.verticalCenter
+
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+
+                    onClicked: {
+                        //appena premo deve cambiare la selezione
+                        donnaFilter.isSelected = !donnaFilter.isSelected
+
+                        //Adesso, dopo che ho cliccato, vedo se è selezionato o meno
+                        if(donnaFilter.isSelected){
+                            //Aggiungo l'elemento alla lista degli elementi selezionati per i filtri
+                            sexFilterList.selectedElements.push(textDonna.text)
+                        }
+                        else {
+                            //Devo rimuovere l'elemento dalla lista degli elementi selezionati; recupero il suo indice nell'array
+                            var index = sexFilterList.selectedElements.indexOf(textDonna.text)
+
+                            //Rimuovo l'elemento
+                            sexFilterList.selectedElements.splice(index, 1)
+                        }
+                    }
+                }
+            }
         }
 
 
@@ -451,7 +619,7 @@ Rectangle {
 
             anchors.verticalCenter: sexFilterList.verticalCenter
             anchors.left: sexFilterList.right
-            anchors.leftMargin: 150 * scaleX
+            anchors.leftMargin: 80 * scaleX
 
             //Colore più chiaro per il rettangolo esterno (che sta' "sotto" i pallini ed il rettangolo centrale)
             color: "#d9d1d1"
@@ -686,27 +854,29 @@ Rectangle {
         Rectangle {
             id: filterButton
 
-            width: 100
-            height: 60
-            color: "black"
+            width: 150 * scaleX
+            height: 60 * scaleY
+            color: "grey"
 
             radius: 4
 
-            gradient: Gradient {
-                GradientStop {
-                    position: 0.14;
-                    color: "#000000";
-                }
-                GradientStop {
-                    position: 0.53;
-                    color: "#ffffff";
-                }
-            }
+//            gradient: Gradient {
+//                GradientStop {
+//                    position: 0.14;
+//                    color: "#000000";
+//                }
+//                GradientStop {
+//                    position: 0.53;
+//                    color: "#ffffff";
+//                }
+//            }
+
+            border.color: "#FFFFFF"
 
             anchors.top: filterPanel.top
             anchors.topMargin: 15 * scaleY
             anchors.left: priceRangeSliderContainer.right
-            anchors.leftMargin: 30 * scaleX
+            anchors.leftMargin: 80 * scaleX
 
             Text {
                 text: "Filtra"
@@ -714,6 +884,8 @@ Rectangle {
                 font.pointSize: 15
                 font.letterSpacing: 1.3
                 font.weight: Font.Bold
+
+                color: "#FFFFFF"
 
                 anchors.centerIn: parent
             }

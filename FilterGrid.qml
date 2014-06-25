@@ -22,8 +22,8 @@ Rectangle {
 
 
     //Proprietà dimensionali della singola cella della griglia
-    property int gridCellHeight: 80
-    property int gridCellWidth: 80
+    property int gridCellHeight: 80 * scaleY
+    property int gridCellWidth: 80 * scaleX
 
     //Proprietà che decide quale delegate utilizzare
     property bool colorGrid: true
@@ -66,12 +66,12 @@ Rectangle {
         id: filterArrow
 
         anchors.right: container.right
-        anchors.rightMargin: 5 * scaleX
+        anchors.rightMargin: listContainer.visible ? (16 * scaleX) : (10 * scaleX)
         anchors.verticalCenter: container.verticalCenter
 
         text: "<"
         rotation: listContainer.visible ? 270 : 90
-        color: textColor
+        color: listContainer.visible ? "black" : textColor
         font.family: metroFont.name
         font.pointSize: 14
         font.letterSpacing: 1.3
