@@ -121,14 +121,6 @@ Rectangle {
                 imageFocusList.currentIndex = listIndex
                 imageFocusList.state = "visible"
 
-                /* Per via di un bug assurdo che capita quando si effettua la prima ricerca di scarpe in una schermata
-                 * (maggiori dettagli sul bug nei commenti dentro onNeedToFilterShoes in questo file) ogni volta che
-                 * si visualizza la lista delle immagini bisogna ricreare i dot. In realtà se l'array che li contiene esiste
-                 * già, non vengono creati (quindi la chiamata alla funzione non fa nulla); di fatto verranno creati solo
-                 * dopo una prima ricerca di scarpe */
-                imageFocusList.createDots();
-
-
                 //Salvo quale è l'indice dell'immagine attualmente visibile
                 imageFocusList.currentVisibleIndex = listIndex
 
@@ -189,18 +181,12 @@ Rectangle {
         //Anche SimiliarShoesList ha un signal onTouchEventOccurred; quando scatta, propago l'evento verso l'esterno
         onTouchEventOccurred: container.touchEventOccurred()
 
-
         //Signal che viene emesso quando si preme su una scarpa consigliata e bisogna cambiare schermata. Il signal passa
         //come parametri l'id della scarpa da caricare e la FlipableSurface da usare per la transizione visiva
         onNeedShoeIntoContext: {
             //Recupero la FlipableSurface che dovrà essere usata per la transizione, una volta che i dati della scarpa
             //da mostrare sono stati recuperati
             flipableSurface = shoeSelectedFlipable
-
-//            console.log("onNeedShoeIntoContext, CONTAINER: " + container)
-
-//            console.log("onNeedShoeIntoContext, flipableSurface.frontListItem: " + flipableSurface.frontListItem)
-
 
             //Dato che i dati sono presi in modo asincrono, mentre vengono recuperati faccio comparire lo sfondo scuro
             blackBackgroundScreen.state = "visibleForTransition"
@@ -651,12 +637,6 @@ Rectangle {
          * dinamicamente i dot degli elementi della lista */
         function createDots()
         {
-            /* Per via di un bug assurdo, dopo una prima ricerca di scarpe l'array dotsArray potrebbe diventare nullo. Quindi
-             * occorre richiamare questa funzione ogni volta dopo una ricerca (sarebbe più dispendioso capire se la ricerca
-             * è la prima e farlo solo in quel caso), continuando con la creazione dell'array solo se effettivamente è vuoto */
-            if(dotsArray.length != 0)
-                return;
-
             //Variabile che conterrà una singola istanza del Component "listDot" creato poco più sopra
             var item;
 
@@ -911,19 +891,6 @@ Rectangle {
 
         //Quando viene emesso il signal che indica che bisogna filtrare le scarpe, devo propagarlo verso l'esterno
         onNeedToFilterShoes: {
-            /* Per via di un bug assurdo, succede che quando si esegue la prima ricerca nella schermata alcune variabili
-             * si riazzerano per motivi che solo Gesù comprende, tra cui la variabile contenente l'array contenente i dot
-             * della lista delle immagini. Come workaround per questo problema ogni volta che si mostra la lista si controlla
-             * se l'array di dot esiste, e se non esiste lo si crea. Questo vuol dire che si perde il riferimento ai dot che
-             * c'erano prima (se ce n'erano), ma i dot vecchi rimangono visibili anche se sotto i nuovi (si potrebbe fare
-             * una copia dei riferimenti prima della ricerca e poi rimetterli dopo che viene eseguita, ma creerebbe ulteriori
-             * incasinamenti... a sto punto è meglio fare una copia).
-             * Il problema è che il dot precedentemente attivo (se c'era) rimane attivo, in quanto non è più possibile
-             * disattivarlo non avendo il suo riferimento. Di conseguenza, prima di effettuare la ricerca prendo il dot attualmente
-             * attivo (se c'era) e lo disattivo, in modo che tale che stia letteralmente sotto i nuovi dot e non si veda */
-            if(imageFocusList.currentActiveDot)
-                imageFocusList.currentActiveDot.scale = imageFocusList.deactivatedDotSize
-
             //Propago il signal verso l'esterno (che è C++)
             container.needToFilterShoes(brandList, categoryList, colorList, sizeList, sexList, minPrice, maxPrice)
         }
@@ -1018,12 +985,6 @@ Rectangle {
 
         //Blocco l'indicatore di caricamento, contenuto nel rettangolo
         blackBackgroundScreen.loadIndicator.running = false
-
-
-//        console.log("onPrepareTransitionToNewView, CONTAINER: " + container)
-
-//        console.log("onPrepareTransitionToNewView: " + new Date());
-//        console.log("onPrepareTransitionToNewView again, flipableSurface.frontListItem: " + flipableSurface.frontListItem);
 
 
         /* Adesso devo preparare la flipableSurface per effettuare la transizione vera e propria.

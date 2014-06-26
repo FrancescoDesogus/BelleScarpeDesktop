@@ -225,6 +225,8 @@ Shoe* ShoeDatabase::getShoe(QString queryString)
         Shoe* shoe = new Shoe(shoeId, brand, model, color, sex, price, category, sizesAndQuantities, mediaPath, RFIDcode);
 
 
+//        qDebug() << "getShoe, second thread: " << QThread::currentThreadId();
+
         ///////////
         QThread::currentThread()->sleep(1);
 

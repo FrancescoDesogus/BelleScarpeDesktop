@@ -989,21 +989,6 @@ Rectangle {
                     var minPrice = priceRangeSliderContainer.min;
                     var maxPrice = priceRangeSliderContainer.max;
 
-                    /* C'è un bug assurdo quando si effetua la prima ricerca in una schermata: in pratica gli elementi
-                     * selezionati nelle varie combo box e gli slider tornano alle loro posizioni di default subito dopo la
-                     * ricerca (che viene fatta normalmente); quindi una seconda ricerca verrebbe fatta come se non ci fosse
-                     * alcun filtro attivo, a meno che non vengano rimessi. Accade solo alla primissima ricerca e non ho capito
-                     * assolutamente perchè, so solo che è dovuto al fatto che il model della lista dei risultati viene sovrascritto
-                     * con un nuovo model da C++. Per fixxare il problema, uso una soluzione tarocca: subito dopo la prima ricerca
-                     * rimetto i valori dei filtri com'erano prima della ricerca.
-                     * Nel caso dei due dot dello slider dei prezzi, per rimetterli dov'erano devo recuperare la loro posizione
-                     * prima della ricerca */
-                    if(!container.hasAlreadyFilteredShoes)
-                    {
-                        //Salvo le posizioni dei dot prima della ricerca
-                        var leftDotX = priceRangeSliderContainer.leftDotX
-                        var rightDotX = priceRangeSliderContainer.rightDotX
-                    }
 
                     //Emetto infine il signal che avvisa l'esterno della ricerca, passando tutti i parametri recuperati sopra
                     container.needToFilterShoes(brandList, categoryList, colorList, sizeList, sexList, minPrice, maxPrice);
@@ -1020,27 +1005,7 @@ Rectangle {
                     //Segnalo che si sta eseguendo una ricerca, in modo tale da non permetterne altre fino a quando questa non finisce
                     container.isFilteringShoes = true;
 
-
-                    /* Se questa è la prima ricerca, per via del bug assurdo descritto poco più sopra, devo rimettere i filtri
-                     * che c'erano prima della ricerca nei vari componenti coinvolti, che altrimenti tornerebbero
-                     * al loro valore di default */
-                    if(!container.hasAlreadyFilteredShoes)
-                    {
-                        //Rimetto tutti i valori selezionati nelle varie combo box
-                        brandsFilterList.selectedElements = brandList;
-                        categoryFilterList.selectedElements = categoryList;
-                        colorFilterList.selectedElements = colorList;
-                        sizeFilterList.selectedElements = sizeList;
-                        sexFilterList.selectedElements = sexList;
-
-                        //Setto con le apposite funzioni le posizioni dei dot dello slider dei prezzi, in modo che si
-                        //posizionino dove erano prima della ricerca
-                        priceRangeSliderContainer.setLeftDotX(leftDotX);
-                        priceRangeSliderContainer.setRightDotX(rightDotX);
-
-                        //Segnalo quindi è stata fatta almeno una ricerca
-                        hasAlreadyFilteredShoes = true;
-                    }
+                    hasAlreadyFilteredShoes = true;
                 }
 
                 onPressed: {

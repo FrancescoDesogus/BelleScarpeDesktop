@@ -10,7 +10,14 @@
 /**
  * @brief The DatabaseInterface class si occupa di fungere da interfaccia tra il thread principale ed il thread del database.
  *        L'istanza della classe si trova nel thread del database, e fornisce esclusivamente slot e signal per comunicare con il main
- *        thread e con il database (che sta nello stesso thread dell'istanza di DatabaseInterface)
+ *        thread e con il database (che sta nello stesso thread dell'istanza di DatabaseInterface).
+ *        NOTA: ci sono classi Qt come QFuture che permettono di eseguire determinate funzioni in modo asincrono, rendendo superfluo
+ *        utilizzare un thread per quello; tuttavia nelle Qt una connessione al database appartiene ad un solo thread, nel senso
+ *        che se un'istanza del db è connessa in un thread, le chiamate al db funzionano solo se avvengono in quel thread. Di
+ *        conseguenza usando una classe come QFuture non si avrebbe un thread onnipresente che mantiene la connessione, quindi
+ *        non funzionerebbe. In realtà questa cosa della connessione per singolo thread è vera fino ad un certo punto, nel senso
+ *        che nella documentazione c'è scritto che non è supportata una connessione condivisa tra più thread, non che non è possibile.
+ *        Infatti in localhost funziona condividere la connessione tra 2 thread, solo che non è detto che funzioni con altri DBMS
  */
 class DatabaseInterface : public QObject
 {

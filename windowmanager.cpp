@@ -83,15 +83,15 @@ void WindowManager::setupScreen()
     rootContext->setContextProperty("scaleY", (qreal) mainScreenSize.height() / TARGET_RESOLUTION_HEIGHT);
 
 
-    /* All'interno della parte QML (nel file ShoeFilter) c'è la lista dei risultati delle ricerche di scarpe; questa lista
-     * utilizza un model passato da C++ in modo da avere sempre i dati aggiornati. Inizialmente però il model non è presente, in
-     * quanto chiaramente non è stata ancora fatta una ricerca; questo genera un messaggio di errore nella console, che si può
-     * evitare settando un model iniziale vuoto che è condiviso da tuttte le view dell'applicazione.
-     * Quindi creo il model vuoto... */
-    QList<QObject*> filteredShoesModel;
+//    /* All'interno della parte QML (nel file ShoeFilter) c'è la lista dei risultati delle ricerche di scarpe; questa lista
+//     * utilizza un model passato da C++ in modo da avere sempre i dati aggiornati. Inizialmente però il model non è presente, in
+//     * quanto chiaramente non è stata ancora fatta una ricerca; questo genera un messaggio di errore nella console, che si può
+//     * evitare settando un model iniziale vuoto che è condiviso da tuttte le view dell'applicazione.
+//     * Quindi creo il model vuoto... */
+//    QList<QObject*> filteredShoesModel;
 
-    //...e lo inserisco nel context globale di tutte le view; il model verrà sovrascritto qunado servirà
-    rootContext->setContextProperty("filteredShoesModel", QVariant::fromValue(filteredShoesModel));
+//    //...e lo inserisco nel context globale di tutte le view; il model verrà sovrascritto qunado servirà
+//    rootContext->setContextProperty("filteredShoesModel", QVariant::fromValue(filteredShoesModel));
 
 
     //Carico il file base
@@ -319,6 +319,22 @@ void WindowManager::loadNewShoeView(Shoe *shoe, bool isFromRFID)
     context->setContextProperty("thumbnailModel", QVariant::fromValue(imagesAndVideoPathsModel));
     context->setContextProperty("imagesModel", QVariant::fromValue(imagesOnlyPathsModel));
     context->setContextProperty("similiarShoesModel", QVariant::fromValue(similiarShoesModel));
+
+
+    /* All'interno della parte QML (nel file ShoeFilter) c'è la lista dei risultati delle ricerche di scarpe; questa lista
+     * utilizza un model passato da C++ in modo da avere sempre i dati aggiornati. Inizialmente però il model non è presente, in
+     * quanto chiaramente non è stata ancora fatta una ricerca; questo genera un messaggio di errore nella console, che si può
+     * evitare settando un model iniziale vuoto che è condiviso da tuttte le view dell'applicazione.
+     * Quindi creo il model vuoto... */
+    QList<QObject*> filteredShoesModel;
+
+    /* ...e lo inserisco nel context della view; il model verrà sovrascritto quando servirà. NOTA: verrebbe da pensare che essendo
+     * il model inizialmente vuoto per ogni view convenga metterlo nel root context dell'applicazione... WRONG! Inizialmente
+     * era così, ma il fatto che quando si esegue una ricerca il model passa dal root context a quello particolare della view
+     * causava un casino di problemi random (del tipo variabili QML che a caso diventavano null o undefined), e questo avveniva
+     * solo durante la prima ricerca (che era il momento in cui passava definitivamente dal root context al context della ShoeView
+     * coinvolta)... capire a cosa era dovuto il bug non è stato semplice... */
+    context->setContextProperty("filteredShoesModel", QVariant::fromValue(filteredShoesModel));
 
 
     //Aggiungo il context appena creato allo stack di context; serve per avere sempre un riferimento al context della view

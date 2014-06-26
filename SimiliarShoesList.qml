@@ -179,6 +179,7 @@ Rectangle
 
             property int counter: 0;
 
+
             //La lista è grande quanto tutto il container
             anchors.fill: listContainer
             anchors.rightMargin: verticalScrollBar.width + (1 * scaleX)
@@ -231,8 +232,6 @@ Rectangle
                             //quando iniziano/finiscono le transizioni
                             shoeSelectedFlipable.frontListItem = suggestionContainer
 
-//                            console.log("SIMILIARshoes, shoeSelectedFlipable.frontListItem: " + shoeSelectedFlipable.frontListItem)
-
                             /* Faccio diventare padre del flipable il container di SimilarShoesList, nel caso non lo fosse già;
                              * questo perchè durante la transizione il flipable prende come padre il container di ShoeView, e nel
                              * caso in cui si prema su una scarpa e poi si trni indietro, il flipable avrebbe ancora quel padre;
@@ -244,7 +243,6 @@ Rectangle
                             //Infine emitto il signal che avverte che c'è bisogno di caricare una nuova scarpa, passando anche
                             //il flipable come parametro in modo che possa essere usato in ShoeView
                             container.needShoeIntoContext(modelData.id, shoeSelectedFlipable)
-
 
                             /// Sezione Timer ///
                             //Cambio l'indice della lista; automaticamente verrà cambiata anche la mainImage
