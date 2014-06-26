@@ -153,9 +153,9 @@ void WindowManager::setupDataThread()
      * 2) il segnale che richiede i dati di una scarpa in seguito all'arrivo di un codice RFID;
      * 3) il segnale che richiede i dati di una scarpa in seguito ad un input utente;
      * 4) il segnale che richiede di filtrare le scarpe in base ai dati passati. */
-    QObject::connect(this, SIGNAL(requestFilters()), &databaseInterface, SLOT(loadFilters()), Qt::DirectConnection);
+    QObject::connect(this, SIGNAL(requestFilters()), &databaseInterface, SLOT(loadFilters()));
     QObject::connect(this, SIGNAL(requestShoeData(QString)), &databaseInterface, SLOT(loadShoeData(QString)));
-    QObject::connect(this, SIGNAL(requestShoeData(int)), &databaseInterface, SLOT(loadShoeData(int)), Qt::DirectConnection);
+    QObject::connect(this, SIGNAL(requestShoeData(int)), &databaseInterface, SLOT(loadShoeData(int)));
     QObject::connect(this, SIGNAL(requestFilterData(QVariant,QVariant,QVariant,QVariant,QVariant,int,int)), &databaseInterface, SLOT(loadFilterData(QVariant,QVariant,QVariant,QVariant,QVariant,int,int)));
 
     /* Connetto anche una chain di signal tra la classe stessa; il signal che causa l'evento è la richiesta di una scarpa in
