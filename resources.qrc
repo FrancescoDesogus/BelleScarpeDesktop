@@ -32,5 +32,6 @@
     </qresource>
     <qresource prefix="/images">
         <file>busy.png</file>
+        <file>busy.gif</file>
     </qresource>
 </RCC>
