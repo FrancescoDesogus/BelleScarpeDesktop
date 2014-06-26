@@ -17,7 +17,7 @@ Rectangle {
     //Array contenente gli elementi selezionati in un dato momento; viene recuperato quando il bottone per filtrare è premuto
     property var selectedElements: [];
 
-    property string backgroundColor: "white"
+    property string backgroundColor: "grey"
     property string containerBackgroundColor: "grey"
 
 
@@ -30,9 +30,8 @@ Rectangle {
     signal touchEventOccurred()
 
 
-
-
     color: listContainer.visible ? "#eaeaea" : containerBackgroundColor
+    radius: 2
 
     FontLoader {
         id: metroFont;
@@ -50,7 +49,7 @@ Rectangle {
         color: listContainer.visible ? "black" : textColor
         font.family: metroFont.name
         font.pointSize: 14
-        font.letterSpacing: 1.3
+        font.letterSpacing: 1.2
         font.weight: Font.Bold
     }
 
@@ -71,6 +70,7 @@ Rectangle {
     }
 
     MouseArea {
+        id: containerMouseArea
         anchors.fill: parent
 
         onClicked: {
@@ -81,6 +81,40 @@ Rectangle {
 
             //Segnalo all'esterno che c'è stato un evento touch
             container.touchEventOccurred()
+        }
+
+        onPressed: {
+            filterArrow.color = "black"
+            filterTitle.color = "black"
+            container.color = "white"
+        }
+
+        onReleased: {
+
+            if(containerMouseArea.containsMouse){
+                if(listContainer.visible){
+                    filterArrow.color = textColor
+                    filterTitle.color = textColor
+                    container.color = containerBackgroundColor
+                }
+                else {
+                    filterArrow.color = "black"
+                    filterTitle.color = "black"
+                    container.color = "#eaeaea"
+                }
+            }
+            else {
+                if(listContainer.visible){
+                    filterArrow.color = "black"
+                    filterTitle.color = "black"
+                    container.color = "#eaeaea"
+                }
+                else {
+                    filterArrow.color = textColor
+                    filterTitle.color = textColor
+                    container.color = containerBackgroundColor
+                }
+            }
         }
     }
 
@@ -120,6 +154,8 @@ Rectangle {
 
             anchors.fill: parent
             anchors.leftMargin: verticalScrollBar.width
+            anchors.topMargin: 6 * scaleY
+            anchors.bottomMargin: 6 * scaleY
 
             model: listModel
 
@@ -143,21 +179,42 @@ Rectangle {
 
                 color: "transparent"
 
+                Image {
+                    id: checkbox
+                    source:"qrc:///qml/check.png"
+                    fillMode: Image.PreserveAspectFit
+
+                    visible: textContainer.isSelected ? true : false
+
+                    width: 20 * scaleX
+                    height: 20 * scaleY
+
+                    anchors.left: parent.left
+                    anchors.leftMargin: 2 * scaleX
+                    anchors.verticalCenter: textContainer.verticalCenter
+                }
+
                 Text {
                     id: itemText
+
+                    //diminuisco la larghezza per far si che il testo venga tagliato
+                    //da "Elide right"
+                    width: container.width - (50 * scaleX)
 
                     text: modelData
 
                     font.family: metroFont.name
-                    font.pointSize: 12
+                    font.pointSize: 11
                     font.weight: Font.Normal
-                    font.letterSpacing: 1.2
-    //                color: "#9FB7BF"
+                    font.letterSpacing: 1.1
+
+  //                color: "#9FB7BF"
                     color: "white"
-                    anchors.left: parent.left
-                    anchors.leftMargin: 15 * scaleX
-                    anchors.top: parent.top
-                    width: container.width - (10 * scaleX)
+
+                    anchors.left: checkbox.right
+                    anchors.leftMargin: 8 * scaleX
+//                    anchors.verticalCenter: textContainer.verticalCenter
+
                     elide: Text.ElideRight
                 }
 
@@ -170,8 +227,6 @@ Rectangle {
                         //Se l'item clickato non era selezionato, adesso lo è
                         if(!isSelected)
                         {
-                            textContainer.color = "ligthblue"
-
                             //Aggiungo l'elemento alla lista degli elementi selezionati per i filtri
                             selectedElements.push(itemText.text)
 
@@ -180,8 +235,6 @@ Rectangle {
                         }
                         else
                         {
-                            textContainer.color = "transparent"
-
                             //Devo rimuovere l'elemento dalla lista degli elementi selezionati; recupero il suo indice nell'array
                             var index = selectedElements.indexOf(itemText.text)
 

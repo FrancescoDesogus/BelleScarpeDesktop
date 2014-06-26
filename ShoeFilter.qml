@@ -8,12 +8,12 @@ Rectangle {
     //Dimensioni totali di tutto il pannello e il suo colore di background
     property real filterPanelWidth: 1920 * scaleX
     property real filterPanelHeight: 300 * scaleY
-    property string filterPanelbackgroundColor: "#FAA8A8A8"
+    property string filterPanelbackgroundColor: "#686868"
 
     //Dimensioni del rettangolo draggabile e il suo colore di background
     property real draggingRectangleWidth: 350 * scaleX
     property real draggingRectangleHeight: 41 * scaleY
-    property string draggingRectangleBackgroundColor: "#A8A8A8"
+    property string draggingRectangleBackgroundColor: "#686868"
 
     //Dimensioni di ogni entry della lista delle scarpe filtrate
     property real shoeListElementWidth: 350 * scaleX
@@ -35,6 +35,9 @@ Rectangle {
 
     //Booleano per indicare se il pannello ha fatto la richiesta di filtrare scarpe e adesso sta aspettando i risultati
     property bool isFilteringShoes: false
+
+    //Colore di sfondo per i filtri
+    property string filtersColorBackground: "#989898"
 
 
     /**************************************************************
@@ -321,7 +324,8 @@ Rectangle {
 
             //Inserisco come model l'array contenente le marche creato da C++
             listModel: filters.allBrandsModel
-            backgroundColor: filterPanel.color
+            backgroundColor: filtersColorBackground
+            containerBackgroundColor: filtersColorBackground
 
             //Se avviene un evento touch, propago il signal verso l'esterno
             onTouchEventOccurred: container.touchEventOccurred()
@@ -336,13 +340,14 @@ Rectangle {
             anchors.top : filterPanel.top
             anchors.topMargin: 15 * scaleY
             anchors.left: brandsFilterList.right
-            anchors.leftMargin: 50 * scaleX
+            anchors.leftMargin: 40 * scaleX
 
             width: 200 * scaleX
             height: 55 * scaleY
 
             listModel: filters.allCategoriesModel
-            backgroundColor: filterPanel.color
+            backgroundColor: filtersColorBackground
+            containerBackgroundColor: filtersColorBackground
 
             onTouchEventOccurred: container.touchEventOccurred()
         }
@@ -358,7 +363,7 @@ Rectangle {
             anchors.top : filterPanel.top
             anchors.topMargin: 15 * scaleY
             anchors.left: categoryFilterList.right
-            anchors.leftMargin: 50 * scaleX
+            anchors.leftMargin: 40 * scaleX
 
             width: 250 * scaleX
             height: 55 * scaleY
@@ -367,7 +372,8 @@ Rectangle {
             gridCellWidth: 76 * scaleX
 
             listModel: filters.allColorsModel
-            backgroundColor: filterPanel.color
+            backgroundColor: filtersColorBackground
+            containerBackgroundColor: filtersColorBackground
 
             onTouchEventOccurred: container.touchEventOccurred()
         }
@@ -383,7 +389,7 @@ Rectangle {
             anchors.top : filterPanel.top
             anchors.topMargin: 15 * scaleY
             anchors.left: colorFilterList.right
-            anchors.leftMargin: 50 * scaleX
+            anchors.leftMargin: 40 * scaleX
 
             width: 250 * scaleX
             height: 55 * scaleY
@@ -392,7 +398,8 @@ Rectangle {
             gridCellWidth: 57 * scaleX
 
             listModel: filters.allSizesModel
-            backgroundColor: filterPanel.color
+            backgroundColor: filtersColorBackground
+            containerBackgroundColor: filtersColorBackground
 
             onTouchEventOccurred: container.touchEventOccurred()
         }
@@ -421,7 +428,8 @@ Rectangle {
 //                }
 //            }
 
-//            backgroundColor: filterPanel.color
+//            backgroundColor: filtersColorBackground
+//        containerBackgroundColor: filtersColorBackground
 
 //            onTouchEventOccurred: container.touchEventOccurred()
 //        }
@@ -440,15 +448,17 @@ Rectangle {
             property int checkboxHW: 23 //altezza e larghezza delle checkbox (sono uguali e scalate direttamente dove usate)
             property string textColor: "#FFFFFF" //Colore del testo
 
-            color: "grey" //Colore di sfondo di tutto il rettangolo
+            color: filtersColorBackground //Colore di sfondo di tutto il rettangolo
 
             anchors.top : filterPanel.top
             anchors.topMargin: 15 * scaleY
             anchors.left: sizeFilterList.right
-            anchors.leftMargin: 50 * scaleX
+            anchors.leftMargin: 40 * scaleX
 
             width: 220 * scaleX
             height: 55 * scaleY
+
+            radius: 2
 
             //Mini rettangolo solo per checkbox + testo relativo al filtro "Uomo"
             Rectangle {
@@ -567,7 +577,6 @@ Rectangle {
                     anchors.left: checkDonna.right
                     anchors.leftMargin: sexFilterList.leftCheckboxMargin
                     anchors.verticalCenter: donnaFilter.verticalCenter
-
                 }
 
                 MouseArea {
@@ -608,6 +617,10 @@ Rectangle {
             property real dotHeight: 20 * scaleY;
             property int dotRadius: 20;
 
+            //colori dei dot
+            property string dotNormalBackground: "#A0A0A0"
+            property string dotPressedBackground: "#D8D8D8"
+
             //Coordinate minime e massime che i dot possono raggiungere
             property real minX: -dotWidth/2
             property real maxX: priceRangeSliderContainer.width - dotWidth/2
@@ -620,12 +633,31 @@ Rectangle {
             width: 230 * scaleX
             height: 10 * scaleY
 
-            anchors.verticalCenter: sexFilterList.verticalCenter
+            radius: 2
+
+            anchors.bottom: sexFilterList.bottom
+            anchors.bottomMargin: 10 * scaleY
             anchors.left: sexFilterList.right
-            anchors.leftMargin: 80 * scaleX
+            anchors.leftMargin: 110 * scaleX
 
             //Colore più chiaro per il rettangolo esterno (che sta' "sotto" i pallini ed il rettangolo centrale)
             color: "#d9d1d1"
+
+            Text {
+                id: priceFilterTitle
+
+                color: "White"
+
+                text: "Prezzo"
+                font.family: metroFont.name
+                font.pointSize: 13.5
+                font.letterSpacing: 1.2
+                font.weight: Font.Bold
+
+                anchors.horizontalCenter: priceRangeSliderContainer.horizontalCenter
+                anchors.bottom: priceRangeSliderContainer.top
+                anchors.bottomMargin: 9 * scaleY
+            }
 
             //Mouse area per far spostare il dot più vicino alla zona clickata quando si preme sulla parte parte dello slider più chiara
             MouseArea {
@@ -694,15 +726,17 @@ Rectangle {
                 height: priceRangeSliderContainer.dotHeight
                 radius: priceRangeSliderContainer.dotRadius
 
+                anchors.verticalCenter: priceRangeSliderContainer.verticalCenter
 
                 //Sposto un po' il dot in negativo inizialmente in modo che sia un po' fuori dal rettangolo
                 x: priceRangeSliderContainer.minX
                 y: -5 * scaleY
 
-                color: "#3e3e3e"
+                color: priceRangeSliderContainer.dotNormalBackground
 
                 //MouseArea per abilitare il dragging
                 MouseArea {
+                    id: leftDotMouseArea
                     anchors.fill: parent
 
                     drag.target: leftDot
@@ -715,12 +749,20 @@ Rectangle {
                     /* Quando si preme sul dot, impongo che sia messo sopra l'altro. In questo modo se per esempio porto entrambi
                      * i dot in uno dei due estremi, posso sempre tornare indietro (cioè premendo l'accozzaglia dei 2 dot verrà
                      * sempre premuto l'ultimo dei dot trascinati, in modo da non rimanere bloccati nell'estremo) */
-                    onPressed:{
+                    onPressed: {
                         leftDot.z = 1
                         rightDot.z = 0
 
                         //Segnalo che c'è stato un evento touch
                         container.touchEventOccurred()
+
+                        leftDot.color = priceRangeSliderContainer.dotPressedBackground
+                        leftDot.scale = 1.15
+                    }
+
+                    onReleased: {
+                        leftDot.color = priceRangeSliderContainer.dotNormalBackground
+                        leftDot.scale = 1.0
                     }
                 }
 
@@ -756,11 +798,28 @@ Rectangle {
                     //Infine setto il testo sopra il dot con il valore ottenuto
                     leftPrice.text = currentValue
                 }
+            }
 
+
+            Rectangle {
+                id: leftPriceRectangle
+
+                anchors.right: priceRangeSliderContainer.left
+                anchors.rightMargin: 17 * scaleX
+                anchors.verticalCenter: priceRangeSliderContainer.verticalCenter
+
+                width: 50 * scaleX
+                height: 30 * scaleY
+                radius: 3
+
+                color: filtersColorBackground
                 Text {
                     id: leftPrice
-                    anchors.bottom: leftDot.top
+
+                    anchors.centerIn: leftPriceRectangle
+
                     color: "white"
+
                     visible: true
 
                     /* Quando il componente è stato creato, gli assegno come testo il prezzo minimo (contenuto nel primo posto
@@ -784,12 +843,14 @@ Rectangle {
                 height: priceRangeSliderContainer.dotHeight
                 radius: priceRangeSliderContainer.dotRadius
 
+                anchors.verticalCenter: priceRangeSliderContainer.verticalCenter
+
                 //Sposto un po' il dot inizialmente in modo che sia un po' fuori dal rettangolo verso destra
                 x: priceRangeSliderContainer.maxX
                 y: -5 * scaleY
 
 
-                color: "#3e3e3e"
+                color: priceRangeSliderContainer.dotNormalBackground
 
                 MouseArea {
                     anchors.fill: parent
@@ -804,6 +865,13 @@ Rectangle {
                         rightDot.z = 1
 
                         container.touchEventOccurred()
+                        rightDot.color = priceRangeSliderContainer.dotPressedBackground
+                        rightDot.scale = 1.15
+                    }
+
+                    onReleased: {
+                        rightDot.color = priceRangeSliderContainer.dotNormalBackground
+                        rightDot.scale = 1.0
                     }
                 }
 
@@ -823,15 +891,29 @@ Rectangle {
                     priceRangeSliderContainer.max = currentValue
 
                     rightPrice.text = currentValue
-                }
+                }                
+            }
 
-                //Testo col limite massimo del prezzo
+            //Testo col limite massimo del prezzo
+            Rectangle {
+                id: rightPriceRectangle
+
+                anchors.left: priceRangeSliderContainer.right
+                anchors.leftMargin: 15 * scaleX
+                anchors.verticalCenter: priceRangeSliderContainer.verticalCenter
+
+                width: 50 * scaleX
+                height: 30 * scaleY
+                radius: 3
+
+                color: filtersColorBackground
+
                 Text {
                     id: rightPrice
 
+                    anchors.centerIn: rightPriceRectangle
                     //Il range dei prezzi min/max è passato da C++ sotto forma di array; il limite massimo è messo in seconda posizione
                     text: filters.priceRangeModel[1]
-                    anchors.bottom: rightDot.top
                     color: "white"
                 }
             }
@@ -859,7 +941,9 @@ Rectangle {
 
             width: 150 * scaleX
             height: 60 * scaleY
-            color: "grey"
+
+            color: "grey"            
+            border.color: "#FFFFFF"
 
             radius: 4
 
@@ -874,14 +958,14 @@ Rectangle {
 //                }
 //            }
 
-            border.color: "#FFFFFF"
-
             anchors.top: filterPanel.top
             anchors.topMargin: 15 * scaleY
             anchors.left: priceRangeSliderContainer.right
-            anchors.leftMargin: 80 * scaleX
+            anchors.leftMargin: 100 * scaleX
 
             Text {
+                id: filterButtonText
+
                 text: "Filtra"
                 font.family: metroFont.name
                 font.pointSize: 15
@@ -966,6 +1050,19 @@ Rectangle {
                         //Segnalo quindi è stata fatta almeno una ricerca
                         hasAlreadyFilteredShoes = true;
                     }
+                }
+
+                onPressed: {
+                    filterButton.color = "white"
+                    filterButton.border.color = filterPanelbackgroundColor
+                    filterButtonText.color = "grey"
+
+                }
+
+                onReleased: {
+                    filterButton.color = "grey"
+                    filterButton.border.color = "white"
+                    filterButtonText.color = "white"
                 }
             }
         }
@@ -1245,7 +1342,7 @@ Rectangle {
         categoryFilterList.closeList();
         colorFilterList.closeList();
         sizeFilterList.closeList();
-        sexFilterList.closeList();
+//        sexFilterList.closeList();
     }
 
 

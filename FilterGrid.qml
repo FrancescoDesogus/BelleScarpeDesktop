@@ -38,9 +38,8 @@ Rectangle {
     signal touchEventOccurred()
 
 
-
-
     color: listContainer.visible ? "#eaeaea" : containerBackgroundColor
+    radius: 2
 
     FontLoader {
         id: metroFont;
@@ -74,11 +73,12 @@ Rectangle {
         color: listContainer.visible ? "black" : textColor
         font.family: metroFont.name
         font.pointSize: 14
-        font.letterSpacing: 1.3
+        font.letterSpacing: 1.2
         font.weight: Font.Bold
     }
 
     MouseArea {
+        id: containerMouseArea
         anchors.fill: parent
 
         onClicked: {
@@ -89,6 +89,40 @@ Rectangle {
 
             //Segnalo all'esterno che c'è stato un evento touch
             container.touchEventOccurred()
+        }
+
+        onPressed: {
+            filterArrow.color = "black"
+            filterTitle.color = "black"
+            container.color = "white"
+        }
+
+        onReleased: {
+
+            if(containerMouseArea.containsMouse){
+                if(listContainer.visible){
+                    filterArrow.color = textColor
+                    filterTitle.color = textColor
+                    container.color = containerBackgroundColor
+                }
+                else {
+                    filterArrow.color = "black"
+                    filterTitle.color = "black"
+                    container.color = "#eaeaea"
+                }
+            }
+            else {
+                if(listContainer.visible){
+                    filterArrow.color = "black"
+                    filterTitle.color = "black"
+                    container.color = "#eaeaea"
+                }
+                else {
+                    filterArrow.color = textColor
+                    filterTitle.color = textColor
+                    container.color = containerBackgroundColor
+                }
+            }
         }
     }
 
@@ -270,8 +304,8 @@ Rectangle {
 
             delegate: colorGrid ? colorDelegate : sizeDelegate
 
-            cellWidth: gridCellWidth + 1
-            cellHeight: gridCellHeight + 1
+            cellWidth: gridCellWidth + (2 * scaleX)
+            cellHeight: gridCellHeight + (2 * scaleX)
 
 
             //Quando inizia il movimento della lista da parte dell'utente devo bloccare il timer che fa scomparire la scrollbar
