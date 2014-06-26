@@ -11,10 +11,7 @@
 #include <QThread>
 
 
-
-#include <QDateTime>
-
-//Namespace contenente classi come "vector" e "map". Usare il namespace fa si che non si debba scrivere ad esempio std::vector quando lo si usa
+//Namespace contenente classi come "vector". Usare il namespace fa si che non si debba scrivere ad esempio std::vector quando lo si usa
 using namespace std;
 
 
@@ -90,7 +87,7 @@ ShoeDatabase::ShoeDatabase()
  */
 bool ShoeDatabase::open()
 {
-
+    //Se il db era già aperto, non faccio nulla
     if(!db.isOpen())
     {
         db.open();
@@ -111,6 +108,7 @@ bool ShoeDatabase::open()
  */
 void ShoeDatabase::close()
 {
+    //Chiudo il db solo se era effettivamente aperto
     if(db.isOpen())
         db.close();
 }
@@ -160,7 +158,8 @@ Shoe* ShoeDatabase::getShoeFromId(QString RFIDcode)
  * @param queryString la query sotto forma di stringa da usare per il recupero
  *
  * @return un oggetto Shoe contenente i dati (è un puntatore perchè estende QObject e gli oggetti che estendono QObject non possono
- *         essere copiati, bisogna passare per forza un riferimento). Viene ritornato NULL in caso di errori o se non è stato trovato niente
+ *         essere copiati, bisogna passare per forza un riferimento). Viene ritornato NULL in caso di errori o se non
+ *         è stato trovato niente o in caso di errori
  */
 Shoe* ShoeDatabase::getShoe(QString queryString)
 {
@@ -226,9 +225,6 @@ Shoe* ShoeDatabase::getShoe(QString queryString)
         Shoe* shoe = new Shoe(shoeId, brand, model, color, sex, price, category, sizesAndQuantities, mediaPath, RFIDcode);
 
 
-        qDebug() << "getShoe: " << QDateTime::currentDateTime();
-
-
         ///////////
         QThread::currentThread()->sleep(1);
 
@@ -246,8 +242,6 @@ Shoe* ShoeDatabase::getShoe(QString queryString)
         else
             qDebug() << "ShoeDatabase::getShoe: c'è stato un errore nella query: " << query.lastError();
 
-//        qDebug() << query.lastError();
-
         close();
 
         return NULL;
@@ -256,17 +250,16 @@ Shoe* ShoeDatabase::getShoe(QString queryString)
 
 
 /**
- * @brief ShoeDatabase::getSimiliarShoes
- *        preleva le scarpe che hanno proprietà simili alla scarpa con id specificato, in base ai parametri passati
+ * @brief ShoeDatabase::getSimiliarShoes preleva le scarpe che hanno proprietà simili alla scarpa con id specificato,
+ *        in base alla categoria della scarpa e al sesso per cui è stata fatta
  *
- * @param shoeId id della scarpa che si deve scartare
- * @param sex sesso della scarpa
- * @param category categoria della scarpa
+ *
+ * @param shoeParam riferimento alla scarpa da cui prelevare i dati per ricercare scarpe simili
  *
  * @return la lista delle scarpe simili (vuota in caso di errori o se non ce ne sono); NOTA: le scarpe avranno l'array
  *         contenente le taglie e le quantità vuoto, e anche l'array delle scarpe simili sarà vuoto
  */
-vector<Shoe*> ShoeDatabase::getSimiliarShoes(Shoe *shoeParameter)
+vector<Shoe*> ShoeDatabase::getSimiliarShoes(Shoe *shoeParam)
 {
     vector<Shoe*> shoeList;
 
@@ -277,9 +270,9 @@ vector<Shoe*> ShoeDatabase::getSimiliarShoes(Shoe *shoeParameter)
 
 
     query.exec("SELECT * FROM " + ShoeDatabase::SHOE_TABLE_NAME +
-               " WHERE " + ShoeDatabase::SHOE_ID_COLUMN + " != " + QString::number(shoeParameter->getId()) +
-               " AND " + ShoeDatabase::SHOE_SEX_COLUMN + " = '" + shoeParameter->getSex() + "' "
-               " AND " + ShoeDatabase::SHOE_CATEGORY_COLUMN + " = '" + shoeParameter->getCategory() + "'");
+               " WHERE " + ShoeDatabase::SHOE_ID_COLUMN + " != " + QString::number(shoeParam->getId()) +
+               " AND " + ShoeDatabase::SHOE_SEX_COLUMN + " = '" + shoeParam->getSex() + "' "
+               " AND " + ShoeDatabase::SHOE_CATEGORY_COLUMN + " = '" + shoeParam->getCategory() + "'");
 
 
     if(query.lastError().number() == -1 && query.size() > 0)
@@ -376,7 +369,7 @@ vector<Shoe*> ShoeDatabase::getSimiliarShoes(Shoe *shoeParameter)
 /**
  * @brief ShoeDatabase::getAllBrands recupera tutte le marche disponibili nel database
  *
- * @return la lista delle marche
+ * @return la lista delle marche; vuota in caso di errori o se non ne sono state trovate
  */
 QStringList ShoeDatabase::getAllBrands()
 {
@@ -414,7 +407,7 @@ QStringList ShoeDatabase::getAllBrands()
 /**
  * @brief ShoeDatabase::getAllCategories recupera tutte le categorie disponibili nel database
  *
- * @return la lista delle categorie
+ * @return la lista delle categorie; vuota in caso di errori o se non ne sono state trovate
  */
 QStringList ShoeDatabase::getAllCategories()
 {
@@ -453,7 +446,7 @@ QStringList ShoeDatabase::getAllCategories()
 /**
  * @brief ShoeDatabase::getAllColors recupera tutti i colori disponibili nel database
  *
- * @return la lista dei colori
+ * @return la lista dei colori; vuota in caso di errori o se non ne sono state trovate
  */
 QStringList ShoeDatabase::getAllColors()
 {
@@ -493,7 +486,7 @@ QStringList ShoeDatabase::getAllColors()
 /**
  * @brief ShoeDatabase::getAllSizes recupera tutte le taglie presenti nel database
  *
- * @return la lista delle taglie
+ * @return la lista delle taglie; vuota in caso di errori o se non ne sono state trovate
  */
 QStringList ShoeDatabase::getAllSizes()
 {
@@ -534,7 +527,8 @@ QStringList ShoeDatabase::getAllSizes()
 /**
  * @brief ShoeDatabase::getPriceRange recupera il prezzo minimo e quello massimo presente nel database
  *
- * @return una lista contenente nel primo elemento il prezzo minimo e nel secondo quello massimo
+ * @return una lista contenente nel primo elemento il prezzo minimo e nel secondo quello massimo; vuota in caso di errori o se
+ *         non ne sono state trovate
  */
 QStringList ShoeDatabase::getPriceRange()
 {
@@ -671,9 +665,6 @@ vector<Shoe*> ShoeDatabase::getFilteredShoes(const QStringList& brandList, const
     }
 
     close();
-
-
-    qDebug() << "filteredShoes: " << QDateTime::currentDateTime();
 
 ////////////
     QThread::currentThread()->sleep(3);

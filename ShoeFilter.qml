@@ -771,8 +771,9 @@ Rectangle {
                 onXChanged: {
                     /* Il piano di coordinate tra il rettangolo e il dot è lo stesso, ed il range va da 0 fino alla lunghezza massima
                      * dello slider. Quando sposto il leftDot quindi sposto anche il punto di partenza del rettangolo che sta' in mezzo
-                     * in modo che lo segue */
-                    rectangleBetweenDots.x = x
+                     * in modo che lo segue. Aggiungo la larghezza del dot diviso 2 per far si che la parte finale finisca
+                     * sicuramente sotto il dot di destra, sennò altrimenti risulta più corto di quello che dovrebbe essere */
+                    rectangleBetweenDots.x = x + priceRangeSliderContainer.dotWidth/2
 
                     //Cambio poi la lunghezza del rettangolo, tenendo conto che il dot di destra può essere spostato. Se il dot
                     //di destra è fermo nell'estremo destro, (priceRangeSliderContainer.width - rightDot.x) vale zero
@@ -878,7 +879,7 @@ Rectangle {
                 //Quando si sposta il dot, bisogna cambiare la larghezza del rettangolo al centro in modo che sia uguale alla
                 //posizione del dot di destra, tenendo conto che il left dot può essere spostato e quindi anche il rettangolo
                 onXChanged: {
-                    rectangleBetweenDots.width = x - rectangleBetweenDots.x
+                    rectangleBetweenDots.width = x - rectangleBetweenDots.x + priceRangeSliderContainer.dotWidth/2
 
                     //Calcolo anche il nuovo valore da mostrare, in modo analogo a quanto fatto per il leftDot
                     var partialValue = Math.round((((filters.priceRangeModel[1] - filters.priceRangeModel[0]) * rightDot.x) / (priceRangeSliderContainer.width - rightDot.width/2)))
@@ -947,16 +948,6 @@ Rectangle {
 
             radius: 4
 
-//            gradient: Gradient {
-//                GradientStop {
-//                    position: 0.14;
-//                    color: "#000000";
-//                }
-//                GradientStop {
-//                    position: 0.53;
-//                    color: "#ffffff";
-//                }
-//            }
 
             anchors.top: filterPanel.top
             anchors.topMargin: 15 * scaleY
@@ -1086,38 +1077,13 @@ Rectangle {
                 onClicked: container.touchEventOccurred()
             }
 
-            /* Item che contiene l'indicatore di caricamento, visibile e animato quando si stanno recuperando dati dal database.
-             * E' creato come Item perchè così posso renderlo grande quanto tutto il padre (il container della lista) senza
-             * che però risulti visibile; questo aiuta per centrare l'indicatore di caricamento nel container della lista.
-             * Per rendere visibile l'indicatore è sufficente settare "running" su true */
-            Item {
+            //Indicatore di caricamento
+            LoadIndicator {
                 id: loadIndicator
 
                 anchors.fill: parent
-
-                property bool running: false
-                property string imageSource: "qrc:/images/busy.png"
-
-                //Rendo visibile il tutto solo se sta effettivamente caricando
-                visible: running
-
-                Image {
-                    id: image
-
-                    anchors.centerIn: parent
-
-                    source: loadIndicator.imageSource
-
-                    //Animazioni eseguite in parallelo; la prima rende visibile l'indicatore con un fade in, la seconda
-                    //lo fa ruotare per l'eternità
-                    ParallelAnimation {
-                        running: loadIndicator.running
-
-                        NumberAnimation { target: image; property: "opacity"; from: 0.0; to: 1.0; duration: 200 }
-                        NumberAnimation { target: image; property: "rotation"; from: 0; to: 360; loops: Animation.Infinite; duration: 1200 }
-                    }
-                }
             }
+
 
 
 

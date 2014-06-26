@@ -162,7 +162,7 @@ Rectangle {
 
 
 
-    //Animazione per lo slide verso sinistra per la view che deve apparire
+    //Animazione per lo slide verso sinistra per la view che deve apparire (usata quando si reseta la view a quella di timeout)
     PropertyAnimation {
         id: nextViewAnimation
         duration : 500
@@ -171,19 +171,18 @@ Rectangle {
     }
 
     /* Animazione identica a quella sopra, ma usata quando si torna indietro nello stack di view; in tal caso infatti la view corrente
-     * deve sparire definitivamente, non viene salvata. Essendo creata dinamicamente quindi, è meglio distruggerla al
-     * termine dell'animazione, altrimenti a lungo andare tutte le view che si accumulano in questo modo potrebbero
-     * causare problemi in quanto a performance */
+     * deve sparire definitivamente, non viene salvata */
     PropertyAnimation {
         id: currentViewAnimationWithDestruction
         duration : 500
         property: "x"
         easing.type: Easing.InQuad
 
-        //Quando l'animazione parte disabilito i click nella view che è stata targettata; al termine la distruggo
+        //Quando l'animazione parte disabilito emetto il signal che avvisa la ShoeView che sta partendo una transizione, in modo
+        //da disabilitare i click nella view durante l'animazione; al termine la distruggo
         onRunningChanged: {
             if(running)
-                target.disableClicks();
+                target.transitionStarted();
             else
                 target.destroy();
         }

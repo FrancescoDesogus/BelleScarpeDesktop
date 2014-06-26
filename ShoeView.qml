@@ -58,6 +58,11 @@ Rectangle {
     //e bisogna effettuare determinati preparativi; è emesso all'esterno, nel file ViewManagerLogic.js
     signal prepareTransitionToNewView()
 
+    //Signal che indica l'arrivo imminente di dati derivanti da un messaggio RFID ricevuto; il signal viene emesso quando
+    //viene emesso il signal dataIncomingFromRFID della classe C++
+    signal transitionFromRFIDincoming()
+
+
     //Signal per indicare l'inizio/fine dei vari tipi di transizione (dovuta a RFID o dovuta a input utente diretto).
     //Questi signal sono emessi dall'esterno (dal ViewManager) e sono "ascoltati" dentro ShoeView
     signal transitionFromRFIDStarted()
@@ -108,9 +113,7 @@ Rectangle {
         onMainImageClicked: {
             if(container.isClickAllowed)
             {
-                //Quando il signal scatta, cambio lo stato del rettangolo che oscura lo schermo (metto prima uno stato nullo
-                //nel caso in cui fosse già nello stato "visible"; in questo modo scatta di nuovo l'animazione)
-                blackBackgroundScreen.state = "";
+                //Quando il signal scatta, cambio lo stato del rettangolo che oscura lo schermo
                 blackBackgroundScreen.state = "visible";
 
                 //Cambio l'indice della lista contenente le immagini ingrandite in base all'indice ricevuto dal signal; dopodichè
@@ -194,20 +197,13 @@ Rectangle {
             //da mostrare sono stati recuperati
             flipableSurface = shoeSelectedFlipable
 
-            console.log("onNeedShoeIntoContext, CONTAINER: " + container)
+//            console.log("onNeedShoeIntoContext, CONTAINER: " + container)
 
-            console.log("onNeedShoeIntoContext, flipableSurface.frontListItem: " + flipableSurface.frontListItem)
+//            console.log("onNeedShoeIntoContext, flipableSurface.frontListItem: " + flipableSurface.frontListItem)
 
 
-            //Emitto il signal che chiamerà il rispettivo slot di C++ che si occuperà di caricare la scarpa,
-            //creare la nuova view e attivare l'animazione del flipable inserendo la nuova view come "back" della FlipableSurface
-            container.needShoeIntoContext(id)
-
-            //Dato che i dati sono presi in modo asincrono, mentre vengono recuperati faccio comparire lo sfondo scuro. Porto
-            //inoltre lo sfondo in primo piano mettendo z = 1, in modo che sovrasti per certo qualsiasi elemento della scena
-            blackBackgroundScreen.state = ""
-            blackBackgroundScreen.state = "visible"
-            blackBackgroundScreen.z = 1
+            //Dato che i dati sono presi in modo asincrono, mentre vengono recuperati faccio comparire lo sfondo scuro
+            blackBackgroundScreen.state = "visibleForTransition"
 
             //Mostro l'indicatore di caricamento, contenuto nel rettangolo
             blackBackgroundScreen.loadIndicator.running = true
@@ -215,7 +211,9 @@ Rectangle {
             //Disabilito i click mentre si aspetta
             container.isClickAllowed = false;
 
-            console.log("onNeedShoeIntoContext: " + new Date());
+            //Emitto il signal che chiamerà il rispettivo slot di C++ che si occuperà di caricare la scarpa,
+            //creare la nuova view e attivare l'animazione del flipable inserendo la nuova view come "back" della FlipableSurface
+            container.needShoeIntoContext(id)
         }
     }
 
@@ -306,38 +304,11 @@ Rectangle {
          * presente ma invisibile */
         opacity: 0
 
-
-        /* Item che contiene l'indicatore di caricamento, visibile e animato quando si stanno recuperando dati dal database.
-         * E' creato come Item perchè così posso renderlo grande quanto tutto il padre (il container della lista) senza
-         * che però risulti visibile; questo aiuta per centrare l'indicatore di caricamento nel container della lista.
-         * Per rendere visibile l'indicatore è sufficente settare "running" su true */
-        Item {
+        //Indicatore di caricamento
+        LoadIndicator {
             id: busyIndicator
 
             anchors.fill: parent
-
-            property bool running: false
-            property string imageSource: "qrc:/images/busy.png"
-
-            //Rendo visibile il tutto solo se sta effettivamente caricando
-            visible: running
-
-            Image {
-                id: image
-
-                anchors.centerIn: parent
-
-                source: busyIndicator.imageSource
-
-                //Animazioni eseguite in parallelo; la prima rende visibile l'indicatore con un fade in, la seconda
-                //lo fa ruotare per l'eternità
-                ParallelAnimation {
-                    running: busyIndicator.running
-
-                    NumberAnimation { target: image; property: "opacity"; from: 0.0; to: 1.0; duration: 200 }
-                    NumberAnimation { target: image; property: "rotation"; from: 0; to: 360; loops: Animation.Infinite; duration: 1200 }
-                }
-            }
         }
 
 
@@ -376,7 +347,33 @@ Rectangle {
                      * termine dell'animazione */
                     visible: true
                 }
+            },
+
+            //Stato per quando il rettangolo è invisibile
+            State {
+                name: "visibleForTransition"
+
+                PropertyChanges {
+                    target: blackBackgroundScreen
+
+                    visible: true
+                    z: 1
+                }
+            },
+
+            //Stato per quando il rettangolo è invisibile
+            State {
+                name: "invisibleForTransition"
+
+                PropertyChanges {
+                    target: blackBackgroundScreen
+
+                    visible: false
+                    opacity: 0
+                    z: 0
+                }
             }
+
         ]
 
         //Per avere un'animazione tra i cambi di stato creo delle transizioni
@@ -422,6 +419,21 @@ Rectangle {
                 onRunningChanged: {
                     if (!running)
                         blackBackgroundScreen.visible = false
+                }
+            },
+
+            //Transizione per quando si passa dallo stato visible allo stato invisible
+            Transition {
+                to: "visibleForTransition"
+
+                NumberAnimation {
+                    target: blackBackgroundScreen
+
+                    properties: "opacity";
+                    duration: 250;
+
+                    from: 0
+                    to: 0.75
                 }
             }
         ]
@@ -891,10 +903,7 @@ Rectangle {
 
             container.needShoeIntoContext(id)
 
-            blackBackgroundScreen.state = ""
-            blackBackgroundScreen.state = "visible"
-            blackBackgroundScreen.z = 1
-
+            blackBackgroundScreen.state = "visibleForTransition"
             blackBackgroundScreen.loadIndicator.running = true
 
             container.isClickAllowed = false;
@@ -998,27 +1007,23 @@ Rectangle {
      * risultata da una ricerca */
     onPrepareTransitionToNewView: {
         /* Mentre si attendeva per l'arivo dei dati, era apparso una schermata scura; adesso che i dati sono arrivati e
-         * può iniziare la transizione, faccio scomparire la schermata di netto, e la riporto con z = 0 essendo stata portata
-         * a z = 1 quando era apparsa (in modo da farla comparire sopra qualsiasi altra cosa nella schermata)*/
-        blackBackgroundScreen.opacity = 0
-        blackBackgroundScreen.z = 0
+         * può iniziare la transizione, faccio scomparire la schermata mettendo lo stato apposito*/
+        blackBackgroundScreen.state = "invisibleForTransition"
 
         /* Se la transizione è di una scarpa che è risultata da una ricerca, vuol dire che normalmente lo schermo scuro era già
-         * presente (anchese aveva opacità a 0; serviva solo per intercettare gli input). Se questo è il caso, non faccio
-         * scomparire la scermata, in quanto se in seguito debba tornare indietro sia ancora presente (in quanto il pannello
-         * dei filtri rimarrebbe aperto). Se invece il pannello era chiuso, vuol dire che la scarpa che ha causato la transizione
-         * era una di quelle simili, quindi non mi metto problemi e rendo invisibile la schermata scura */
-        if(!filterPanel.isOpen)
-            blackBackgroundScreen.visible = false
+         * presente (anche se aveva opacità a 0; serviva solo per intercettare gli input). Se questo è il caso, faccio ricomparire
+         * il rettangolo di background che era scomparso in seguito al cambio di stato fatto poco sopra */
+        if(filterPanel.isOpen)
+            blackBackgroundScreen.visible = true
 
         //Blocco l'indicatore di caricamento, contenuto nel rettangolo
         blackBackgroundScreen.loadIndicator.running = false
 
 
-        console.log("onPrepareTransitionToNewView, CONTAINER: " + container)
+//        console.log("onPrepareTransitionToNewView, CONTAINER: " + container)
 
-        console.log("onPrepareTransitionToNewView: " + new Date());
-        console.log("onPrepareTransitionToNewView again, flipableSurface.frontListItem: " + flipableSurface.frontListItem);
+//        console.log("onPrepareTransitionToNewView: " + new Date());
+//        console.log("onPrepareTransitionToNewView again, flipableSurface.frontListItem: " + flipableSurface.frontListItem);
 
 
         /* Adesso devo preparare la flipableSurface per effettuare la transizione vera e propria.
@@ -1057,14 +1062,37 @@ Rectangle {
             filterPanel.opacity = 0
     }
 
+    /* Ascolto il signal che avvisa che sta per essere caricata una scarpa in seguito ad un RFID code. Questo signal è connesso
+     * al signal dataIncomingFromRFID() della classe C++, che viene emesso non appena viene ricevuto un messaggio RFID. Quando
+     * questo accade, bisogna mostrare un feedback di caricamento mentre si preleva la scarpa da mostrare dal database */
+    onTransitionFromRFIDincoming: {
+        //Durante la transizione, non deve essere permesso clickare sullo schermo per far apparire nuove schermate, quindi
+        //rendo false il booleano apposito
+        container.isClickAllowed = false;
+
+        //Se la transizione avviene mentre si stanno guardando le immagini della scarpa, è già presente lo sfondo scuro, quindi
+        //non faccio nulla; altrimenti lo rendo visibile
+        if(!imageFocusList.visible)
+            blackBackgroundScreen.state = "visibleForTransition"
+        //Se la lista delle immagini era visibile, la faccio scomparire
+        else
+            imageFocusList.visible = false
+
+        //Mostro lo spinner di caricamento
+        blackBackgroundScreen.loadIndicator.running = true
+    }
+
     //Ascolto il signal che indica l'inizio di una transizione da RFID
     onTransitionFromRFIDStarted: {
         //Durante la transizione, non deve essere permesso clickare sullo schermo per far apparire nuove schermate, quindi
         //rendo false il booleano apposito
         container.isClickAllowed = false;
 
-        //Nascondo il pannello per i filtri
-        filterPanel.state = "hidden"
+        //Quando inizia l'animazione, rimuovo il feedback di caricamento, ovvero lo sfondo scuro...
+        blackBackgroundScreen.state = "invisibleForTransition"
+
+        //...e l'indicatore di caricamento
+        blackBackgroundScreen.loadIndicator.running = false
     }
 
     //Ascolto il signal che indica la fine di una transizione da RFID
@@ -1072,8 +1100,8 @@ Rectangle {
         //Riabilito i click utente
         container.isClickAllowed = true;
 
-        //Rendo visibile il pannello
-        filterPanel.state = "visible"
+        //Faccio comparire il pannello dei filtri
+        filterPanel.state = "visible"    
     }
 
     //Ascolto il signal che indica l'inizio di una transizione normale causata dall'input utente diretto

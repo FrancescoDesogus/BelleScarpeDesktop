@@ -63,4 +63,5 @@ OTHER_FILES += \
     SimilarShoesDelegate.qml \
     ShoeFilter.qml \
     FilterList.qml \
-    FilterGrid.qml
+    FilterGrid.qml \
+    LoadIndicator.qml

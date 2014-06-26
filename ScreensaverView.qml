@@ -11,6 +11,8 @@ Rectangle
     property bool isClickAllowed: true
 
 
+    signal transitionFromRFIDincoming()
+
     signal transitionFromRFIDStarted()
     signal transitionFromRFIDEnded()
 
@@ -33,8 +35,17 @@ Rectangle
         angle: 0
     }
 
-    function disableClicks()
-    {
-        isClickAllowed = false;
+    LoadIndicator {
+        id: loadIndicator
+
+        anchors.fill: parent
+    }
+
+    onTransitionFromRFIDincoming: {
+        loadIndicator.running = true
+    }
+
+    onTransitionFromRFIDStarted: {
+        loadIndicator.running = false
     }
 }

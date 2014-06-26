@@ -28,6 +28,7 @@
         <file>checkbox_unselected.png</file>
         <file>checkbox_selected.png</file>
         <file>check.png</file>
+        <file>LoadIndicator.qml</file>
     </qresource>
     <qresource prefix="/images">
         <file>busy.png</file>

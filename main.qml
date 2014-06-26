@@ -31,7 +31,13 @@ Rectangle {
 
             //Inizialmente, stabilisco che la screensaverView è la "currentView" usata nel file ViewManagerLogic.js per avere
             //un riferimento alla view attualmente mostrata
-            Component.onCompleted: myViewManager.setStartingView(screensaverView)
+            Component.onCompleted: {
+                myViewManager.setStartingView(screensaverView)
+
+                //Connetto poi il signal della classe C++ che scatta quando è arrivato un messaggio RFID che richiede una scarpa
+                //al signal della ScreensaverView che si occupa di fare i preparativi per riceverla
+                window.dataIncomingFromRFID.connect(screensaverView.transitionFromRFIDincoming)
+            }
         }
     }
 
@@ -55,7 +61,7 @@ Rectangle {
 //        interval: 5000
 //        running: true
 //        repeat: true
-//        onTriggered: window.loadNewShoeView("asd")
+//        onTriggered: window.requestShoeData("asd")
 //     }
 
 //    Timer {
@@ -82,6 +88,9 @@ Rectangle {
         //Dato che si sta inserendo una nuova ShoeView al momento della chiamata di questa funzione, segno che lo screensaver non
         //è più attivo (nel caso lo fosse stato)
         myViewManager.isScreensaverOn = false;
+
+        //Riavvio il timer che riporta alla schermata di timout
+        screenTimeoutTimer.restart();
 
 
         /* La ShoeView ha un custom signal chiamato touchEventOccurred che scatta quando l'interfaccia riceve un qualunque Touch
@@ -110,6 +119,11 @@ Rectangle {
         //Connetto il signal per tornare indietro di schermata anche con uno slot C++ che serve a gestire i riferimenti
         //del context della view QML (quello che fa è eliminare il context della view che sta scomparendo)
         newShoeView.goBack.connect(window.movingToPreviousView);
+
+
+        //Connetto poi il signal della classe C++ che scatta quando è arrivato un messaggio RFID che richiede una scarpa
+        //al signal della ShoeView che si occupa di fare i preparativi per riceverla
+        window.dataIncomingFromRFID.connect(newShoeView.transitionFromRFIDincoming)
 
 
         //Quelle qua sopra erano le cose in comune per tutte le ShoeView. Però alcune cose dipendono dal fatto che la view
@@ -149,6 +163,12 @@ Rectangle {
             console.log("C'è stato un errore nell'aggiunta della nuova view");
             return;
         }
+
+
+        //Connetto il signal di C++ che indica l'arrivo imminente di dati di una scarpa in seguito ad un messaggio RFID al
+        //signal della ScreensaverView che si occupa di gestirlo
+        window.dataIncomingFromRFID.connect(newView.transitionFromRFIDincoming)
+
 
         //Segno che ora la schermata attiva è quella dello screensaver
         myViewManager.isScreensaverOn = true;

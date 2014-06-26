@@ -7,6 +7,11 @@
 #include <shoe.h>
 #include <vector>
 
+/**
+ * @brief The ShoeDatabase class si occupa di gestire la connessione con il database e fornisce metodi per recuperare dati dallo stesso.
+ *        L'istanza del database lavora in un thread a parte per recuperare i dati in modo asincrono; per farlo comunica con
+ *        una istanza di DatabaseInterface, che funge da tramite tra il main thread ed il secondo thread
+ */
 class ShoeDatabase : public QObject
 {
 public:
@@ -14,7 +19,7 @@ public:
 
     Shoe* getShoeFromId(int shoeId);
     Shoe* getShoeFromId(QString RFIDcode);
-    std::vector<Shoe*> getSimiliarShoes(Shoe *shoeParameter);
+    std::vector<Shoe*> getSimiliarShoes(Shoe *shoeParam);
     QStringList getAllBrands();
     QStringList getAllCategories();
     QStringList getAllColors();
