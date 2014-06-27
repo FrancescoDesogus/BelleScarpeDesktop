@@ -56,13 +56,13 @@ Rectangle {
 
 
     //timer in loop per prove
-    Timer {
-        id: screenTimeoutTimer2
-        interval: 5000
-        running: true
-        repeat: true
-        onTriggered: window.requestShoeData("asd")
-     }
+//    Timer {
+//        id: screenTimeoutTimer2
+//        interval: 5000
+//        running: true
+//        repeat: true
+//        onTriggered: window.requestShoeData("asd")
+//     }
 
 //    Timer {
 //        id: screenTimeoutTimer3
