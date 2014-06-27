@@ -67,16 +67,23 @@ Rectangle {
         id: filterArrow
 
         anchors.right: container.right
-        anchors.rightMargin: listContainer.visible ? (16 * scaleX) : (10 * scaleX)
+        anchors.rightMargin: 16 * scaleX
         anchors.verticalCenter: container.verticalCenter
 
         text: "<"
-        rotation: listContainer.visible ? 270 : 90
+        rotation: 90
+
         color: listContainer.visible ? "black" : textColor
         font.family: metroFont.name
         font.pointSize: 14
         font.letterSpacing: 1.2
         font.weight: Font.Bold
+
+        Behavior on rotation {
+            NumberAnimation {
+                duration: 100
+            }
+        }
     }
 
     MouseArea {
@@ -378,6 +385,9 @@ Rectangle {
 
         //...e porto l'opacità a 1, che prima era a 0 (questo fa triggerare l'animazione di fade in per via del "Behavior on opacity")
         listContainer.opacity = 1;
+
+        //Ruoto la freccia, causando un'animazione per via del "Behavior on rotation"
+        filterArrow.rotation = 270
     }
 
     /* Funzione per chiudere la lista. La chiusura porta ad una animazione di fade out */
@@ -386,6 +396,9 @@ Rectangle {
         //Porto l'opacità a 0, causando l'animazione. Al termine dell'animazione, il container della lista diventa invisibile
         //del tutto grazie a "listContainer.visible = false" (occorre farlo al termine dell'animazione, altrimenti questa non appare)
         listContainer.opacity = 0;
+
+        //Ruoto la freccia, causando un'animazione per via del "Behavior on rotation"
+        filterArrow.rotation = 90
 
         //Se la lista è chiusa, riporto il colore allo stato originale
         filterArrow.color = textColor

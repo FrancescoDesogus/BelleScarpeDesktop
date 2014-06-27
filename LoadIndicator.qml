@@ -10,37 +10,38 @@ Item {
 //    anchors.fill: parent
 
     property bool running: false
-    property string imageSource: "qrc:/images/busy.gif"
+//    property string imageSource: "qrc:/images/busy.gif"
+    property string imageSource: "qrc:/images/busy.png"
 
     //Rendo visibile il tutto solo se sta effettivamente caricando
     visible: running
 
-//    Image {
-//        id: image
-
-//        anchors.centerIn: parent
-
-//        source: loadIndicator.imageSource
-
-//        //Animazioni eseguite in parallelo; la prima rende visibile l'indicatore con un fade in, la seconda
-//        //lo fa ruotare per l'eternità
-//        ParallelAnimation {
-//            running: loadIndicator.running
-
-//            NumberAnimation { target: image; property: "opacity"; from: 0.0; to: 1.0; duration: 200 }
-//            NumberAnimation { target: image; property: "rotation"; from: 0; to: 360; loops: Animation.Infinite; duration: 1200 }
-//        }
-//    }
-
-    AnimatedImage {
+    Image {
         id: image
 
         anchors.centerIn: parent
 
         source: loadIndicator.imageSource
 
-        height: 70 * scaleY
-        width: 70 * scaleX
+        //Animazioni eseguite in parallelo; la prima rende visibile l'indicatore con un fade in, la seconda
+        //lo fa ruotare per l'eternità
+        ParallelAnimation {
+            running: loadIndicator.running
 
+            NumberAnimation { target: image; property: "opacity"; from: 0.0; to: 1.0; duration: 200 }
+            NumberAnimation { target: image; property: "rotation"; from: 0; to: 360; loops: Animation.Infinite; duration: 1200 }
+        }
     }
+
+//    AnimatedImage {
+//        id: image
+
+//        anchors.centerIn: parent
+
+//        source: loadIndicator.imageSource
+
+//        height: 70 * scaleY
+//        width: 70 * scaleX
+
+//    }
 }

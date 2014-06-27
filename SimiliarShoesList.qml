@@ -149,6 +149,14 @@ Rectangle
         width: parent.width
 
 
+        //MouseArea che ha il solo scopo di avvisare quando avvengono touch events
+        MouseArea {
+            anchors.fill: parent
+            onClicked: container.touchEventOccurred()
+        }
+
+
+
         //Testo da mostrare al posto della lista quando è vuota (non sono state trovate scarpe simili per questa scarpa)
         Text {
             //La scritta è visibile solo la lista è vuota
@@ -189,13 +197,6 @@ Rectangle
             model: similiarShoesModel
 
             clip: true
-
-
-            //MouseArea che ha il solo scopo di avvisare quando avvengono touch events
-            MouseArea {
-                anchors.fill: parent
-                onClicked: container.touchEventOccurred()
-            }
 
 
             //Il delegate usa un component creato ad hoc
@@ -306,6 +307,8 @@ Rectangle
             position: "right"
             handleSize: 6
             listBackgroundColor: listContainer.color
+
+            visible: similarList.height > listContainer.height
 
             onBarClicked: {
                 //Rimetto l'opacità della barra al valore di default, qualora non fosse già così
