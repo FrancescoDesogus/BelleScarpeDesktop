@@ -324,6 +324,8 @@ Rectangle {
 
             //Inserisco come model l'array contenente le marche creato da C++
             listModel: filters.allBrandsModel
+
+            textColor: container.textColor
             backgroundColor: filtersColorBackground
             containerBackgroundColor: filtersColorBackground
 
@@ -346,6 +348,8 @@ Rectangle {
             height: 55 * scaleY
 
             listModel: filters.allCategoriesModel
+
+            textColor: container.textColor
             backgroundColor: filtersColorBackground
             containerBackgroundColor: filtersColorBackground
 
@@ -372,6 +376,8 @@ Rectangle {
             gridCellWidth: 76 * scaleX
 
             listModel: filters.allColorsModel
+
+            textColor: container.textColor
             backgroundColor: filtersColorBackground
             containerBackgroundColor: filtersColorBackground
 
@@ -398,41 +404,13 @@ Rectangle {
             gridCellWidth: 57 * scaleX
 
             listModel: filters.allSizesModel
+
+            textColor: container.textColor
             backgroundColor: filtersColorBackground
             containerBackgroundColor: filtersColorBackground
 
             onTouchEventOccurred: container.touchEventOccurred()
         }
-
-        //Combo box per il sesso
-//        FilterList {
-//            id: sexFilterList
-
-//            title: "Sesso"
-
-//            anchors.top : filterPanel.top
-//            anchors.topMargin: 15 * scaleY
-//            anchors.left: sizeFilterList.right
-//            anchors.leftMargin: 50 * scaleX
-
-//            width: 200 * scaleX
-//            height: 55 * scaleY
-
-//            listModel: ListModel {
-//                ListElement {
-//                    name: "Uomo"
-//                }
-
-//                ListElement {
-//                    name: "Donna"
-//                }
-//            }
-
-//            backgroundColor: filtersColorBackground
-//        containerBackgroundColor: filtersColorBackground
-
-//            onTouchEventOccurred: container.touchEventOccurred()
-//        }
 
         //Rettangolo contenente le checkbox per il sesso
         Rectangle {
@@ -561,6 +539,7 @@ Rectangle {
                     height: sexFilterList.checkboxHW * scaleY
 
                     anchors.left: donnaFilter.left
+                    anchors.leftMargin: 8 * scaleX
                     anchors.verticalCenter: donnaFilter.verticalCenter
                 }
 
@@ -1005,7 +984,12 @@ Rectangle {
                     //Segnalo che si sta eseguendo una ricerca, in modo tale da non permetterne altre fino a quando questa non finisce
                     container.isFilteringShoes = true;
 
+                    //Segnalo che è stata ricercata almeno una scarpa fino ad ora
                     hasAlreadyFilteredShoes = true;
+
+
+                    //Segnalo anche all'esterno che c'è stato un evento touch
+                    container.touchEventOccurred()
                 }
 
                 onPressed: {
@@ -1033,6 +1017,7 @@ Rectangle {
             width: filterPanel.width
             height: 150 * scaleY
 
+            //Colore per rendere invisibile il contenitore
             color: "#00000000"
 
 
@@ -1048,8 +1033,6 @@ Rectangle {
 
                 anchors.fill: parent
             }
-
-
 
 
             //Testo da mostrare al posto della lista quando questa è vuota per un motivo o per l'altro

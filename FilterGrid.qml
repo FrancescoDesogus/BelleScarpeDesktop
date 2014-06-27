@@ -3,7 +3,7 @@ import QtQuick 2.0
 
 /*
  * Questo component è usato per selezionare i filtri da applicare nella ricerca delle scarpe e rappresenta sostanzialmente
- * una combo box in cui si possono selezionare più elementi in contemporanea
+ * una combo box al cui interno è contenuto una GridView per selezionare gli elementi
  */
 Rectangle {
     id: container
@@ -17,6 +17,8 @@ Rectangle {
     //Array contenente gli elementi selezionati in un dato momento; viene recuperato quando il bottone per filtrare è premuto
     property var selectedElements: [];
 
+
+    property string textColor: "black"
     property string backgroundColor: "white"
     property string containerBackgroundColor: "grey"
 
@@ -163,7 +165,7 @@ Rectangle {
             anchors.fill: parent
             anchors.topMargin: verticalScrollBar.width
             anchors.bottomMargin: verticalScrollBar.width
-            anchors.leftMargin: verticalScrollBar.width
+            anchors.leftMargin: verticalScrollBar.width + 1 * scaleX
 
             clip: true
             model: listModel
@@ -305,7 +307,7 @@ Rectangle {
             delegate: colorGrid ? colorDelegate : sizeDelegate
 
             cellWidth: gridCellWidth + (2 * scaleX)
-            cellHeight: gridCellHeight + (2 * scaleX)
+            cellHeight: gridCellHeight + (2 * scaleY)
 
 
             //Quando inizia il movimento della lista da parte dell'utente devo bloccare il timer che fa scomparire la scrollbar
@@ -384,5 +386,10 @@ Rectangle {
         //Porto l'opacità a 0, causando l'animazione. Al termine dell'animazione, il container della lista diventa invisibile
         //del tutto grazie a "listContainer.visible = false" (occorre farlo al termine dell'animazione, altrimenti questa non appare)
         listContainer.opacity = 0;
+
+        //Se la lista è chiusa, riporto il colore allo stato originale
+        filterArrow.color = textColor
+        filterTitle.color = textColor
+        container.color = containerBackgroundColor
     }
 }

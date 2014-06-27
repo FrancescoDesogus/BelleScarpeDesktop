@@ -148,10 +148,6 @@ Rectangle
         height: 700 * scaleY
         width: parent.width
 
-        //Se non ci sono scarpe simili da mostrare, mostro un colore diverso
-        color: similarList.count > 0 ? "white" : "#DBDBDB"
-
-        radius: similarList.count > 0 ? 0 : 5
 
         //Testo da mostrare al posto della lista quando è vuota (non sono state trovate scarpe simili per questa scarpa)
         Text {
@@ -177,6 +173,7 @@ Rectangle
         ListView {
             id: similarList
 
+            //Contatore per capire quale è l'ultimo elemento della lista, in modo da non mettere la riga
             property int counter: 0;
 
 
@@ -184,11 +181,22 @@ Rectangle
             anchors.fill: listContainer
             anchors.rightMargin: verticalScrollBar.width + (1 * scaleX)
 
+            //Attivo lo scrolling della lista supera la larghezza del suo container
+            boundsBehavior: similarList.width < listContainer.width ? Flickable.StopAtBounds : Flickable.DragOverBounds
+
             //Il modello della lista, contenente i path delle immagini da mostrare, è preso da C++ ed è uguale a quello della lista
             //contenente le thumbnail
             model: similiarShoesModel
 
             clip: true
+
+
+            //MouseArea che ha il solo scopo di avvisare quando avvengono touch events
+            MouseArea {
+                anchors.fill: parent
+                onClicked: container.touchEventOccurred()
+            }
+
 
             //Il delegate usa un component creato ad hoc
             delegate: SimilarShoesDelegate {
