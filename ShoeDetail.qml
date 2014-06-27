@@ -14,11 +14,10 @@ Item
       Vai col vaneggio
       numberOfSizesPerLine: definisce il numero di taglie per singola linea (ad es 8 (da 39 a 46 compresi)
       numberOfSizeLines: mi dice invece quante linee di taglie saranno presenti, ad esempio se sono 8 o meno
-                        taglie la linea sarà 1, se sono da 8 a 16 tagli le linee diventano 2. Ottengo questo numero
-                        dividendo la dimensione della map contentente le teglie, per il numero di taglie per linea
-                        e arrotondando tutto sempre per eccesso
+                         taglie la linea sarà 1, se sono da 8 a 16 tagli le linee diventano 2. Ottengo questo numero
+                         dividendo la dimensione della map contentente le teglie, per il numero di taglie per linea
+                         e arrotondando tutto sempre per eccesso
     **/
-
     property int numberOfSizesPerLine: 8
     property int numeroDiLineeTaglia: Math.ceil(Object.keys(shoe.sizes).length / numberOfSizesPerLine)
 

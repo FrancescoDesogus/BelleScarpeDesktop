@@ -61,6 +61,9 @@ Rectangle {
 
                     property: "angle"
 
+                    easing.type: Easing.InOutQuart
+
+
                     from: 90
                     to: 0
                 }
@@ -73,6 +76,9 @@ Rectangle {
 
                     property: "scale"
 
+                    easing.type: Easing.InOutQuart
+
+
                     from: 0.5
                     to: 1
                 }
@@ -84,6 +90,9 @@ Rectangle {
                     duration: 1000
 
                     property: "opacity"
+
+                    easing.type: Easing.InOutQuart
+
 
                     from: 0.25
                     to: 1
@@ -113,6 +122,9 @@ Rectangle {
 
                     property: "angle"
 
+                    easing.type: Easing.InOutSine
+
+
                     from: 0
                     to: -90
                 }
@@ -124,6 +136,9 @@ Rectangle {
 
                     property: "scale"
 
+                    easing.type: Easing.InOutSine
+
+
                     from: 1
                     to: 0.85
                 }
@@ -134,6 +149,9 @@ Rectangle {
                     duration: 800
 
                     property: "opacity"
+
+                    easing.type: Easing.InOutSine
+
 
                     from: 1
                     to: 0.25

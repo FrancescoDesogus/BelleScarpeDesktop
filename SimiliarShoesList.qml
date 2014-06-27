@@ -181,8 +181,13 @@ Rectangle
         ListView {
             id: similarList
 
-            //Contatore per capire quale è l'ultimo elemento della lista, in modo da non mettere la riga
-            property int counter: 0;
+            //Dato che l'altezza data da similarList.height non rappresenta la vera altezza della lista calcolata in base
+            //al numero di elementi, la calcolo manualmente
+            property real actualHeight: similarList.count * (similarList.delegateHeight + similarList.spacing)
+
+            //Dimensioni degli item della lista
+            property real delegateWidth: similarList.width
+            property real delegateHeight: 170 * scaleY
 
 
             //La lista è grande quanto tutto il container
@@ -190,7 +195,7 @@ Rectangle
             anchors.rightMargin: verticalScrollBar.width + (1 * scaleX)
 
             //Attivo lo scrolling della lista supera la larghezza del suo container
-            boundsBehavior: similarList.width < listContainer.width ? Flickable.StopAtBounds : Flickable.DragOverBounds
+            boundsBehavior: actualHeight < listContainer.width ? Flickable.StopAtBounds : Flickable.DragOverBounds
 
             //Il modello della lista, contenente i path delle immagini da mostrare, è preso da C++ ed è uguale a quello della lista
             //contenente le thumbnail
@@ -203,8 +208,8 @@ Rectangle
             delegate: SimilarShoesDelegate {
                 id: suggestionContainer
 
-                height: 170 * scaleY
-                width: similarList.width
+                height: similarList.delegateHeight
+                width: similarList.delegateWidth
                 textFont: metroFont
                 color: container.backgroundColor
 
@@ -261,12 +266,6 @@ Rectangle
 
                 }
 
-                //Quando l'elemento della lista ha finito di caricare, controllo se è l'ultimo della lista; in tal caso
-                //nascondo il separatore che sta' sotto ogni entry della lista, altrimenti incremento il counter
-                Component.onCompleted: {
-                    suggestionContainer.separator.visible = (similarList.counter != (similarList.count - 1))
-                    similarList.counter++
-                }
 
                 //Se la lista diventa invisible (e quindi tutto il component), riporto al colore di default tutti gli elementi
                 //della lista; questo è per riportare al colore normale eventuali elementi clickati quando si cambia schermata
@@ -308,7 +307,8 @@ Rectangle
             handleSize: 6
             listBackgroundColor: listContainer.color
 
-            visible: similarList.height > listContainer.height
+            //La scrollbar è visibile se l'altezza della lista supera l'altezza del suo container
+            visible: similarList.actualHeight >= listContainer.height
 
             onBarClicked: {
                 //Rimetto l'opacità della barra al valore di default, qualora non fosse già così
