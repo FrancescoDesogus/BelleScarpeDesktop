@@ -776,7 +776,7 @@ Rectangle {
                     priceRangeSliderContainer.min = currentValue
 
                     //Infine setto il testo sopra il dot con il valore ottenuto
-                    leftPrice.text = currentValue
+                    leftPrice.text = currentValue + " €"
                 }
             }
 
@@ -807,7 +807,7 @@ Rectangle {
                      * arcani viene chiamato l'onXChanged del leftDot all'inizio con valori anomali che farebbero comparire
                      * il prezzo massimo invece che quello minimo */
                     Component.onCompleted:  {
-                        leftPrice.text = filters.priceRangeModel[0]
+                        leftPrice.text = filters.priceRangeModel[0] + " €"
 
                         //Salvo anche il valore minimo correntemente selezionato, perchè anche questo altrimenti risulta sfasato
                         priceRangeSliderContainer.min = filters.priceRangeModel[0]
@@ -870,7 +870,7 @@ Rectangle {
 
                     priceRangeSliderContainer.max = currentValue
 
-                    rightPrice.text = currentValue
+                    rightPrice.text = currentValue + " €"
                 }                
             }
 
@@ -893,7 +893,7 @@ Rectangle {
 
                     anchors.centerIn: rightPriceRectangle
                     //Il range dei prezzi min/max è passato da C++ sotto forma di array; il limite massimo è messo in seconda posizione
-                    text: filters.priceRangeModel[1]
+                    text: filters.priceRangeModel[1] + " €"
                     color: "white"
                 }
             }
