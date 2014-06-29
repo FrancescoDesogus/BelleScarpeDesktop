@@ -6,7 +6,6 @@
 #include <QVariant>
 #include <QDir>
 #include <QQmlContext>
-#include "dataobject.h"
 
 #include <serialreaderthread.h>
 #include <windowmanager.h>
@@ -24,9 +23,6 @@ int main(int argc, char *argv[])
 
 
 //    SerialReaderThread thread;
-
-//    QObject::connect(&thread, SIGNAL(codeArrived(QString)), &view, SLOT(loadNewShoeView(QString)));
-
 
 
 //    QObject::connect(&thread, SIGNAL(codeArrived(QString)), &view, SIGNAL(requestShoeData(QString)));

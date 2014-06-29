@@ -23,7 +23,6 @@ SOURCES += \
     shoe.cpp \
     shoedatabase.cpp \
     arduino.cpp \
-    dataobject.cpp \
     databaseinterface.cpp \
     shoefilterdata.cpp
 
@@ -33,7 +32,6 @@ HEADERS += \
     shoe.h \
     shoedatabase.h \
     arduino.h \
-    dataobject.h \
     databaseinterface.h \
     shoefilterdata.h
 

@@ -24,7 +24,7 @@
 
 #include <shoedatabase.h>
 #include <shoe.h>
-#include <dataobject.h>
+#include <serialreaderthread.h>
 #include <databaseinterface.h>
 #include <arduino.h>
 
@@ -54,13 +54,15 @@ WindowManager::WindowManager(QQuickView *parent) :
  */
 void WindowManager::setupScreen()
 {
-    //Chiamo il metodo interno che si occupa di creare il thread che recupera i dati delle scarpe in modo asincrono
+    //Chiamo rispettivamente il metodo interno che si occupa di creare il thread che recupera i dati delle scarpe in modo
+    //asincrono ed il metodo per creare il thread che gestisce la porta seriale dell'RFID reader (se è attaccato)
     this->setupDataThread();
+    this->setupRFIDThread();
+
 
     QQmlContext* rootContext = this->rootContext();
 
-
-    /* Aggiungo al contesto dell'engile qml una proprietà che corrisponde all'istanza di questa classe. In questo modo nei file qml
+    /* Aggiungo al contesto dell'engine qml una proprietà che corrisponde all'istanza di questa classe. In questo modo nei file qml
      * che si chiameranno sarà nota la proprietà "firstWindow", e si potranno chiamare i metodi definiti Q_INVOKABLE nell'header
      * della classe, oltre che i membri definiti con Q_PROPERTY (in questo caso però di questi non ce ne sono) */
     rootContext->setContextProperty("window", this);
@@ -105,10 +107,12 @@ void WindowManager::setupScreen()
         this->setGeometry(secondaryScreenGeometry);
     }
 
+
     /* Mando in esecuzione a tutto schermo; è importante farlo dopo l'eventuale switch di schermi, altrimenti la view diventa
      * fullscreen con dimensioni basate sul primo schermo; se ad esempio il primo schermo fosse più piccolo del secondo,
      * la view apparirebbe nel secondo schermo ma con le dimensioni del primo schermo invece che con quelle del secondo */
     this->showFullScreen();
+
 
     //Appena avviato carico una scarpa per provare, simulando l'arrivo di un codice RFID
     emit requestShoeData("asd");
@@ -190,6 +194,26 @@ void WindowManager::setupDataThread()
      * degli errori nella console ma non rovinando l'user experience) non è possibile caricare una scarpa; un'eventuale richiesta
      * di caricamento viene messa in coda fino a quando i dati dei filtri non sono recuperati */
     emit requestFilters();
+}
+
+/**
+ * @brief WindowManager::setupRFIDThread è un metodo chiamato da setupScreen() che si occupa di creare il thread che controlla
+ *        la porta seriale a cui è attaccato l'RFID reader in modo da avvisare quando viene letto un messaggio RFID
+ */
+void WindowManager::setupRFIDThread()
+{
+    //Creo l'istanza del thread
+    SerialReaderThread* serialReaderThread = new SerialReaderThread(this);
+
+    //Connetto l'evento della chiusura dell'applicazione con uno slot creato appositamente per gestire la chiusura del thread
+    QObject::connect(this, SIGNAL(destroyed()), serialReaderThread, SLOT(prepareToQuit()));
+
+    //Connetto il signal del thread che avvisa dell'arrivo di un codice RFID con il signal del main thread che si occupa
+    //di avvisare il thread della gestione dati in modo da recuperare la scarpa del codice
+    QObject::connect(serialReaderThread, SIGNAL(codeArrived(QString)), this, SIGNAL(requestShoeData(QString)));
+
+    //Terminati i preparativi, avvio il thread
+    serialReaderThread->start();
 }
 
 /**

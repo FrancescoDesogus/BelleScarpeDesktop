@@ -28,7 +28,11 @@ private:
 protected:
     virtual void run();
 
+public slots:
+    void prepareToQuit();
+
 signals:
+    //Signal che avvisa il main thread è che arrivato un codice RFID di una scarpa
     void codeArrived(QString code);
 
 };

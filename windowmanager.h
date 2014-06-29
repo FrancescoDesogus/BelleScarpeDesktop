@@ -35,6 +35,7 @@ private:
 
 
     void setupDataThread();
+    void setupRFIDThread();
 
 signals:
     //Signal per segnalare il thread del database che deve recuperare i filtri applicabili alle scarpe

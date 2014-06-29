@@ -174,6 +174,8 @@ Rectangle {
             anchors.bottomMargin: verticalScrollBar.width
             anchors.leftMargin: verticalScrollBar.width + 1 * scaleX
 
+            boundsBehavior: verticalScrollBar.visible == false ? Flickable.StopAtBounds : Flickable.DragOverBounds
+
             clip: true
             model: listModel
 
@@ -183,25 +185,38 @@ Rectangle {
                 Rectangle {
                    id: mainRectangle
 
-                   width: gridCellWidth
-                   height: gridCellHeight
-
                    //Booleano per indicare se l'elemento in questione è stato selezionato
                    property bool isSelected: false
 
-                   color: "white"
+                   width: gridCellWidth
+                   height: gridCellHeight
 
-                   Text {
-                       id: itemText
+                   radius: 2
 
-                       text: modelData
+                   color: getColor(modelData)
 
-                       font.family: metroFont.name
-                       font.pointSize: 5
-                       font.weight: Font.Normal
-                       font.letterSpacing: 1.2
-                       color: "Red"
-                   }
+                   //Funzione burda provvisoria per i colori
+                   function getColor(color)
+                   {
+                       switch(color)
+                       {
+                       case "Nero":
+                           return "black"
+                       case "Grigio":
+                           return "grey"
+                       case "Rosso":
+                           return "red"
+                       case "Bianco":
+                           return "white"
+                       case "Giallo":
+                           return "yellow"
+                       case "Blu":
+                           return "blue"
+                       case "Marrone":
+                           return "#805d2d"
+                       }
+                    }
+
 
                    //MouseArea per gestire la selezione dell'elemento per i filtri
                    MouseArea {
@@ -212,10 +227,10 @@ Rectangle {
                            if(!isSelected)
                            {
                                mainRectangle.border.color = "steelblue"
-                               mainRectangle.border.width = 2
+                               mainRectangle.border.width = 3
 
                                //Aggiungo l'elemento alla lista degli elementi selezionati per i filtri
-                               selectedElements.push(itemText.text)
+                               selectedElements.push(modelData)
 
                                //Segnalo che l'elemento è ora selezionato
                                isSelected = true
@@ -225,7 +240,7 @@ Rectangle {
                                mainRectangle.border.color = "transparent"
 
                                //Devo rimuovere l'elemento dalla lista degli elementi selezionati; recupero il suo indice nell'array
-                               var index = selectedElements.indexOf(itemText.text)
+                               var index = selectedElements.indexOf(modelData)
 
                                //Rimuovo l'elemento
                                selectedElements.splice(index, 1)

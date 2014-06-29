@@ -404,14 +404,13 @@ Rectangle {
         //Posiziono il player a destra della lista
         anchors {
             left: listBackground.right
-            leftMargin: 40 * scaleX
+            leftMargin: 18 * scaleX
             verticalCenter: parent.verticalCenter
         }
 
         //Per far si che non si vedano cose che non si dovrebbero vedere mentre il player carica, lo nascondo mettendo l'opacità
         //a 0 quando inizia a caricare e la rimetto a 1 quando finisce
         onLoadingChanged: {
-//            console.log("loadRequest.status: " + loadRequest.status)
             switch (loadRequest.status)
             {
             case WebView.LoadStartedStatus:
@@ -424,6 +423,13 @@ Rectangle {
             case WebView.LoadFailedStatus:
                 break
             }
+        }
+
+        //Dato che non c'è modo di intercettare gli input dell'iframe di youtube, ogni volta che la WebView diventa
+        //invisibile ricarico il video, in modo da bloccarlo in modo tarocco (anche se non è stato fatto partire)
+        onVisibleChanged: {
+            if(!visible)
+                youtubePlayer.reload()
         }
     }
 
