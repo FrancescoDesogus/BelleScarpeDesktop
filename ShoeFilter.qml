@@ -269,6 +269,11 @@ Rectangle {
                 rightSmoother.opacity = 0
             else if(!visible && !filteredList.atXEnd)
                 rightSmoother.opacity = Qt.binding(function() { return filteredList.atXEnd ? 0 : 1 })
+
+            //Inoltre faccio scomparire l'highlight della lista ogni volta che appare il flipable (in quanto se appare vuol
+            //dire che si sta avviando una transizione e l'highlight non si deve più vedere)
+            if(visible)
+                filteredList.highlightOpacity = 0
         }
 
         function createCopy(toCopy)
@@ -927,7 +932,6 @@ Rectangle {
 
             radius: 4
 
-
             anchors.top: filterPanel.top
             anchors.topMargin: 15 * scaleY
             anchors.left: priceRangeSliderContainer.right
@@ -1065,6 +1069,10 @@ Rectangle {
                 anchors.fill: listContainer
                 anchors.leftMargin: container.calculateListPosition()
 
+                //Proprietà che contiene l'opacity che l'highlight degli item della lista deve avere. Dato che non è possibile
+                //modificare l'opacità dell'highlight dall'esterno ed occorre farlo, è comodo avere una variabile ausiliaria
+                property real highlightOpacity: 0
+
                 /* La lista utilizza un model che proviene da C++ e coniene di volta in volta i risultati trovati; di conseguenza,
                  * questo model verrà cambiato da C++ all'occorenza. Per capire quando effettivamente il model è cambiato (essendo
                  * i dati presi in modo asincrono) utilizzo l'apposito signal "onModelChanged". Quando scatta, so che è stato
@@ -1115,6 +1123,46 @@ Rectangle {
 
                 clip: true
 
+                //Mettendo questo booleano su false faccio si che cambiando index l'highlight della lista non vada da solo
+                //con un'animazione lentissima sopra l'elemento che è ora currentIndex
+                highlightFollowsCurrentItem: false
+
+                //Highlight della lista, che appare quando si preme una scarpa e si stanno recuperando i suoi dati
+                highlight: Rectangle {
+                    id: highlight
+
+                    width: shoeListElementWidth + 1 * scaleX
+                    height: shoeListElementHeight + 1 * scaleY
+
+                    //Colore per rendere il rettangolo invisibile, in modo che si veda solo il bordo
+                    color: "#00000000"
+
+                    border.color: "black"
+                    border.width: 2.5 * scaleX
+
+                    radius: 2
+
+                    smooth: true
+
+                    //Associo l'opacità dell'highlight ad una variabile interna alla lista, in modo da poter decidere
+                    //quando far comparire e scomparire l'highlight (che di fatto è sempre "visible == true")
+                    opacity: filteredList.highlightOpacity
+
+                    //Imposto che il rettangolo venga posizionato nelle stesse coordinate dell'elemento attualmente selezionato,
+                    //ma con coordinata z maggiore per mostrarlo sopra
+                    y: filteredList.currentItem.y
+                    x: filteredList.currentItem.x
+                    z: filteredList.currentItem.z + 1
+
+                    Behavior on opacity {
+                        NumberAnimation {
+                            duration: 150
+                            easing.type: Easing.InOutSine
+                        }
+                    }
+                }
+
+
                 //Il delegate usa un component creato ad hoc
                 delegate: SimilarShoesDelegate {
                     id: filteredContainer
@@ -1149,6 +1197,9 @@ Rectangle {
                                 container.needShoeIntoContext(modelData.id, shoeSelectedFlipable)
 
                                 filteredList.currentIndex = index
+
+                                //Cambio l'opacità dell'highlight per farlo comparire dove premuto
+                                filteredList.highlightOpacity = 1
                             }
                         }
                     }
@@ -1256,7 +1307,6 @@ Rectangle {
         categoryFilterList.closeList();
         colorFilterList.closeList();
         sizeFilterList.closeList();
-//        sexFilterList.closeList();
     }
 
 

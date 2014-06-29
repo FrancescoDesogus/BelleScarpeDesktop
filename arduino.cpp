@@ -19,24 +19,40 @@ const QString Arduino::MOVING_MESSAGE_STOP_MOTION_PREFIX = "|";
 //Costante che contiene il messaggio da inviare alla porta seriale per spegnere tutte le luci
 const QString Arduino::TURN_OFF_LIGHTS_CODE = Arduino::SINGLE_LIGHTS_PREFIX + "o";
 
+//Tempo impiegato per le luci per spegnersi, in millisecondi
+const int Arduino::TURN_OFF_TIME = 5000;
+
 
 
 /**
- * @brief Arduino::Arduino costruttore della classe; setta la porta seriale da usare e scrive nel prompt dei comandi le impostazioni da usare
- *        usare per la porta; senza queste informazioni non funzionerebbe corettamente
+ * @brief Arduino::Arduino costruttore della classe; setta la porta seriale da usare e scrive nel prompt dei comandi le
+ *        impostazioni da usare usare per la porta; senza queste informazioni non funzionerebbe corettamente; crea inoltre
+ *        l'istanza del timer da usare per spegnere le luci dopo un tot di tempo
  */
 Arduino::Arduino()
 {
     serialPort.setPort(QSerialPortInfo(Arduino::PORT_NAME));
 
+    //Avvio nel prompt dei comandi di windows questo comando; senza non funzionerebbe niente, anche se vengono settati
+    //gli stessi parametri nell'oggetto serialPort
     system("mode com6: BAUD=9600 PARITY=n DATA=8 STOP=1 to=off dtr=off rts=off");
+
+
+    //Creo l'istanza del timer per spegnere le luci, impostandone la durata e dichiarando che il timer non si ripete da solo
+    arduinoTurnOffTimer = new QTimer(this);
+    arduinoTurnOffTimer->setInterval(Arduino::TURN_OFF_TIME);
+    arduinoTurnOffTimer->setSingleShot(true);
+
+    //Connetto il signal che indica il termine del timer con lo slot della classe Arduino per spegnere le luci
+    QObject::connect(arduinoTurnOffTimer, SIGNAL(timeout()), this, SLOT(turnOffAllLights()));
 }
 
 
 /**
- * @brief turnOnLights manda il messaggio specificato ad arduino; da usare per acccendere le luci. Mandare ad esempio un messaggio come "ABC" farà
- *        accendere le luci relative ad ABC.
- *        Uso del metodo: prima di chiamare il metodo bisogna formare una stringa contenente tutte le luci da accendere e poi mandare il messaggio.
+ * @brief turnOnLights manda il messaggio specificato ad arduino; da usare per acccendere le luci. Mandare ad esempio un messaggio come
+ *        "ABC" fa accendere le luci relative ad ABC.
+ *        Uso del metodo: prima di chiamare il metodo bisogna formare una stringa contenente tutte le luci da accendere e poi mandare
+ *        il messaggio.
  *
  *        Ad esempio:
  *              QString lights = shoe1.getLightCoordinate() + shoe2.getLightCoordinate() + shoe3.getLightCoordinate();
@@ -71,9 +87,14 @@ bool Arduino::turnOnLights(QString data)
         //Scrivo nella porta il comando, passando la sua lunghezza per indicare il numero di byte che deve scrivere
         numBytesWritten  = serialPort.write(command, strlen(command));
 
-        //Se il numero di byte scrito è maggiore di 0, savo nel booleano che  andato tutto bene
+        //Se il numero di byte scrito è maggiore di 0, salvo nel booleano che  andato tutto bene e avvio (o riavvio, qualora
+        //fosse già attivo) il timer per far spegnere le luci
         if(numBytesWritten > 0)
+        {
             result = true;
+
+            arduinoTurnOffTimer->start();
+        }
 
         //A prescindere dall'esito dell'invio, chiudo la porta seriale
         serialPort.close();
@@ -83,7 +104,7 @@ bool Arduino::turnOnLights(QString data)
 }
 
 /**
- * @brief Arduino::turnOffAllLights spegne tutte le luci
+ * @brief Arduino::turnOffAllLights è uno slot chiamato al termine del timer; il suo scopo è spegnere tutte le luci
  *
  * @return true se sono state spente correttamente, false altrimenti
  */

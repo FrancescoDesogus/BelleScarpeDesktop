@@ -18,7 +18,7 @@
 #include <QQmlEngine>
 
 #include <QQmlComponent>
-#include <Qtimer>
+#include <QTimer>
 #include <QQuickItem>
 
 
@@ -26,6 +26,7 @@
 #include <shoe.h>
 #include <dataobject.h>
 #include <databaseinterface.h>
+#include <arduino.h>
 
 #include <vector>
 #include <QVariant>
@@ -56,7 +57,6 @@ void WindowManager::setupScreen()
     //Chiamo il metodo interno che si occupa di creare il thread che recupera i dati delle scarpe in modo asincrono
     this->setupDataThread();
 
-
     QQmlContext* rootContext = this->rootContext();
 
 
@@ -81,17 +81,6 @@ void WindowManager::setupScreen()
      * Come risoluzione target si usa 1920x1080 */
     rootContext->setContextProperty("scaleX", (qreal) mainScreenSize.width() / TARGET_RESOLUTION_WIDTH);
     rootContext->setContextProperty("scaleY", (qreal) mainScreenSize.height() / TARGET_RESOLUTION_HEIGHT);
-
-
-//    /* All'interno della parte QML (nel file ShoeFilter) c'è la lista dei risultati delle ricerche di scarpe; questa lista
-//     * utilizza un model passato da C++ in modo da avere sempre i dati aggiornati. Inizialmente però il model non è presente, in
-//     * quanto chiaramente non è stata ancora fatta una ricerca; questo genera un messaggio di errore nella console, che si può
-//     * evitare settando un model iniziale vuoto che è condiviso da tuttte le view dell'applicazione.
-//     * Quindi creo il model vuoto... */
-//    QList<QObject*> filteredShoesModel;
-
-//    //...e lo inserisco nel context globale di tutte le view; il model verrà sovrascritto qunado servirà
-//    rootContext->setContextProperty("filteredShoesModel", QVariant::fromValue(filteredShoesModel));
 
 
     //Carico il file base
@@ -141,6 +130,11 @@ void WindowManager::setupDataThread()
      * DatabaseInterface vivrà all'interno di quel thread. D'ora in avanti, se connetto un signal del thread principale
      * ad uno slot dell'oggetto databaseInterface, quest slot verrà eseguito nell'altro thread */
     databaseInterface.moveToThread(dataThread);
+
+    //Connetto il signal che dichiara l'inizio dell'esecuzione dle thread con lo slot dell'interfaccia che si occupa di
+    //inizializzare il database. In questo modo mi assicuro che la connessione con il db avvenga nel nuovo thread
+    QObject::connect(dataThread, SIGNAL(started()), &databaseInterface, SLOT(initDatabase()));
+
 
     //Connetto la chiusura dell'applicazione con lo stop del thread, in modo che si blocchi se l'applicazione si chiude
     QObject::connect(this, SIGNAL(destroyed()), dataThread, SLOT(quit()));
@@ -337,6 +331,11 @@ void WindowManager::loadNewShoeView(Shoe *shoe, bool isFromRFID)
     context->setContextProperty("filteredShoesModel", QVariant::fromValue(filteredShoesModel));
 
 
+    //Se la scarpa arriva da un RFID vuol dire che si sta creando un nuovo set di view, e quello precedente (se c'era) viene
+    //eliminato. Di conseguenza svuoto l'array che contiene i riferimenti ai context delle view, in modo da averlo pulito
+    if(isFromRFID)
+        qmlContextList.clear();
+
     //Aggiungo il context appena creato allo stack di context; serve per avere sempre un riferimento al context della view
     //attualmente attiva, altrimenti è impossibile recuperarlo
     qmlContextList.push_back(context);
@@ -388,9 +387,25 @@ void WindowManager::showFilteredShoes(vector<Shoe*> filteredShoes)
      * definite Q_PROPERTY nella classe Shoe */
     QList<QObject*> filteredShoesModel;
 
+    QString arduinoLights;
+
     //Inserisco nel model tutte le scarpe
     for(int i = 0; i < filteredShoes.size(); i++)
-       filteredShoesModel.append(filteredShoes[i]);
+    {
+        filteredShoesModel.append(filteredShoes[i]);
+
+        //Ne approfitto poi per recuperare il carattere contenente la luce corrispondente alla scarpa, in modo da accenderla
+        //in seguito con l'Arduino
+        arduinoLights.append(filteredShoes[i]->getArduinoLight());
+    }
+
+    //Accendo le luci di tutte le scarpe trovate; se non è possibile accenderle, non vengono mostrati errori (viene restituito false).
+    //Se le luci sono state accese, parte un timer che le spegne dopo un tot di tempo
+    arduino.turnOnLights(arduinoLights);
+
+
+    if(qmlContextList.size() == 0)
+        qDebug() << "qmlContextList size == 0!";
 
     //Recupero l'ultimo context presente nella lista dei context delle ShoeView; l'ultimo context è quello relativo alla view
     //attualmente visualizzata, che è quella che stava attendendo la fine della ricerca di scarpe
@@ -409,6 +424,11 @@ void WindowManager::showFilteredShoes(vector<Shoe*> filteredShoes)
  */
 void WindowManager::movingToPreviousView()
 {
-    //Rimuovo l'ultimo context presente nello stack
-    qmlContextList.pop_back();
+    /* Rimuovo l'ultimo context presente nello stack, ma solo se così facendo rimane almeno un elemento nell'array. Infatti
+     * premendo molte volte il tasto "back" di fila fino ad arrivare alla prima ShoeView presente può causare lo svuotamento
+     * dell'array qmlContextList, che farebbe perdere il riferimento della prima view. Questo causerebbe crash quando
+     * poi si cerca di prendere il context di quella view (quando si devono mostrare i risultati di una ricerca). In sostanza,
+     * bisogna far si che l'array contenga sempre il primo context della lista */
+    if(qmlContextList.size() > 1)
+        qmlContextList.pop_back();
 }

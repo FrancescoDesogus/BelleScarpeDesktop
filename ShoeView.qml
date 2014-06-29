@@ -33,6 +33,13 @@ Rectangle {
      * lo stesso si potrebbe interagire comunque) */
     property bool isClickAllowed: true
 
+    /* Booleano che indica se è possibile tornare indietro dalla ShoeView attuale a quella precedente (di default si può).
+     * Questo booleano diventa false durante le transizioni "in avanti", cioè dalla ShoeView attuale ad una nuova, mentre in tutti
+     * gli altri momenti è true. In questo modo è possibile tornare indietro velocemente di molte view premendo ripetutamente
+     * il bottone, ma impedisce di tornare indietro durante le transizioni in avanti (in cui tornare indietro
+     * potrebbe dare problemi) */
+    property bool isGoingBackAllowed: true
+
 
     /**************************************************************
      * Signal emessi verso l'esterno
@@ -64,7 +71,7 @@ Rectangle {
 
 
     //Signal per indicare l'inizio/fine dei vari tipi di transizione (dovuta a RFID o dovuta a input utente diretto).
-    //Questi signal sono emessi dall'esterno (dal ViewManager) e sono "ascoltati" dentro ShoeView
+    //Questi signal sono emessi dall'esterno (dal ViewManager o da FlipableSurface) e sono "ascoltati" dentro ShoeView
     signal transitionFromRFIDStarted()
     signal transitionFromRFIDEnded()
     signal transitionStarted()
@@ -197,13 +204,15 @@ Rectangle {
             //Disabilito i click mentre si aspetta
             container.isClickAllowed = false;
 
+            //Dato che si sta facendo una transizione "in avanti", cioè verso una nuova ShoeView, disabilito anche la possibilità
+            //di tornare indietro alla schermata precedente. Il booelano tornerà su true al termine della transizione
+            container.isGoingBackAllowed = false;
+
             //Emitto il signal che chiamerà il rispettivo slot di C++ che si occuperà di caricare la scarpa,
             //creare la nuova view e attivare l'animazione del flipable inserendo la nuova view come "back" della FlipableSurface
             container.needShoeIntoContext(id)
         }
     }
-
-
 
 
     Image {
@@ -215,7 +224,9 @@ Rectangle {
         //Il bottone è visibile solo se non è disabilitato
         visible: isDisabled ? false : true
 
-        source: "qrc:///qml/back_enabled_mini.png"
+        //Se si sta effettuando una ricerca non è possibile tornare indietro; di conseguenza mostro il bottone disabilitato
+        //se si sta facendo una ricerca, altrimenti mostro quello normale
+        source: filterPanel.isFilteringShoes ? "qrc:///qml/back_disabled_mini.png" : "qrc:///qml/back_enabled_mini.png"
 
         width: 65 * scaleX
         height: 65 * scaleY
@@ -239,32 +250,40 @@ Rectangle {
 
             hoverEnabled: true
 
-            onPressed: {
-                container.touchEventOccurred()
-
-                if(!backButton.isDisabled)
-                    backButton.source =  "qrc:///qml/back_pressed_mini.png"
-            }
-
             onClicked: {
                 container.touchEventOccurred()
 
-                if(!backButton.isDisabled)
+                /* E' possibile tornare indietro solo se l'apposito booleano lo consente e se non c'è una ricerca in atto nel
+                 * pannello dei filtri. Riguardo il primo booleano, è true sempre eccetto che durante le transizioni "in avanti",
+                 * cioè verso una nuova ShoeView (dato che tornare indietro mentre si sta andando avanti può far casini).
+                 * Riguardo il secondo booleano, non è ammesso tornare indietro durante una ricerca in quanto i risultati, essendo
+                 * sempre messi nel context della ShoeView visibile al momento in cui arrivano i risultati, verrebbero mostrati
+                 * nella view precedente; dato che non c'è modo di bloccare la ricerca se non bloccando il thread che la esegue
+                 * (e non è buona cosa), è meglio bloccare del tutto la possibilità di tornare indietro fino a quando non
+                 * arrivano i risultati */
+                if(container.isGoingBackAllowed && !filterPanel.isFilteringShoes)
                     container.goBack()
             }
 
+            onPressed: {
+                container.touchEventOccurred()
+
+                if(container.isGoingBackAllowed && !filterPanel.isFilteringShoes)
+                    backButton.source =  "qrc:///qml/back_pressed_mini.png"
+            }
+
             onReleased: {
-                if(!backButton.isDisabled)
+                if(container.isGoingBackAllowed && !filterPanel.isFilteringShoes)
                     backButton.source = "qrc:///qml/back_enabled_mini.png"
             }
 
             onEntered: {
-                if(!backButton.isDisabled)
+                if(container.isGoingBackAllowed && !filterPanel.isFilteringShoes)
                     backButton.source = "qrc:///qml/back_disabled_mini.png"
             }
 
             onExited: {
-                if(!backButton.isDisabled)
+                if(container.isGoingBackAllowed && !filterPanel.isFilteringShoes)
                     backButton.source = "qrc:///qml/back_enabled_mini.png"
             }
         }
@@ -868,8 +887,8 @@ Rectangle {
         //Rettangolo per scuro per il background, riciclato dalla ShoeView
         backgroundRectangle: blackBackgroundScreen
 
-        //Fisso il pannello in basso al centro dello schermo
-        anchors.bottom: parent.bottom
+        //Posiziono il pannello al centro e appena sotto lo schermo in modo da non essere visibile
+        y: container.height + filterPanel.draggingRectangleHeight
         anchors.horizontalCenter: parent.horizontalCenter
 
 
@@ -881,12 +900,13 @@ Rectangle {
         onNeedShoeIntoContext: {
             flipableSurface = shoeSelectedFlipable
 
-            container.needShoeIntoContext(id)
-
             blackBackgroundScreen.state = "visibleForTransition"
             blackBackgroundScreen.loadIndicator.running = true
 
             container.isClickAllowed = false;
+            container.isGoingBackAllowed = false
+
+            container.needShoeIntoContext(id)
         }
 
         //Quando viene emesso il signal che indica che bisogna filtrare le scarpe, devo propagarlo verso l'esterno
@@ -1049,6 +1069,9 @@ Rectangle {
         //rendo false il booleano apposito
         container.isClickAllowed = false;
 
+        //Blocco anche la possibilità di tornare indietro alla view precedente
+        container.isGoingBackAllowed = false
+
         //Quando inizia l'animazione, rimuovo il feedback di caricamento, ovvero lo sfondo scuro...
         blackBackgroundScreen.state = "invisibleForTransition"
 
@@ -1060,6 +1083,9 @@ Rectangle {
     onTransitionFromRFIDEnded: {
         //Riabilito i click utente
         container.isClickAllowed = true;
+
+        //Riabilito la possibilità di tornare indietro alla view precedente
+        container.isGoingBackAllowed = true
 
         //Faccio comparire il pannello dei filtri
         filterPanel.state = "visible"    
@@ -1079,6 +1105,9 @@ Rectangle {
     onTransitionEnded: {
         //Riabilito i click utente
         container.isClickAllowed = true;
+
+        //Stabilisco che è possibile tornare indietro alla schermata precedente
+        container.isGoingBackAllowed = true
 
         //Se il pannello dei filtri non era aperto, lo faccio ricomparire da sotto lo schermo
         if(!filterPanel.isOpen)

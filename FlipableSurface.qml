@@ -306,8 +306,10 @@ Rectangle {
 
                     frontShoeView.visible = false
 
-                    //Emitto il signal che indica alla ShoeView che è apparsa che è finita la transizione
+                    //Emitto i signal rispettivamente alla ShoeView che è apparsa e a quella che è scomparsa che indicano
+                    //alla ShoeView che è finita la transizione
                     back.transitionEnded()
+                    frontShoeView.transitionEnded();
                 }
             }
         },
@@ -437,8 +439,10 @@ Rectangle {
                     //sarebbe scomparso
                     flipable.visible = false
 
-                    //Emitto il signal che indica alla ShoeView che è apparsa che è finita la transizione
+                    //Emitto i signal rispettivamente alla ShoeView che è apparsa e a quella che è scomparsa che indicano
+                    //alla ShoeView che è finita la transizione
                     frontShoeView.transitionEnded()
+                    back.transitionEnded()
                 }
             }
         }

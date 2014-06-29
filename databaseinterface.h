@@ -43,11 +43,12 @@ signals:
     void filterDataLoaded(std::vector<Shoe*> filteredShoes);
 
 public slots:
+    void initDatabase();
+
     void loadFilters();
     void loadShoeData(int id);
     void loadShoeData(QString RFIDcode);
     void loadFilterData(QVariant brandList, QVariant categoryList, QVariant colorList, QVariant sizeList, QVariant sexList, int minPrice, int maxPrice);
-
 };
 
 #endif // DATABASEINTERFACE_H

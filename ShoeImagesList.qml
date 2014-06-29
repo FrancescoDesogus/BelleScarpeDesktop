@@ -199,10 +199,6 @@ Rectangle {
                                 //Cambio l'indice della lista; automaticamente verrà cambiata anche la mainImage
                                 thumbnailList.currentIndex = index
 
-                                //Riavvio il timer che scorre da solo la lista delle thumbnail, in modo da non rompere le palle
-                                //all'utente che sta premendo sulla lista
-//                                thumbnailMoverTimer.restart()
-
                                 /* Se l'elemento selezionato non è un video, riavvio il timer che scorre da solo la lista,
                                  * in modo da non rompere le palle all'utente che sta premendo sulla lista; se si tratta
                                  * di un video, il timer viene blocato */
@@ -415,6 +411,7 @@ Rectangle {
         //Per far si che non si vedano cose che non si dovrebbero vedere mentre il player carica, lo nascondo mettendo l'opacità
         //a 0 quando inizia a caricare e la rimetto a 1 quando finisce
         onLoadingChanged: {
+//            console.log("loadRequest.status: " + loadRequest.status)
             switch (loadRequest.status)
             {
             case WebView.LoadStartedStatus:

@@ -29,7 +29,7 @@ class Shoe : public QObject
 
 public:
     //Costruttore
-    explicit Shoe(int id, const QString& brand, const QString& model, const QString& color, const QString& sex, float price, const QString& category, const QVariantMap& sizesAndQuantities, const QString& mediaPath, const QString& RFIDcode);
+    explicit Shoe(int id, const QString& brand, const QString& model, const QString& color, const QString& sex, float price, const QString& category, const QVariantMap& sizesAndQuantities, const QString& mediaPath, const QString& RFIDcode, const QString& arduinoLight);
 
     //Setter
     void setId(int id);
@@ -43,6 +43,7 @@ public:
     void setMediaPath(const QString& mediaPath);
     void setRFIDcode(const QString& RFIDcode);
     void setThumbnailPath(const QString& thumbnailPath);
+    void setArduinoLight(const QString& thumbnailPath);
     void setSimilarShoes(const std::vector<Shoe*>& similarShoes);
 
 
@@ -58,6 +59,7 @@ public:
     const QString& getMediaPath();
     const QString& getRFIDcode();
     const QString& getThumbnailPath();
+    const QString& getArduinoLight();
     const std::vector<Shoe*>& getSimilarShoes();
 
     void toString();
@@ -75,6 +77,7 @@ private:
     QString mediaPath;
     QString RFIDcode;
     QString thumbnailPath;
+    QString arduinoLight;
     std::vector<Shoe*> similarShoes; //Array contenente le scarpe simili; può essere vuoto se l'istanza della scarpa non è quella principale della schermata
 
 signals:

@@ -5,7 +5,9 @@
 #include <ShoeDatabase.h>
 #include <databaseinterface.h>
 #include <shoefilterdata.h>
+#include <arduino.h>
 #include <QQmlComponent>
+#include <QTimer>
 
 class WindowManager : public QQuickView
 {
@@ -24,9 +26,13 @@ private:
     //Oggetto che funge da interfaccia con il database; è usato in un thread secondario in modo da prendere i dati in modo asincrono
     DatabaseInterface databaseInterface;
 
+    //Oggetto che si occupadi mandare messaggi all'Arduino per accedere le luci delle scarpe filtrate
+    Arduino arduino;
+
     //Lista dei context QML delle ShoeView; serve per tener traccia del context della view attualmente visibile, tenendo conto
     //che si può tornare indietro ad una ShoeView precedente
     std::vector<QQmlContext*> qmlContextList;
+
 
     void setupDataThread();
 

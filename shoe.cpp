@@ -47,7 +47,7 @@ using namespace std;
  *
  *
  */
-Shoe::Shoe(int id, const QString& brand, const QString& model, const QString& color, const QString& sex, float price, const QString& category, const QVariantMap& sizesAndQuantities, const QString& mediaPath, const QString& RFIDcode)
+Shoe::Shoe(int id, const QString& brand, const QString& model, const QString& color, const QString& sex, float price, const QString& category, const QVariantMap& sizesAndQuantities, const QString& mediaPath, const QString& RFIDcode, const QString& arduinoLight)
 {
     this->setId(id);
     this->setBrand(brand);
@@ -59,6 +59,7 @@ Shoe::Shoe(int id, const QString& brand, const QString& model, const QString& co
     this->setSizesAndQuantities(sizesAndQuantities);
     this->setMediaPath(mediaPath);
     this->setRFIDcode(RFIDcode);
+    this->setArduinoLight(arduinoLight);
 }
 
 
@@ -116,6 +117,11 @@ void Shoe::setRFIDcode(const QString& RFIDcode)
 void Shoe::setThumbnailPath(const QString& thumbnailPath)
 {
     this->thumbnailPath = thumbnailPath;
+}
+
+void Shoe::setArduinoLight(const QString& arduinoLight)
+{
+    this->arduinoLight = arduinoLight;
 }
 
 void Shoe::setSimilarShoes(const vector<Shoe*>& similarShoes)
@@ -179,6 +185,11 @@ const QString &Shoe::getRFIDcode()
 const QString &Shoe::getThumbnailPath()
 {
     return this->thumbnailPath;
+}
+
+const QString &Shoe::getArduinoLight()
+{
+    return this->arduinoLight;
 }
 
 const vector<Shoe*> &Shoe::getSimilarShoes()

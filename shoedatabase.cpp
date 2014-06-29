@@ -37,6 +37,7 @@ const QString ShoeDatabase::SHOE_CATEGORY_COLUMN = "categoria";
 const QString ShoeDatabase::SHOE_PRICE_COLUMN = "prezzo";
 const QString ShoeDatabase::SHOE_MEDIA_COLUMN = "media";
 const QString ShoeDatabase::SHOE_RFID_CODE_COLUMN = "rfid_code";
+const QString ShoeDatabase::SHOE_ARDUINO_LIGHT_COLUMN = "arduino_light";
 
 
 //Posizioni delle colonne della tabella delle scarpe
@@ -49,6 +50,7 @@ const int ShoeDatabase::SHOE_CATEGORY_COLUMN_POSITION = 5;
 const int ShoeDatabase::SHOE_PRICE_COLUMN_POSITION = 6;
 const int ShoeDatabase::SHOE_MEDIA_COLUMN_POSITION = 7;
 const int ShoeDatabase::SHOE_RFID_CODE_COLUMN_POSITION = 8;
+const int ShoeDatabase::SHOE_ARDUINO_LIGHT_COLUMN_POSITION = 9;
 
 
 
@@ -64,10 +66,17 @@ const int ShoeDatabase::SIZE_SIZE_COLUMN_POSITION = 1;
 const int ShoeDatabase::SIZE_QUANTITY_COLUMN_POSITION = 2;
 
 
-/**
- * @brief ShoeDatabase::ShoeDatabase costruttore; istanzia il database
- */
 ShoeDatabase::ShoeDatabase()
+{
+
+}
+
+/**
+ * @brief ShoeDatabase::init è un metodo che si occupa di inizializzare il daabase, creandone la connessione. Deve essere chiamato
+ *        nel thread in cui il database risiede; per come Qt gestisce le cose, la connessione di un database non può essere
+ *        condivisa da più thread
+ */
+void ShoeDatabase::init()
 {
     //Setup del database
     db = QSqlDatabase::addDatabase("QMYSQL");
@@ -191,6 +200,7 @@ Shoe* ShoeDatabase::getShoe(QString queryString)
         float price = query.value(ShoeDatabase::SHOE_PRICE_COLUMN_POSITION).toFloat();
         QString mediaPath = query.value(ShoeDatabase::SHOE_MEDIA_COLUMN_POSITION).toString();
         QString RFIDcode = query.value(ShoeDatabase::SHOE_RFID_CODE_COLUMN_POSITION).toString();
+        QString arduinoLight = query.value(ShoeDatabase::SHOE_ARDUINO_LIGHT_COLUMN_POSITION).toString();
 
 
 
@@ -222,7 +232,7 @@ Shoe* ShoeDatabase::getShoe(QString queryString)
 
 
         //Ora che ho tutti i dati, creo l'oggetto Shoe...
-        Shoe* shoe = new Shoe(shoeId, brand, model, color, sex, price, category, sizesAndQuantities, mediaPath, RFIDcode);
+        Shoe* shoe = new Shoe(shoeId, brand, model, color, sex, price, category, sizesAndQuantities, mediaPath, RFIDcode, arduinoLight);
 
 
 //        qDebug() << "getShoe, second thread: " << QThread::currentThreadId();
@@ -290,13 +300,14 @@ vector<Shoe*> ShoeDatabase::getSimiliarShoes(Shoe *shoeParam)
             float price = query.value(ShoeDatabase::SHOE_PRICE_COLUMN_POSITION).toFloat();
             QString mediaPath = query.value(ShoeDatabase::SHOE_MEDIA_COLUMN_POSITION).toString();
             QString RFIDcode = query.value(ShoeDatabase::SHOE_RFID_CODE_COLUMN_POSITION).toString();
+            QString arduinoLight = query.value(ShoeDatabase::SHOE_ARDUINO_LIGHT_COLUMN_POSITION).toString();
 
 
             //Array vuoto da inserire nel costruttore; è vuoto perchè per visualizzare le scarpe simili non importa sapere le taglie
             QVariantMap sizesAndQuantities;
 
             //Creo la nuova scarpa
-            Shoe *shoe = new Shoe(id, brand, model, color, sex, price, category, sizesAndQuantities, mediaPath, RFIDcode);
+            Shoe *shoe = new Shoe(id, brand, model, color, sex, price, category, sizesAndQuantities, mediaPath, RFIDcode, arduinoLight);
 
 
             //Dato che le scarpe consigliate hanno una thumbnail, devo settare il path all'immagine per ogni scarpa. Prendo
@@ -637,12 +648,13 @@ vector<Shoe*> ShoeDatabase::getFilteredShoes(const QStringList& brandList, const
             float price = query.value(ShoeDatabase::SHOE_PRICE_COLUMN_POSITION).toFloat();
             QString mediaPath = query.value(ShoeDatabase::SHOE_MEDIA_COLUMN_POSITION).toString();
             QString RFIDcode = query.value(ShoeDatabase::SHOE_RFID_CODE_COLUMN_POSITION).toString();
+            QString arduinoLight = query.value(ShoeDatabase::SHOE_ARDUINO_LIGHT_COLUMN_POSITION).toString();
 
 
             //Array vuoto da inserire nel costruttore; è vuoto perchè per visualizzare le scarpe simili non importa sapere le taglie
             QVariantMap sizesAndQuantities;
 
-            Shoe *shoe = new Shoe(id, brand, model, color, sex, price, category, sizesAndQuantities, mediaPath, RFIDcode);
+            Shoe *shoe = new Shoe(id, brand, model, color, sex, price, category, sizesAndQuantities, mediaPath, RFIDcode, arduinoLight);
 
 
             //Dato che le scarpe consigliate hanno una thumbnail, devo settare il path all'immagine per ogni scarpa. Prendo
@@ -669,7 +681,7 @@ vector<Shoe*> ShoeDatabase::getFilteredShoes(const QStringList& brandList, const
     close();
 
 ////////////
-    QThread::currentThread()->sleep(3);
+    QThread::currentThread()->sleep(1);
 
     return shoeList;
 }

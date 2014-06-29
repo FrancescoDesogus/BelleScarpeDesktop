@@ -17,6 +17,8 @@ class ShoeDatabase : public QObject
 public:
     ShoeDatabase();
 
+    void init();
+
     Shoe* getShoeFromId(int shoeId);
     Shoe* getShoeFromId(QString RFIDcode);
     std::vector<Shoe*> getSimiliarShoes(Shoe *shoeParam);
@@ -51,6 +53,7 @@ private:
     static const QString SHOE_PRICE_COLUMN;
     static const QString SHOE_MEDIA_COLUMN;
     static const QString SHOE_RFID_CODE_COLUMN;
+    static const QString SHOE_ARDUINO_LIGHT_COLUMN;
 
     static const int SHOE_ID_COLUMN_POSITION;
     static const int SHOE_BRAND_COLUMN_POSITION;
@@ -61,6 +64,7 @@ private:
     static const int SHOE_PRICE_COLUMN_POSITION;
     static const int SHOE_MEDIA_COLUMN_POSITION;
     static const int SHOE_RFID_CODE_COLUMN_POSITION;
+    static const int SHOE_ARDUINO_LIGHT_COLUMN_POSITION;
 
 
     static const QString SIZE_ID_COLUMN;

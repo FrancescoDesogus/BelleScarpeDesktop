@@ -11,6 +11,17 @@ DatabaseInterface::DatabaseInterface(QObject *parent) :
 }
 
 /**
+ * @brief DatabaseInterface::initDatabase è uno slot chiamato non appena il thread in cui l'istanza di DatabaseInterface gira
+ *        inizia. Serve per creare la connessione col database, in quanto per via di come i database sono gestiti dalle Qt, la
+ *        connessione non può essere condivisa da più thread; connettendo questo slot al signal che dichiara l'inizio
+ *        dell'esecuzione del nuovo thread mi assicuro che la connessione ed il setup del db sono eseguiti nel nuovo thread
+ */
+void DatabaseInterface::initDatabase()
+{
+    database.init();
+}
+
+/**
  * @brief DatabaseInterface::loadShoeData è uno slot chiamato dal main thread quando bisogna caricare una scarpa dal database
  *        in seguito all'arrivo di un messaggio RFID
  *
@@ -32,7 +43,7 @@ void DatabaseInterface::loadShoeData(QString RFIDcode)
 
 /**
  * @brief DatabaseInterface::loadShoeData è uno slot chiamato dal main thread quando bisogna caricare una scarpa dal database
- *        in seguito ad un input utente
+ *        in seguito ad un input utente (il codice è analogo a loadShoeData(QString))
  *
  * @param id l'id della scarpa da ricercare
  */

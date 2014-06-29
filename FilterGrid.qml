@@ -281,7 +281,7 @@ Rectangle {
                            if(!isSelected)
                            {
                                mainRectangle.border.color = "steelblue"
-                               mainRectangle.border.width = 2
+                               mainRectangle.border.width = 3
 
                                //Aggiungo l'elemento alla lista degli elementi selezionati per i filtri
                                selectedElements.push(itemText.text)

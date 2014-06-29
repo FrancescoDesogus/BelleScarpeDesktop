@@ -125,7 +125,7 @@ Rectangle
             /* Adesso devo settare le coordinate del flipable (non tocco quelle di delegateCopy in quanto è incollata al flipable e
              * non serve). Per farlo, recupero le coordinate locali a SimilarShoesList dell'entry della lista con la funzione
              * mapToItem(), in quanto toCopy contiene le coordinate dell'entry rispetto al padre, non rispetto al container
-             * di SimilarShoesList (per dire, la y avrebe un valore inferiore perchè non terrebbe conto del titolo che c'è in alto).
+             * di SimilarShoesList (per dire, la y avrebbe un valore inferiore perchè non terrebbe conto del titolo che c'è in alto).
              * Serve avere le coordinate locali "giuste" per usare di nuovo il metodo mapToItem() dentro  ShoeView in modo da
              * ottenere le coordinate globali dell'entry della lista. Servono quelle globali in quanto durante le transizioni
              * il flipable prende come padre il container di ShoeView, che è grande appunto tutto lo schermo */
@@ -137,6 +137,13 @@ Rectangle
 
             //Restituisco quindi il flipable, il cui front è adesso una copia visiva dell'entry della lista clickata
             return flipableSurface;
+        }
+
+        //Quando il flipable diventa visibile faccio scomparire l'highlightRectangle che era apparso nel mentre sopra l'oggetto
+        //della lista che il flipable sostituisce (l'highlightRectangle compare solo se ci vuole un po' a caricare la scarpa)
+        onVisibleChanged: {
+            if(visible)
+                highlightRectangle.opacity = 0
         }
     }
 
@@ -154,6 +161,8 @@ Rectangle
             anchors.fill: parent
             onClicked: container.touchEventOccurred()
         }
+
+
 
 
 
@@ -254,13 +263,42 @@ Rectangle
                              * un sistema di coordinate diverso da quello che dovrebbe usare */
                             shoeSelectedFlipable.parent = container
 
-                            //Infine emitto il signal che avverte che c'è bisogno di caricare una nuova scarpa, passando anche
+                            //Emitto quindi il signal che avverte che c'è bisogno di caricare una nuova scarpa, passando anche
                             //il flipable come parametro in modo che possa essere usato in ShoeView
                             container.needShoeIntoContext(modelData.id, shoeSelectedFlipable)
 
-                            /// Sezione Timer ///
-                            //Cambio l'indice della lista; automaticamente verrà cambiata anche la mainImage
-                            similarList.currentIndex = index
+
+                            /* Bisogna fare un'ultima cosa, far apparire l'highlightRectangle sopra l'elemento premuto. Per farlo
+                             * però occorre ottenere le coordinate locali dell'elemento in rispetto a tutta la SimilarShoesList
+                             * (il procedimento è simile a quello della funzione createCopy() della flipableSurface) */
+                            var localCoordinates = suggestionContainer.mapToItem(container, 0, 0)
+
+                            //Prese le coordinate, setto la posizione in base a quella dell'elemento, tornando però indietro
+                            //di alcuni pixel per lasciare più spazio tra il bordo e l'inizio delle scritte del delegate
+                            highlightRectangle.x = localCoordinates.x - 10 * scaleX
+
+                            //Adesso devo settare la y. Per via dello spacing tra gli elementi, che è assente nel primo, bisogna
+                            //settare una y diversa se l'elemento premuto è il primo della lista
+                            if(index == 0)
+                            {
+                                //Nel primo elemento non c'è spacing, quindi setto la y così come l'ho calcolata (togliendo 1 pixel
+                                //per far si che il bordo vada sopra il separatore che c'è sopra la lista)
+                                highlightRectangle.y = localCoordinates.y - 1 * scaleY
+
+                                //L'altezza allo stesso modo non tiene conto dello spacing, ed è pari a quella dell'elemento della
+                                //lista (più un paio di pixel per far si che vada sopra il separatore tra gli item della lista)
+                                highlightRectangle.height = suggestionContainer.height + 2 * scaleY
+                            }
+                            else
+                            {
+                                //Se altrimenti l'element premuto non è il primo della lista, bisogna considerare lo spacing
+                                //quando si mettono le coordinate e l'altezza
+                                highlightRectangle.y = localCoordinates.y - similarList.spacing
+                                highlightRectangle.height = suggestionContainer.height + similarList.spacing + 1 * scaleY
+                            }
+
+                            //Infine rendo visibile l'highlightRectangle mettendo l'opacità a 1, causando un'animazione di fade in
+                            highlightRectangle.opacity = 1
                         }
                     }
 
@@ -366,6 +404,37 @@ Rectangle
             {
                 verticalScrollBar.barOpacity = verticalScrollBar.defaultOpacity;
                 fadeOutTimer.restart();
+            }
+        }
+    }
+
+    /* Rettangolo che ha solo la cornice e che appare solo quando si preme una scarpa simile e c'è un attesa mentre si
+     * caricano i dati. Non è usato l'highlight proprio della ListView in quanto per via dello spacing e della grandzza del
+     * delegate della lista uscirebbe male; è meglio infatti creare un rettangolo apposito da spostare all'occorrenza */
+    Rectangle {
+        id: highlightRectangle
+
+        //Colore che rende invisibile il rettangolo
+        color: "#00000000"
+
+        //Nonostante il colore del rettangolo sia invisibile, il bordo si vede comunque
+        border.width: 2
+        border.color: "#9FB7BF"
+
+        //L'highlightRectangle di fatto è sempre visibile, solo che ha opacità a 0 quando non deve apparire
+        opacity: 0
+
+        //La larghezza è pari a quella della lista (pari a quella del delegate) più qualche pixel per coprire più spazio;
+        //l'altezza è invece definita in base all'item della lista premuto, in quanto può variare
+        width: similarList.width + 9 * scaleX
+
+        radius: 2
+
+        Behavior on opacity {
+            NumberAnimation {
+                duration: 250
+
+                easing.type: Easing.InOutSine
             }
         }
     }
