@@ -58,7 +58,7 @@ Rectangle {
         text: title
         color: listContainer.visible ? "black" : textColor
         font.family: metroFont.name
-        font.pointSize: 14
+        font.pointSize: 16
         font.letterSpacing: 1.3
         font.weight: Font.Bold
     }
@@ -178,6 +178,7 @@ Rectangle {
 
             clip: true
             model: listModel
+
 
             Component {
                 id: colorDelegate
@@ -358,10 +359,12 @@ Rectangle {
             id: verticalScrollBar
             flickable: filterList
             position: "left"
-            handleSize: 3
+            handleSize: 5
             listBackgroundColor: backgroundColor
-            handleColorNormal: "grey"
+            handleColorNormal: "white"
             handleColorPressed: "red"
+
+            visible: filterList.contentHeight >= listContainer.height
 
             onBarClicked: {
                 //Rimetto l'opacità della barra al valore di default, qualora non fosse già così

@@ -98,27 +98,44 @@ Rectangle {
         }
 
         Text {
-            id: arrow
+            id: arrowRight
             text: "«"
             font.family: metroFont.name
-            font.pointSize: 16
+            font.pointSize: 18
 
             rotation: 90
-            anchors.top: parent.top
-            anchors.topMargin: -9 * scaleY
-            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.bottom: parent.bottom
+            anchors.right: parent.right
+            anchors.rightMargin: 10 * scaleX
+
 
             color: textColor
         }
 
         Text {
+            id: arrowLeft
+            text: "«"
+            font.family: metroFont.name
+            font.pointSize: 18
+
+            rotation: 90
+            anchors.bottom: parent.bottom
+            anchors.left: parent.left
+            anchors.leftMargin: 15 * scaleX
+
+            color: textColor
+        }
+
+        Text {
+            id: filtraScarpeText
+
             text: "Filtra Scarpe"            
             font.family: metroFont.name
-            font.pointSize: 9
+            font.pointSize: 12
             font.letterSpacing: 1.2
 
-            anchors.bottom: parent.bottom
-            anchors.horizontalCenter: parent.horizontalCenter
+//            anchors.bottom: parent.bottom
+            anchors.centerIn: parent
             color: textColor
         }
 
@@ -1274,7 +1291,8 @@ Rectangle {
     /* Funzione che effettua il necessario per aprire il pannello dei filtri */
     function openPanel()
     {
-        arrow.text = "»"
+        arrowLeft.text = "»"
+        arrowRight.text = "»"
         draggingRectangle.y = 0 - filterPanelHeight
 
         //Dichiaro che ora il pannello è aperto
@@ -1290,7 +1308,8 @@ Rectangle {
     /* Funzione che effettua il necessario per chiudere il pannello dei filtri; è usata anche dall'esterno in ShoeView */
     function closePanel()
     {
-        arrow.text = "«"
+        arrowLeft.text = "«"
+        arrowRight.text = "«"
         draggingRectangle.y = -draggingRectangle.height
 
         //Faccio scomparire il rettangolo sullo sfondo

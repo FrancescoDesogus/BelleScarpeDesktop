@@ -29,7 +29,7 @@ Rectangle {
     property real similarTitleFontPointSize: 14
     property real similarTextFontPointSize: 12
     property real similarTopMargin: 7 * scaleY
-    property real similarLeftMargin: 0
+    property real similarLeftMargin: 5 * scaleX
 
     //Proprietà per la lista delle scarpe filtrate
     property real filteredImageWidth: 120 * scaleX
@@ -37,12 +37,12 @@ Rectangle {
     property real filteredTitleFontPointSize: 12
     property real filteredTextFontPointSize: 11
     property real filteredTopMargin: 7 * scaleY
-    property real filteredLeftMargin: 7 * scaleX
+    property real filteredLeftMargin: 12 * scaleX
 
     //Dato che deve essere possibile accedere al separator da fuori, uso un alias
     property alias separator: separator
 
-    radius: filtered ? 4 : 0
+    radius: filtered ? 5 : 0
 
     Image {
         id: similarThumbnail
@@ -114,22 +114,13 @@ Rectangle {
 
     Rectangle {
         id: separator
-        width: filtered ? (parent.width - (15 * scaleX)) : parent.width
+        width: parent.width
         height: (1 * scaleY)
-        color: filtered ? "#AEAEAE" : "#9FB7BF"
+        color: "#9FB7BF"
         anchors.bottom: suggestionContainer.bottom
         anchors.bottomMargin: -(1 * scaleY)
-        anchors.right: filtered ? suggestionContainer.right : undefined
+        visible: !filtered
     }
 
-    Rectangle {
-        id: separatorFiltered
-        height: parent.height - (11 * scaleY)
-        width: 1 * scaleX
-        color: "#AEAEAE"
-        anchors.right: suggestionContainer.right
-        anchors.rightMargin: -(1 * scaleX)
-        anchors.bottom: suggestionContainer.bottom
-        visible: filtered
-    }
+
 }

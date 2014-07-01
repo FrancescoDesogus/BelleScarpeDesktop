@@ -49,7 +49,7 @@ Rectangle {
         text: title
         color: listContainer.visible ? "black" : textColor
         font.family: metroFont.name
-        font.pointSize: 14
+        font.pointSize: 16
         font.letterSpacing: 1.2
         font.weight: Font.Bold
     }
@@ -175,7 +175,6 @@ Rectangle {
             orientation: ListView.Vertical
             spacing: 2 * scaleY
 
-
             //Il delegate usa un component creato ad hoc
             delegate: Rectangle {
                 id: textContainer
@@ -217,12 +216,10 @@ Rectangle {
                     font.weight: Font.Normal
                     font.letterSpacing: 1.1
 
-  //                color: "#9FB7BF"
                     color: "white"
 
                     anchors.left: checkbox.right
                     anchors.leftMargin: 8 * scaleX
-//                    anchors.verticalCenter: textContainer.verticalCenter
 
                     elide: Text.ElideRight
                 }
@@ -289,10 +286,12 @@ Rectangle {
             id: verticalScrollBar
             flickable: filterList
             position: "left"
-            handleSize: 3
+            handleSize: 5
             listBackgroundColor: backgroundColor
-            handleColorNormal: "grey"
+            handleColorNormal: "white"
             handleColorPressed: "red"
+
+            visible: filterList.contentHeight >= listContainer.height
 
             onBarClicked: {
                 //Rimetto l'opacità della barra al valore di default, qualora non fosse già così
