@@ -4,6 +4,7 @@
 #include <QQuickView>
 #include <ShoeDatabase.h>
 #include <databaseinterface.h>
+#include <serialreaderthread.h>
 #include <shoefilterdata.h>
 #include <arduino.h>
 #include <QQmlComponent>
@@ -15,6 +16,7 @@ class WindowManager : public QQuickView
 
 public:
     WindowManager(QQuickView *parent = 0);
+    ~WindowManager();
 
     void setupScreen();
 
@@ -32,6 +34,10 @@ private:
      * verrebbe subito eliminato insieme a tutti gli altri figli non appena il signal scatta. Questo invece non accade se è
      * un puntatore; nel caso infatti viene eliminato solo alla fine, dopo gli altri figli. In questo modo lo slot vien chiamato */
     Arduino* arduino;
+
+    //Oggetto per mantenere e gestire il thread per l'RFID reader
+    SerialReaderThread* serialReaderThread;
+
 
     //Lista dei context QML delle ShoeView; serve per tener traccia del context della view attualmente visibile, tenendo conto
     //che si può tornare indietro ad una ShoeView precedente

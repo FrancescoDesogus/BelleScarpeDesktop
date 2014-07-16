@@ -35,12 +35,26 @@ const int WindowManager::TARGET_RESOLUTION_WIDTH = 1920;
 const int WindowManager::TARGET_RESOLUTION_HEIGHT = 1080;
 
 
+/**
+ * @brief WindowManager::WindowManager è il costruttore della classe. Si occupa semplicemente di istanziare la classe di Arduino
+ *
+ * @param parent
+ */
 WindowManager::WindowManager(QQuickView *parent) :
-    QQuickView(parent)
+    QQuickView(parent), arduino(new Arduino(this))
 {
-    //Creo l'istanza per l'oggetto Arduino
-    arduino = new Arduino(this);
+
 }
+
+/**
+ * @brief WindowManager::~WindowManager è il distruttore della classe
+ */
+WindowManager::~WindowManager()
+{
+    delete serialReaderThread;
+    delete arduino;
+}
+
 
 /**
  * @brief WindowManager::setupScreen è un metodo che si occupa di inizializzare tutto il necessario per l'applicazione
@@ -105,7 +119,6 @@ void WindowManager::setupScreen()
         //Sposto la view nel rettangolo recuperato
         this->setGeometry(secondaryScreenGeometry);
     }
-
 
     //Appena avviato carico una scarpa per provare, simulando l'arrivo di un codice RFID
 //    emit requestShoeData("710024E7F3");
@@ -195,19 +208,13 @@ void WindowManager::setupDataThread()
 void WindowManager::setupRFIDThread()
 {
     //Creo l'istanza del thread
-    SerialReaderThread* serialReaderThread = new SerialReaderThread(this);
-
-    //Connetto l'evento della chiusura dell'applicazione con uno slot creato appositamente per gestire la chiusura del thread
-    QObject::connect(this, SIGNAL(destroyed()), serialReaderThread, SLOT(prepareToQuit()));
-
+    serialReaderThread = new SerialReaderThread(this);
 
     //Connetto il signal del thread che avvisa dell'arrivo di un codice RFID con il signal del main thread che si occupa
     //di avvisare il thread della gestione dati in modo da recuperare la scarpa del codice
     QObject::connect(serialReaderThread, SIGNAL(codeArrived(QString)), this, SIGNAL(requestShoeData(QString)));
-
-    //Terminati i preparativi, avvio il thread
-    serialReaderThread->start();
 }
+
 
 /**
  * @brief WindowManager::setFiltersIntoContext è uno slot chiamato dal thread del database una volta che i dai dei filtri
