@@ -14,11 +14,11 @@ class Arduino : public QObject
     Q_OBJECT
 
 public:
-    Arduino();
+    Arduino(QObject *parent = 0);
 
     bool turnOnLights(QString data);
 
-private slots:
+public slots:
     bool turnOffAllLights();
 
 private:

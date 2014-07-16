@@ -26,8 +26,12 @@ private:
     //Oggetto che funge da interfaccia con il database; è usato in un thread secondario in modo da prendere i dati in modo asincrono
     DatabaseInterface databaseInterface;
 
-    //Oggetto che si occupadi mandare messaggi all'Arduino per accedere le luci delle scarpe filtrate
-    Arduino arduino;
+    /* Oggetto che si occupa di mandare messaggi all'Arduino per accedere le luci delle scarpe filtrate. E' un puntatore per far si
+     * che possa collegare il signal destroyed() della quickview con uno slot della classe Arduino; se non fosse un puntatore infatti
+     * lo slot non verrebbe chiamato, in quanto essendo l'oggetto arduino figlio della finestra che fa scattare il signal destroyed(),
+     * verrebbe subito eliminato insieme a tutti gli altri figli non appena il signal scatta. Questo invece non accade se è
+     * un puntatore; nel caso infatti viene eliminato solo alla fine, dopo gli altri figli. In questo modo lo slot vien chiamato */
+    Arduino* arduino;
 
     //Lista dei context QML delle ShoeView; serve per tener traccia del context della view attualmente visibile, tenendo conto
     //che si può tornare indietro ad una ShoeView precedente

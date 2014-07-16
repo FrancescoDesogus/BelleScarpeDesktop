@@ -29,7 +29,8 @@ const int Arduino::TURN_OFF_TIME = 5000;
  *        impostazioni da usare usare per la porta; senza queste informazioni non funzionerebbe corettamente; crea inoltre
  *        l'istanza del timer da usare per spegnere le luci dopo un tot di tempo
  */
-Arduino::Arduino()
+Arduino::Arduino(QObject *parent) :
+    QObject(parent)
 {
     serialPort.setPort(QSerialPortInfo(Arduino::PORT_NAME));
 
@@ -112,6 +113,7 @@ bool Arduino::turnOffAllLights()
 {
     bool result = false;
 
+
     //Provo ad aprire la porta in modalità scrittura
     if(serialPort.open(QIODevice::WriteOnly))
     {
@@ -134,6 +136,7 @@ bool Arduino::turnOffAllLights()
         //Se il numero di byte scritto è > 0 vuol dire che è andato tutto bene, quindi procedo con l'invio del messaggio vero e proprio
         if(numBytesWritten > 0)
             result = true;
+
 
         //A prescindere dall'esito dell'invio, chiudo la porta seriale
         serialPort.close();

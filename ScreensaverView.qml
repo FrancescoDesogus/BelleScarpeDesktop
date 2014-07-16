@@ -16,6 +16,8 @@ Rectangle
     signal transitionFromRFIDStarted()
     signal transitionFromRFIDEnded()
 
+    signal errorOccurred();
+
 
     FontLoader { id: metroFont; source: "qrc:segeo-wp.ttf" }
 
@@ -49,7 +51,7 @@ Rectangle
 
     Text {
         id: text
-        text: "Appoggia una scarpa (e non altro) sopra il lettore per visualizzare informazioni sulla scarpa"
+        text: "Appoggia una scarpa sopra il lettore per visualizzare informazioni su di essa"
         font.family: metroFont.name
         font.pointSize: 20
         color: "#111111"
@@ -61,6 +63,29 @@ Rectangle
 //            width: topRectangle.width - (10 * scaleX)
 
         elide: Text.ElideRight
+    }
+
+    Text {
+        id: errorText
+        text: "Non è stato possibile recuperare la scarpa scelta!"
+        font.family: metroFont.name
+        font.pointSize: 17
+        color: "#f97474"
+
+        opacity: 0
+
+        anchors.top: text.bottom
+        anchors.topMargin: 260 * scaleY
+
+        anchors.horizontalCenter: container.horizontalCenter
+
+        elide: Text.ElideRight
+
+        Behavior on opacity {
+            NumberAnimation {
+                duration: 250
+            }
+        }
     }
 
 
@@ -115,11 +140,22 @@ Rectangle
         angle: 0
     }
 
+    onErrorOccurred: {
+        errorText.opacity = 1
+
+        blackBackgroundRectangle.visible = false
+        blackBackgroundRectangle.opacity = 0
+        blackBackgroundRectangle.loadIndicator.running = false
+    }
+
+
 
     onTransitionFromRFIDincoming: {
         blackBackgroundRectangle.visible = true
         blackBackgroundRectangle.opacity = 0.5
         blackBackgroundRectangle.loadIndicator.running = true
+
+        errorText.opacity = 0
     }
 
     onTransitionFromRFIDStarted: {

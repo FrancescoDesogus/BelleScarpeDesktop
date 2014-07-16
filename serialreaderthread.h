@@ -2,8 +2,12 @@
 #define SERIALREADERTHREAD_H
 
 #include <QThread>
+#include <QTimer>
 #include <QSerialPort>
 
+/**
+ * @brief The SerialReaderThread class per gestire l'RFID Reader in un thread separato
+ */
 class SerialReaderThread : public QThread
 {
     Q_OBJECT
@@ -18,8 +22,11 @@ private:
     static const int PARITY;
     static const int STOP_BITS;
 
+    static const int PACKET_SIZE;
     static const int CODE_SIZE;
     static const int CHECKSUM_SIZE;
+
+    static const int INTERVAL_BETWEEN_PACKETS;
 
     QSerialPort serialPort;
 

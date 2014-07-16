@@ -24,6 +24,9 @@ Rectangle {
         //Questa proprietà indica se attualmente la view visualizzata è quella dello screenSaver. All'inizio è così
         property bool isScreensaverOn: true
 
+        //Riferimento alla ScreensaverView attualmente visualizzata (da usare solo se isScreensaverOn == true)
+        property ScreensaverView currentScreensaverView;
+
 
         //Inizialmente l'unica schermata presente è quella di timeout, che aspetta di ricevere info dall'RFID reader
         ScreensaverView {
@@ -33,6 +36,9 @@ Rectangle {
             //un riferimento alla view attualmente mostrata
             Component.onCompleted: {
                 myViewManager.setStartingView(screensaverView)
+
+                //Salvo il riferimento alla view
+                myViewManager.currentScreensaverView = screensaverView;
 
                 //Connetto poi il signal della classe C++ che scatta quando è arrivato un messaggio RFID che richiede una scarpa
                 //al signal della ScreensaverView che si occupa di fare i preparativi per riceverla
@@ -53,30 +59,6 @@ Rectangle {
         repeat: false
         onTriggered: resetView()
      }
-
-
-    //timer in loop per prove
-//    Timer {
-//        id: screenTimeoutTimer2
-//        interval: 5000
-//        running: true
-//        repeat: true
-//        onTriggered: window.requestShoeData("asd")
-//     }
-
-//    Timer {
-//        id: screenTimeoutTimer3
-//        interval: 7000
-//        running: true
-//        repeat: true
-//        onTriggered: resetView()
-//     }
-
-
-    //Se non mostra l'animazione al primo messaggio dell'RFID reader per misterni strani, provare a scommentare una di queste
-//    Component.onCompleted: window.prova()
-//    Component.onCompleted: window.loadNewShoeView(1)
-
 
 
     /* Funzione chiamata da C++ dopo la creazione di una nuova ShoeView. Si occupa di connettere la view appena aggiunta (e passata come
@@ -173,6 +155,9 @@ Rectangle {
         //Segno che ora la schermata attiva è quella dello screensaver
         myViewManager.isScreensaverOn = true;
 
+        //Salvo il riferimento della nuova ScreensaverView
+        myViewManager.currentScreensaverView = newView;
+
         //Chiamo il metodo del ViewManager che riazzera lo stack di view e che si occupa di eseguire la transizione visiva
         myViewManager.resetToScreensaverView(newView);
     }
@@ -189,5 +174,7 @@ Rectangle {
         //Riporto alla schermata di timeout, se non era già attiva
         if(!myViewManager.isScreensaverOn)
             resetView();
+        else
+            myViewManager.currentScreensaverView.errorOccurred();
     }
 }

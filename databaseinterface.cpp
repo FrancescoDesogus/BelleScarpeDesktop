@@ -33,8 +33,9 @@ void DatabaseInterface::loadShoeData(QString RFIDcode)
     //la scarpa non è stata trovata
     Shoe* shoe = database.getShoeFromId(RFIDcode);
 
-    //Recupero eventuali scarpe simili dal db e le inserisco nella scarpa
-    shoe->setSimilarShoes(database.getSimiliarShoes(shoe));
+    //Recupero eventuali scarpe simili dal db e le inserisco nella scarpa (se è diversa da null)
+    if(shoe)
+        shoe->setSimilarShoes(database.getSimiliarShoes(shoe));
 
     //Infine emitto il signal che avvisa il main thread che la scarpa è pronta, segnalando con un booleano che viene da un RFID
     emit shoeDataLoaded(shoe, true);
@@ -51,7 +52,8 @@ void DatabaseInterface::loadShoeData(int id)
 {
     Shoe* shoe = database.getShoeFromId(id);
 
-    shoe->setSimilarShoes(database.getSimiliarShoes(shoe));
+    if(shoe)
+        shoe->setSimilarShoes(database.getSimiliarShoes(shoe));
 
     emit shoeDataLoaded(shoe, false);
 }

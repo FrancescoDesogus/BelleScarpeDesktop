@@ -3,24 +3,19 @@
 
 #include <QQuickView>
 #include <QWindow>
-
 #include <QRect>
 #include <QDesktopWidget>
-
 #include <QApplication>
-
 #include <QtDeclarative/QDeclarativeView>
-
 #include <QDebug>
 #include <QThread>
 #include <QQmlContext>
-
 #include <QQmlEngine>
-
 #include <QQmlComponent>
-#include <QTimer>
 #include <QQuickItem>
-
+#include <QVariant>
+#include <QDir>
+#include <vector>
 
 #include <shoedatabase.h>
 #include <shoe.h>
@@ -28,9 +23,6 @@
 #include <databaseinterface.h>
 #include <arduino.h>
 
-#include <vector>
-#include <QVariant>
-#include <QDir>
 
 #include <QDeclarativeEngine>
 
@@ -46,7 +38,8 @@ const int WindowManager::TARGET_RESOLUTION_HEIGHT = 1080;
 WindowManager::WindowManager(QQuickView *parent) :
     QQuickView(parent)
 {
-
+    //Creo l'istanza per l'oggetto Arduino
+    arduino = new Arduino(this);
 }
 
 /**
@@ -58,6 +51,9 @@ void WindowManager::setupScreen()
     //asincrono ed il metodo per creare il thread che gestisce la porta seriale dell'RFID reader (se è attaccato)
     this->setupDataThread();
     this->setupRFIDThread();
+
+    //Connetto la chiusura dell'applicazione con lo spegnimento di eventuali luci dell'Arduino
+    QObject::connect(this, SIGNAL(destroyed()), arduino, SLOT(turnOffAllLights()));
 
 
     QQmlContext* rootContext = this->rootContext();
@@ -93,6 +89,9 @@ void WindowManager::setupScreen()
     //posso mettere la finestra in fullscreen e la parte fatta in QML si adatterà automaticamente
     this->setResizeMode(QQuickView::SizeRootObjectToView);
 
+    // Mando in esecuzione a tutto schermo
+    this->showFullScreen();
+
 
     //Una volta mandato a tutto schermo, controllo se ci sono più monitor attaccati; nel caso sposto la finestra nel secondo
     if(desktopWidget.screenCount() > 1)
@@ -101,21 +100,15 @@ void WindowManager::setupScreen()
          * dopo il primo schermo e avrà dimensioni pari a quelle del secondo schermo. Se ad esempio il secondo schermo ha
          * dimensioni 1920x1080 ed il primo 1366x768, il rettangolo restituito avrà il punto in alto a sinistra alle
          * coordinate (1366, 0) (cioè subito dopo il primo schermo) e dimensioni 1920x1080 */
-        QRect secondaryScreenGeometry = desktopWidget.screenGeometry(1);
+        QRect secondaryScreenGeometry = desktopWidget.screenGeometry(desktopWidget.primaryScreen() + 1);
 
         //Sposto la view nel rettangolo recuperato
         this->setGeometry(secondaryScreenGeometry);
     }
 
 
-    /* Mando in esecuzione a tutto schermo; è importante farlo dopo l'eventuale switch di schermi, altrimenti la view diventa
-     * fullscreen con dimensioni basate sul primo schermo; se ad esempio il primo schermo fosse più piccolo del secondo,
-     * la view apparirebbe nel secondo schermo ma con le dimensioni del primo schermo invece che con quelle del secondo */
-    this->showFullScreen();
-
-
     //Appena avviato carico una scarpa per provare, simulando l'arrivo di un codice RFID
-    emit requestShoeData("asd");
+//    emit requestShoeData("710024E7F3");
 }
 
 /**
@@ -128,7 +121,6 @@ void WindowManager::setupDataThread()
 {
     //Creo l'istanza del thread
     QThread* dataThread = new QThread(this);
-
 
     /* Sposto quello che nel gergo di Qt viene detto "work thread object" nel thread. In questo modo l'istanza della classe
      * DatabaseInterface vivrà all'interno di quel thread. D'ora in avanti, se connetto un signal del thread principale
@@ -207,6 +199,7 @@ void WindowManager::setupRFIDThread()
 
     //Connetto l'evento della chiusura dell'applicazione con uno slot creato appositamente per gestire la chiusura del thread
     QObject::connect(this, SIGNAL(destroyed()), serialReaderThread, SLOT(prepareToQuit()));
+
 
     //Connetto il signal del thread che avvisa dell'arrivo di un codice RFID con il signal del main thread che si occupa
     //di avvisare il thread della gestione dati in modo da recuperare la scarpa del codice
@@ -425,11 +418,7 @@ void WindowManager::showFilteredShoes(vector<Shoe*> filteredShoes)
 
     //Accendo le luci di tutte le scarpe trovate; se non è possibile accenderle, non vengono mostrati errori (viene restituito false).
     //Se le luci sono state accese, parte un timer che le spegne dopo un tot di tempo
-    arduino.turnOnLights(arduinoLights);
-
-
-    if(qmlContextList.size() == 0)
-        qDebug() << "qmlContextList size == 0!";
+    arduino->turnOnLights(arduinoLights);
 
     //Recupero l'ultimo context presente nella lista dei context delle ShoeView; l'ultimo context è quello relativo alla view
     //attualmente visualizzata, che è quella che stava attendendo la fine della ricerca di scarpe
@@ -454,5 +443,11 @@ void WindowManager::movingToPreviousView()
      * poi si cerca di prendere il context di quella view (quando si devono mostrare i risultati di una ricerca). In sostanza,
      * bisogna far si che l'array contenga sempre il primo context della lista */
     if(qmlContextList.size() > 1)
+    {
+        //Dato che il contenuto dell'array sono puntatori, recupero l'ultimo elemento e lo rimuovo dalla memoria..
+        delete qmlContextList.back();
+
+        //...e anche dall'array
         qmlContextList.pop_back();
+    }
 }
