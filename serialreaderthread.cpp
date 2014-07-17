@@ -42,11 +42,6 @@ SerialReaderThread::SerialReaderThread(QObject *parent) :
     QObject::connect(thread, SIGNAL(started()), this, SLOT(run()));
 
     thread->start();
-
-
-    //Avvio nel prompt dei comandi di windows questo comando. Senza ci sarebbe un warning riguardo il flow control, però
-    //comunque funzionerebbe; in ogni caso, meglio metterlo
-    system("mode com7: BAUD=9600 PARITY=n DATA=8 STOP=1 to=off dtr=off rts=off");
 }
 
 /**
@@ -110,6 +105,8 @@ void SerialReaderThread::run()
         serialPort.setDataBits((QSerialPort::DataBits) SerialReaderThread::DATA_BITS);
         serialPort.setParity((QSerialPort::Parity) SerialReaderThread::PARITY);
         serialPort.setStopBits((QSerialPort::StopBits) SerialReaderThread::STOP_BITS);
+        serialPort.setFlowControl((QSerialPort::FlowControl) QSerialPort::NoFlowControl);
+
 
         /* Buffer in cui saranno inseriti i dati di volta in volta. In pratica per come funziona l'RFID reader, quando viene
          * letto un tag il pacchetto che si manda può essere splittato in più parti (e da quanto abbiamo visto è sempre così);
