@@ -66,7 +66,8 @@ Rectangle
     }
 
     Image {
-        id: sketch
+        id: sketchve
+
         anchors.top: text.bottom
         anchors.horizontalCenter: container.horizontalCenter
         anchors.topMargin: 90 * scaleY
