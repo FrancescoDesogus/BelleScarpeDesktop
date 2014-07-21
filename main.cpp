@@ -22,13 +22,9 @@ int main(int argc, char *argv[])
     view.setupScreen();
 
 
-//    SerialReaderThread thread;
+//    app.setOverrideCursor(QCursor( Qt::BlankCursor ));
 
 
-//    QObject::connect(&thread, SIGNAL(codeArrived(QString)), &view, SIGNAL(requestShoeData(QString)));
-
-
-//    thread.start();
 
     return app.exec();
 }

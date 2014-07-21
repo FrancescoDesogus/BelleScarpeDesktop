@@ -60,6 +60,15 @@ Rectangle {
         onTriggered: resetView()
      }
 
+//    Timer {
+//        id: videoTimeeer
+//        interval: 3000
+//        running: true
+//        repeat: false
+//        onTriggered: resetView()
+//     }
+
+
 
     /* Funzione chiamata da C++ dopo la creazione di una nuova ShoeView. Si occupa di connettere la view appena aggiunta (e passata come
      * parametro da C++) agli eventi dell'applicazione, come il timer di inattivià o il view manager. In base al fatto che la view

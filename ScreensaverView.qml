@@ -33,7 +33,7 @@ Rectangle
 
         Text {
             id: shopName
-            text: "BelleScarpeCod"
+            text: "BelleScarpe"
             font.family: metroFont.name
             font.pointSize: 50
     //        font.letterSpacing: 1.2
@@ -51,19 +51,30 @@ Rectangle
 
     Text {
         id: text
-        text: "Appoggia una scarpa sopra il lettore per visualizzare informazioni su di essa"
+        text: "Poggia una scarpa sopra il lettore per visualizzare informazioni su di essa"
         font.family: metroFont.name
         font.pointSize: 20
         color: "#111111"
 
         anchors.top: topRectangle.bottom
-        anchors.topMargin: 160 * scaleY
+        anchors.topMargin: 100 * scaleY
 
         anchors.horizontalCenter: container.horizontalCenter
 //            width: topRectangle.width - (10 * scaleX)
 
         elide: Text.ElideRight
     }
+
+    Image {
+        id: sketch
+        anchors.top: text.bottom
+        anchors.horizontalCenter: container.horizontalCenter
+        anchors.topMargin: 90 * scaleY
+//        width: 250 * scaleX
+//        height: 250 * scaleY
+        source: "qrc:///qml/sketch.png"
+    }
+
 
     Text {
         id: errorText
