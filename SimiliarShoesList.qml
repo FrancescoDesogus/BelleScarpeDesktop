@@ -385,18 +385,6 @@ Rectangle
             anchors.top: listContainer.bottom
         }
 
-//        Image {
-//            id: qrCode
-//            anchors.top: separatorList.bottom
-//            anchors.left: parent.left
-//            anchors.topMargin: 25 * scaleY
-//            width: 250 * scaleX
-//            height: 250 * scaleY
-//            source: "qrc:///qml/qrcode.png"
-//    //        anchors.horizontalCenter: parent.horizontalCenter
-//    //        anchors.left: parent
-//        }
-
         //Quando la lista diventa visibile, faccio comparire la scrollbar e riavvio il timer che la fa scomparire; in questo modo
         //quando si torna ad una ShoeView precedentemente visitata, la barra compare subito
         onVisibleChanged: {

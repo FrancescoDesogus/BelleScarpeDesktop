@@ -13,26 +13,24 @@
         <file>youtubePlayer.html</file>
         <file>SimiliarShoesList.qml</file>
         <file>segeo-wp.ttf</file>
-        <file>back_pressed_resized.png</file>
-        <file>back_enabled_resized.png</file>
-        <file>back_disabled_resized.png</file>
-        <file>back_pressed_mini.png</file>
-        <file>back_enabled_mini.png</file>
-        <file>back_disabled_mini.png</file>
-        <file>qrcode.png</file>
         <file>FlipableSurface.qml</file>
         <file>SimilarShoesDelegate.qml</file>
         <file>ShoeFilter.qml</file>
         <file>FilterList.qml</file>
         <file>FilterGrid.qml</file>
-        <file>checkbox_unselected.png</file>
-        <file>checkbox_selected.png</file>
-        <file>check.png</file>
         <file>LoadIndicator.qml</file>
-        <file>sketch.png</file>
     </qresource>
     <qresource prefix="/images">
         <file>busy.png</file>
-        <file>busy.gif</file>
+        <file>back_disabled_mini.png</file>
+        <file>back_disabled_resized.png</file>
+        <file>back_enabled_mini.png</file>
+        <file>back_enabled_resized.png</file>
+        <file>back_pressed_mini.png</file>
+        <file>back_pressed_resized.png</file>
+        <file>check.png</file>
+        <file>checkbox_selected.png</file>
+        <file>checkbox_unselected.png</file>
+        <file>sketch.png</file>
     </qresource>
 </RCC>

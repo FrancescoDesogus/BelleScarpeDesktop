@@ -189,7 +189,7 @@ Rectangle {
 
                 Image {
                     id: checkbox
-                    source:"qrc:///qml/check.png"
+                    source:"qrc:/images/check.png"
                     fillMode: Image.PreserveAspectFit
 
                     visible: textContainer.isSelected ? true : false

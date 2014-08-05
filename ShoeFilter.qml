@@ -483,7 +483,7 @@ Rectangle {
                     id: checkUomo
 
                     //l'immagine cambia in base alla selezione
-                    source: uomoFilter.isSelected ? "qrc:///qml/checkbox_selected.png" : "qrc:///qml/checkbox_unselected.png"
+                    source: uomoFilter.isSelected ? "qrc:/images/checkbox_selected.png" : "qrc:/images/checkbox_unselected.png"
                     fillMode: Image.PreserveAspectFit
 
                     width: sexFilterList.checkboxHW * scaleX
@@ -555,7 +555,7 @@ Rectangle {
                     id: checkDonna
 
                     //l'immagine cambia in base alla selezione
-                    source: donnaFilter.isSelected ? "qrc:///qml/checkbox_selected.png" : "qrc:///qml/checkbox_unselected.png"
+                    source: donnaFilter.isSelected ? "qrc:/images/checkbox_selected.png" : "qrc:/images/checkbox_unselected.png"
                     fillMode: Image.PreserveAspectFit
                     width: sexFilterList.checkboxHW * scaleX
                     height: sexFilterList.checkboxHW * scaleY

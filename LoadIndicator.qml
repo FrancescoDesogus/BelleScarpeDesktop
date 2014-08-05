@@ -7,10 +7,7 @@ import QtQuick 2.0
 Item {
     id: loadIndicator
 
-//    anchors.fill: parent
-
     property bool running: false
-//    property string imageSource: "qrc:/images/busy.gif"
     property string imageSource: "qrc:/images/busy.png"
 
     //Rendo visibile il tutto solo se sta effettivamente caricando
@@ -32,16 +29,4 @@ Item {
             NumberAnimation { target: image; property: "rotation"; from: 0; to: 360; loops: Animation.Infinite; duration: 1200 }
         }
     }
-
-//    AnimatedImage {
-//        id: image
-
-//        anchors.centerIn: parent
-
-//        source: loadIndicator.imageSource
-
-//        height: 70 * scaleY
-//        width: 70 * scaleX
-
-//    }
 }

@@ -16,6 +16,7 @@
 #include <QVariant>
 #include <QDir>
 #include <vector>
+#include <QDeclarativeEngine>
 
 #include <shoedatabase.h>
 #include <shoe.h>
@@ -24,9 +25,6 @@
 #include <arduino.h>
 
 
-#include <QDeclarativeEngine>
-
-//Dato che uso il "vector" di C++, utilizzo il namespace std come scorciatoia invece di scrivere "std::vector"
 using namespace std;
 
 
@@ -121,7 +119,7 @@ void WindowManager::setupScreen()
     }
 
     //Appena avviato carico una scarpa per provare, simulando l'arrivo di un codice RFID
-//    emit requestShoeData("710024E7F3");
+    emit requestShoeData("710024E7F3");
 }
 
 /**
@@ -301,7 +299,7 @@ void WindowManager::loadNewShoeView(Shoe *shoe, bool isFromRFID)
        inputFile.close();
     }
     else
-        qDebug() << "Non è stato possibile aprire il file con i video; il file potrebbe non essere presente";
+        qDebug() << "WindowManager::loadNewShoeView: non è stato possibile aprire il file con i video; il file potrebbe non essere presente";
 
 
 
@@ -319,7 +317,7 @@ void WindowManager::loadNewShoeView(Shoe *shoe, bool isFromRFID)
 
 
 
-    /* Adesso la parte importante: bisogna epsorre le cose appena recuperate in modo che siano accessibili da QML.
+    /* Adesso la parte importante: bisogna esporre le cose appena recuperate in modo che siano accessibili da QML.
      * In generale le viste QML sono basate su un context; nel metodo setupScreen() erano state aggiunte delle proprietà
      * al context del root, ovvero il context globale e condiviso da tutte le viste che nascono da quel root. Per far si
      * che ogni view aggiunta dinamicamente mostri esclusivamente i contenuti della scarpa della view, non bisogna mettere

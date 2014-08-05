@@ -178,7 +178,7 @@ Rectangle {
     function cantLoadShoe()
     {
         //Far si che venga visualizzato un errore migliore del log...
-        console.log("Non è stato possibile caricare la scarpa, merda...");
+        console.log("Non e' stato possibile caricare la scarpa, merda... Magari non c'è connessione al server?");
 
         //Riporto alla schermata di timeout, se non era già attiva
         if(!myViewManager.isScreensaverOn)

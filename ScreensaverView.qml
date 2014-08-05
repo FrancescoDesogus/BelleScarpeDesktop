@@ -66,14 +66,13 @@ Rectangle
     }
 
     Image {
-        id: sketchve
+        id: sketch
 
         anchors.top: text.bottom
         anchors.horizontalCenter: container.horizontalCenter
         anchors.topMargin: 90 * scaleY
-//        width: 250 * scaleX
-//        height: 250 * scaleY
-        source: "qrc:///qml/sketch.png"
+
+        source: "qrc:/images/sketch.png"
     }
 
 
@@ -87,7 +86,7 @@ Rectangle
         opacity: 0
 
         anchors.top: text.bottom
-        anchors.topMargin: 260 * scaleY
+        anchors.topMargin: 40 * scaleY
 
         anchors.horizontalCenter: container.horizontalCenter
 

@@ -226,7 +226,7 @@ Rectangle {
 
         //Se si sta effettuando una ricerca non è possibile tornare indietro; di conseguenza mostro il bottone disabilitato
         //se si sta facendo una ricerca, altrimenti mostro quello normale
-        source: filterPanel.isFilteringShoes ? "qrc:///qml/back_disabled_mini.png" : "qrc:///qml/back_enabled_mini.png"
+        source: filterPanel.isFilteringShoes ? "qrc:/images/back_disabled_mini.png" : "qrc:/images/back_enabled_mini.png"
 
         width: 65 * scaleX
         height: 65 * scaleY
@@ -269,22 +269,22 @@ Rectangle {
                 container.touchEventOccurred()
 
                 if(container.isGoingBackAllowed && !filterPanel.isFilteringShoes)
-                    backButton.source =  "qrc:///qml/back_pressed_mini.png"
+                    backButton.source =  "qrc:/images/back_pressed_mini.png"
             }
 
             onReleased: {
                 if(container.isGoingBackAllowed && !filterPanel.isFilteringShoes)
-                    backButton.source = "qrc:///qml/back_enabled_mini.png"
+                    backButton.source = "qrc:/images/back_enabled_mini.png"
             }
 
             onEntered: {
                 if(container.isGoingBackAllowed && !filterPanel.isFilteringShoes)
-                    backButton.source = "qrc:///qml/back_disabled_mini.png"
+                    backButton.source = "qrc:/images/back_disabled_mini.png"
             }
 
             onExited: {
                 if(container.isGoingBackAllowed && !filterPanel.isFilteringShoes)
-                    backButton.source = "qrc:///qml/back_enabled_mini.png"
+                    backButton.source = "qrc:/images/back_enabled_mini.png"
             }
         }
     }
