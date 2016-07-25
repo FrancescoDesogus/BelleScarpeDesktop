@@ -1,3 +1,5 @@
+Authors: Francesco Desogus, Gabriele Marini (Gabryxx7)
+
 ************************************************************************************
 Qua su git c'è il progetto dell'applicazione, da importare così com'è su QtCreator; dentro c'è tutto il codice sorgente oltre che le immagini
 e cose varie usate dall'app. Il contenuto è tutto sparso, per vederlo con più ordine bisogna importare il progetto su QtCreator.
