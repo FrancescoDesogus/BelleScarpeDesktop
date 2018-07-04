@@ -1,5 +1,13 @@
 Authors: Francesco Desogus, Gabriele Marini (Gabryxx7)
 
+Screenshots from the software:
+
+![1 - Sample from the software](http://i65.tinypic.com/s15jkw.png)
+
+![2 - Sample from the software](http://i68.tinypic.com/1ykfuw.png)
+
+![2 - Sample from the software](http://i63.tinypic.com/2077sk8.png)
+
 ************************************************************************************
 Qua su git c'è il progetto dell'applicazione, da importare così com'è su QtCreator; dentro c'è tutto il codice sorgente oltre che le immagini
 e cose varie usate dall'app. Il contenuto è tutto sparso, per vederlo con più ordine bisogna importare il progetto su QtCreator.
